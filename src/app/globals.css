@@ -82,25 +82,25 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
 
-  /* Lavender / Sage Primary */
-  --primary: 262 30% 50%;
-  --primary-foreground: 210 40% 98%;
+  /* Teal Pattern Primary */
+  --primary: 174 71% 40%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 140 20% 94%;
-  --secondary-foreground: 140 30% 25%;
+  --secondary: 174 50% 96%;
+  --secondary-foreground: 174 71% 40%;
 
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
 
-  --accent: 40 40% 60%;
-  --accent-foreground: 222.2 47.4% 11.2%;
+  --accent: 174 50% 90%;
+  --accent-foreground: 174 71% 40%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 262 30% 50%;
+  --ring: 174 71% 40%;
 
   --radius: 0.5rem;
 }
@@ -115,16 +115,16 @@
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
 
-  --primary: 262 30% 60%;
+  --primary: 174 71% 50%;
   --primary-foreground: 222.2 47.4% 11.2%;
 
-  --secondary: 140 20% 20%;
+  --secondary: 174 30% 20%;
   --secondary-foreground: 210 40% 98%;
 
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
 
-  --accent: 40 40% 50%;
+  --accent: 174 30% 25%;
   --accent-foreground: 210 40% 98%;
 
   --destructive: 0 62.8% 30.6%;
@@ -132,7 +132,7 @@
 
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 262 30% 60%;
+  --ring: 174 71% 50%;
 }
 
 @layer base {

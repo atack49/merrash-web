@@ -38,12 +38,11 @@ export function Header() {
                 {/* Logo */}
                 <Link
                     href="/"
-                    className={cn(
-                        "text-2xl font-bold tracking-tight transition-colors",
-                        isScrolled ? "text-primary" : "text-primary" // Always primary or adapt based on hero bg? Let's stick to primary for brand.
-                    )}
+                    className="flex items-center gap-2"
                 >
-                    MERRASH
+                    <span className="text-2xl font-bold tracking-tighter text-primary">
+                        Merrash
+                    </span>
                 </Link>
 
                 {/* Desktop Navigation */}
