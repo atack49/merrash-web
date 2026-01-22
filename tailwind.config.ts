@@ -50,6 +50,9 @@ const config: Config = {
                     foreground: "hsl(var(--card-foreground))",
                 },
             },
+            fontFamily: {
+                'cormorant': ['Cormorant', 'serif'],
+            },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",

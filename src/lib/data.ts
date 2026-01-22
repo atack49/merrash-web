@@ -116,3 +116,48 @@ export const ABOUT_TEXT = {
         "Médico Cirujano y Partero (BUAP)"
     ]
 };
+
+export const TESTIMONIALS = [
+    {
+        id: 1,
+        name: "Ana García",
+        text: "La acupuntura me ayudó a eliminar el dolor crónico que tenía desde hace años. ¡Increíble transformación!",
+        rating: 5,
+        service: "Acupuntura"
+    },
+    {
+        id: 2,
+        name: "Carlos Rodríguez",
+        text: "Los tratamientos de spa son relajantes y rejuvenecedores. Me siento renovado después de cada sesión.",
+        rating: 5,
+        service: "Spa Integral"
+    },
+    {
+        id: 3,
+        name: "María López",
+        text: "La homeopatía cambió mi vida. Finalmente encontré alivio para mis alergias sin efectos secundarios.",
+        rating: 5,
+        service: "Homeopatía"
+    },
+    {
+        id: 4,
+        name: "José Martínez",
+        text: "El Reiki me ayudó a equilibrar mi energía y reducir el estrés diario. Recomiendo ampliamente.",
+        rating: 5,
+        service: "Reiki"
+    },
+    {
+        id: 5,
+        name: "Laura Sánchez",
+        text: "Los masajes relajantes son perfectos para desconectar. El ambiente es muy profesional y acogedor.",
+        rating: 5,
+        service: "Masajes Relajantes"
+    },
+    {
+        id: 6,
+        name: "Pedro Hernández",
+        text: "La nutrición personalizada me ayudó a perder peso de manera saludable y sostenible.",
+        rating: 5,
+        service: "Nutrición"
+    }
+];
