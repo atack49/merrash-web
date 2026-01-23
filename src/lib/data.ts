@@ -2,7 +2,7 @@ import { Component, Heart, Leaf, Sparkles, Sun, Users, Activity, Gem, ScanFace, 
 
 export const CONTACT_INFO = {
     address: "Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.",
-    phone: ["222 238 6181", "722 495 8550"],
+    phone: ["222 238 6181", "722 495 8550", "729 165 4769"],
     email: "dramalumolina@gmail.com",
     socials: {
         facebook: "https://www.facebook.com/MerrashSpayMedicinaAlternativa",

@@ -21,12 +21,12 @@ export function Hero() {
             {/* Content */}
             <div className="relative z-10 container mx-auto px-4 text-center text-white space-y-6 md:space-y-8 animate-in fade-in zoom-in duration-1000">
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white drop-shadow-md">
-                    Restora Tu Equilibrio<br />
-                    <span className="font-light text-2xl md:text-4xl block mt-2 text-white/90">Cuerpo, Mente y Espíritu</span>
+                    Cuerpo, Mente y Espíritu<br />
+                    <span className="font-light text-2xl md:text-4xl block mt-2 text-white/90">Medicina Alternativa y Spa en Metepec</span>
                 </h1>
 
                 <p className="max-w-2xl mx-auto text-lg md:text-xl text-white/90 drop-shadow-sm font-light">
-                    Medicina Alternativa y Spa Integral en Metepec. Un santuario dedicado a tu bienestar holístico.
+                     Un santuario dedicado a tu bienestar holístico.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
