@@ -17,7 +17,6 @@ const NAVIGATION = [
   { name: "Contacto", href: "/#contacto" },
   { name: "Testimonios", href: "/testimonios" },
   { name: "Encuestas", href: "/encuestas" },
-
 ];
 
 export function Header() {
@@ -112,7 +111,6 @@ export function Header() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      {/* Mobile Menu Overlay */}
       {mounted && createPortal(
         <AnimatePresence>
           {mobileMenuOpen && (
@@ -123,7 +121,7 @@ export function Header() {
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="fixed inset-0 z-[9999] bg-background/95 backdrop-blur-xl md:hidden flex flex-col pt-24 px-6 pb-8 overflow-y-auto"
             >
-              {/* Close button inside the portal since the header one might be covered or z-index tricky */}
+              {/* Close button inside the portal */}
               <button
                 className="absolute top-6 right-4 p-2 text-foreground z-50"
                 onClick={() => setMobileMenuOpen(false)}

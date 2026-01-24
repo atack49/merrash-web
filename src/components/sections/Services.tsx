@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SERVICES } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export function Services() {
     const [activeCategory, setActiveCategory] = useState("Cuerpo");
     const categories = ["Cuerpo", "Mente", "Espíritu"];
+
+    // Listen for URL changes/params to switch category
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const categoryParam = params.get("category");
+            if (categoryParam && categories.includes(categoryParam)) {
+                setActiveCategory(categoryParam);
+            }
+        }
+    }, []);
 
     const filteredServices = SERVICES.filter(service => service.category === activeCategory);
 
