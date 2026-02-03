@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Star, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { submitSurvey } from "./actions";
 
 const satisfactionQuestions = [
     { id: "service_quality", label: "¿Cómo calificarías la calidad del servicio recibido?", type: "rating" },
@@ -30,13 +31,27 @@ export default function EncuestasPage() {
         setFormData(prev => ({ ...prev, [questionId]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Survey submitted:", activeSurvey, formData);
-        // Here you would typically send the data to a server
-        alert("¡Gracias por tu respuesta!");
-        setFormData({});
+        setIsSubmitting(true);
+
+        try {
+            const result = await submitSurvey(activeSurvey, formData);
+            if (result.success) {
+                alert(result.message);
+                setFormData({});
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            alert("Ocurrió un error inesperado");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
 
     const renderQuestion = (question: any) => {
         const value = formData[question.id] || "";
@@ -165,10 +180,11 @@ export default function EncuestasPage() {
                                 <div className="text-center pt-8">
                                     <button
                                         type="submit"
-                                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors duration-300 shadow-md hover:shadow-lg"
+                                        disabled={isSubmitting}
+                                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <Send className="w-5 h-5" />
-                                        Enviar Encuesta
+                                        {isSubmitting ? "Enviando..." : "Enviar Encuesta"}
                                     </button>
                                 </div>
                             </form>
