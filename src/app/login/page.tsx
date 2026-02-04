@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import { authenticate } from '@/app/lib/actions';
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Lock } from 'lucide-react';
 
 export default function LoginPage() {
     const [errorMessage, formAction, isPending] = useActionState(
@@ -14,58 +15,85 @@ export default function LoginPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="flex-grow flex items-center justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
-                <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-                    <div>
-                        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                            Iniciar Sesión
-                        </h2>
-                        <p className="mt-2 text-center text-sm text-gray-600">
-                            Acceso exclusivo para administradores
-                        </p>
-                    </div>
-                    <form className="mt-8 space-y-6" action={formAction}>
-                        <div className="rounded-md shadow-sm -space-y-px">
-                            <div>
-                                <label htmlFor="username" className="sr-only">Usuario</label>
+            <main className="mt-20 flex-grow flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 py-12 sm:px-6 lg:px-8">
+                <div className="w-full max-w-md">
+                    {/* Card Container */}
+                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                        {/* Header Section */}
+                        <div className="bg-gradient-to-r from-primary to-primary/80 px-8 py-12 text-center">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4">
+                                <Lock className="w-8 h-8 text-white" />
+                            </div>
+                            <h2 className="text-3xl font-bold text-white mb-2">Iniciar Sesión</h2>
+                            <p className="text-primary-foreground/80 text-sm">Acceso exclusivo para administradores</p>
+                        </div>
+
+                        {/* Form Section */}
+                        <form className="px-8 py-10 space-y-6" action={formAction}>
+                            {/* Username Field */}
+                            <div className="space-y-2">
+                                <label htmlFor="username" className="block text-sm font-semibold text-slate-700">
+                                    Usuario
+                                </label>
                                 <input
                                     id="username"
                                     name="username"
                                     type="text"
                                     required
-                                    className="appearance-none rounded-none w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                                    placeholder="Usuario"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
+                                    placeholder="Ingresa tu usuario"
                                 />
                             </div>
-                            <div>
-                                <label htmlFor="password" className="sr-only">Contraseña</label>
+
+                            {/* Password Field */}
+                            <div className="space-y-2">
+                                <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
+                                    Contraseña
+                                </label>
                                 <input
                                     id="password"
                                     name="password"
                                     type="password"
                                     required
-                                    className="appearance-none rounded-none w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                                    placeholder="Contraseña"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
+                                    placeholder="Ingresa tu contraseña"
                                 />
                             </div>
-                        </div>
 
-                        {errorMessage && (
-                            <div className="flex items-center text-red-500 text-sm">
-                                <p>{errorMessage}</p>
-                            </div>
-                        )}
+                            {errorMessage && (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                                    <div className="flex-shrink-0 text-red-600 mt-0.5">
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+                                </div>
+                            )}
 
-                        <div>
+                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={isPending}
-                                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+                                className="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary/80 text-white font-semibold rounded-lg hover:shadow-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                             >
-                                {isPending ? 'Cargando...' : 'Entrar'}
+                                {isPending ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                        Cargando...
+                                    </span>
+                                ) : (
+                                    'Entrar'
+                                )}
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+
+                    {/* Footer Info */}
+                    <p className="text-center text-sm text-slate-600 mt-8">
+                        ¿Problemas al iniciar sesión? <br/>
+                        <span className="text-slate-500">Contacta al administrador</span>
+                    </p>
                 </div>
             </main>
             <Footer />
