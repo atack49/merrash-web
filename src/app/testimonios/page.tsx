@@ -7,18 +7,16 @@ import { Footer } from "@/components/layout/Footer";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Create a map of service title to category
+// Map servicio → categoría
 const serviceCategoryMap = SERVICES.reduce((map, service) => {
     map[service.title] = service.category;
     return map;
 }, {} as Record<string, string>);
 
-// Group testimonials by category
+// Agrupar testimonios por categoría
 const groupedTestimonials = TESTIMONIALS.reduce((groups, testimonial) => {
     const category = serviceCategoryMap[testimonial.service] || "Otros";
-    if (!groups[category]) {
-        groups[category] = [];
-    }
+    if (!groups[category]) groups[category] = [];
     groups[category].push(testimonial);
     return groups;
 }, {} as Record<string, typeof TESTIMONIALS>);
@@ -33,11 +31,15 @@ export default function TestimoniosPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
+
             <main className="flex-grow">
                 <section className="py-24 bg-white">
                     <div className="container mx-auto px-4 md:px-6">
+                        {/* Header */}
                         <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
-                            <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight">Todos Nuestros Testimonios</h1>
+                            <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight">
+                                Todos Nuestros Testimonios
+                            </h1>
                             <p className="text-lg text-muted-foreground font-light">
                                 Descubre las experiencias de nuestros clientes clasificadas por tipo de servicio.
                             </p>
@@ -45,7 +47,7 @@ export default function TestimoniosPage() {
 
                         {/* Categorías */}
                         <div className="flex justify-center mb-12 flex-wrap gap-4">
-                            {categories.map((category) => (
+                            {categories.map(category => (
                                 <button
                                     key={category}
                                     onClick={() => setActiveCategory(category)}
@@ -61,25 +63,41 @@ export default function TestimoniosPage() {
                             ))}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]">
-                            {filteredTestimonials.map((testimonial) => (
+                        {/* Grid */}
+                        <div
+                            key={activeCategory} // 👈 fuerza animación al cambiar categoría
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]"
+                        >
+                            {filteredTestimonials.map((testimonial, index) => (
                                 <div
                                     key={testimonial.id}
-                                    className="p-6 rounded-2xl border border-border/50 bg-secondary/10 hover:bg-secondary/30 transition-all duration-300 hover:shadow-md hover:-translate-y-1 animate-in fade-in zoom-in-95 duration-500"
+                                    style={{ animationDelay: `${index * 70}ms` }}
+                                    className={cn(
+                                        "p-6 rounded-2xl border border-border/50 bg-secondary/10",
+                                        "hover:bg-secondary/30 hover:shadow-md transition-all duration-300",
+                                        "animate-[fadeUp_0.45s_ease-out_forwards]"
+                                    )}
                                 >
                                     <div className="flex items-center mb-4">
                                         {[...Array(testimonial.rating)].map((_, i) => (
-                                            <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                                            <Star
+                                                key={i}
+                                                className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                                            />
                                         ))}
                                     </div>
+
                                     <p className="text-muted-foreground mb-4 leading-relaxed italic">
                                         {testimonial.text}
                                     </p>
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-semibold text-foreground">{testimonial.name}</p>
-                                            <p className="text-sm text-muted-foreground">{testimonial.service}</p>
-                                        </div>
+
+                                    <div>
+                                        <p className="font-semibold text-foreground">
+                                            {testimonial.name}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {testimonial.service}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
@@ -87,6 +105,7 @@ export default function TestimoniosPage() {
                     </div>
                 </section>
             </main>
+
             <Footer />
         </div>
     );
