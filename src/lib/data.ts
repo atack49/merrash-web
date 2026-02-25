@@ -1,14 +1,6 @@
 import { Component, Heart, Leaf, Sparkles, Sun, Users, Activity, Gem, ScanFace, Smile, Stethoscope, Zap, Wand2, TreePine } from "lucide-react";
 
-export const CONTACT_INFO = {
-    address: "Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.",
-    phone: ["222 238 6181", "722 495 8550", "729 165 4769"],
-    email: "dramalumolina@gmail.com",
-    socials: {
-        facebook: "https://www.facebook.com/MerrashSpayMedicinaAlternativa",
-        instagram: "https://www.instagram.com/merrashyspaintegraldebelleza/",
-    },
-};
+// CONTACT_INFO removed: now fetched from DB
 
 export const SERVICES = [
     // CUERPO
@@ -17,70 +9,80 @@ export const SERVICES = [
         title: "Acupuntura",
         description: "Técnica milenaria para restaurar el flujo de energía y aliviar dolor.",
         icon: Activity,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "homeopatia",
         title: "Homeopatía",
         description: "Medicina suave y natural para estimular la autocuración.",
         icon: Component,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "rehabilitacion",
         title: "Rehabilitación",
         description: "Terapias físicas personalizadas para tu recuperación.",
         icon: Users,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "auriculoterapia",
         title: "Auriculoterapia",
         description: "Estimulación de puntos en la oreja para tratar diversas condiciones.",
         icon: Stethoscope,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "biomagnetismo",
         title: "Par Biomagnético",
         description: "Equilibrio del pH corporal mediante el uso de imanes.",
         icon: Activity,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "terapia-neural",
         title: "Terapia Neural",
         description: "Estimulación de puntos clave para equilibrar el sistema nervioso.",
         icon: Zap,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "sueroterapia",
         title: "Sueroterapia Intravenosa",
         description: "Terapia de sueros y complementos vía intravenosa para revitalización.",
         icon: Activity,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "faciales",
         title: "Tratamientos Faciales",
         description: "Limpieza y rejuvenecimiento para una piel radiante.",
         icon: ScanFace,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "corporales",
         title: "Tratamientos Corporales",
         description: "Reductivos, reafirmantes y cuidado integral de la piel.",
         icon: Gem,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     {
         id: "masajes",
         title: "Masajes",
         description: "Técnicas manuales para liberar estrés y tensión muscular.",
         icon: Smile,
-        category: "Cuerpo"
+        category: "Cuerpo",
+        active: true
     },
     // ESPÍRITU
     {
@@ -88,35 +90,40 @@ export const SERVICES = [
         title: "Tarot Terapéutico",
         description: "Guía emocional y espiritual para el autoconocimiento.",
         icon: Sun,
-        category: "Espíritu"
+        category: "Espíritu",
+        active: true
     },
     {
         id: "reiki",
         title: "Reiki",
         description: "Canalización de energía vital para armonizar los chakras.",
         icon: Zap,
-        category: "Espíritu"
+        category: "Espíritu",
+        active: true
     },
     {
         id: "healy",
         title: "Healy",
         description: "Tecnología de frecuencias para el bienestar bioenergético.",
         icon: Activity,
-        category: "Espíritu"
+        category: "Espíritu",
+        active: true
     },
     {
         id: "toque-cuantico",
         title: "Toque Cuántico",
         description: "Técnica de sanación basada en principios cuánticos para equilibrar la energía.",
         icon: Wand2,
-        category: "Espíritu"
+        category: "Espíritu",
+        active: true
     },
     {
         id: "arborologia",
         title: "Arborología",
         description: "Sanación mediante la conexión con la energía de los árboles.",
         icon: TreePine,
-        category: "Espíritu"
+        category: "Espíritu",
+        active: true
     },
     // MENTE
     {
@@ -124,7 +131,8 @@ export const SERVICES = [
         title: "Método Integral",
         description: "Abordaje integral para el equilibrio mental y emocional.",
         icon: Heart,
-        category: "Mente"
+        category: "Mente",
+        active: true
     },
 ];
 

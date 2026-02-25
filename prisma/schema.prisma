@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // hashed with bcrypt
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Survey {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   // 'satisfaccion' | 'enterado'
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions    Question[]
+  responses    Response[]
+  appointments Appointment[]
+
+  @@index([type])
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  surveyId   String
+  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  text       String
+  type       String   // 'rating' | 'select' | 'text'
+  order      Int
+  options    String?  // JSON stringified array if needed
+  required   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([surveyId])
+}
+
+model Response {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers   String   // JSON object with question_id: answer
+  email     String?
+  createdAt DateTime @default(now())
+
+  @@index([surveyId])
+  @@index([createdAt])
+}
+
+model Appointment {
+  id             String   @id @default(cuid())
+  surveyId       String?
+  survey         Survey?  @relation(fields: [surveyId], references: [id], onDelete: SetNull)
+  email          String
+  phone          String?
+  preferredDate  String?
+  preferredTime  String?
+  service        String?
+  notes          String?
+  status         String   @default("pending") // 'pending' | 'confirmed' | 'cancelled'
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([surveyId])
+  @@index([email])
+  @@index([status])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  icon        String?  // icon name from lucide-react
+  category    String   // 'Cuerpo' | 'Mente' | 'Belleza'
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([active])
+  @@index([order])
+  @@index([category, active]) // Composite index for filtered queries
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  service   String
+  text      String
+  rating    Int      // 1-5 stars
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([order])
+}
+model ContactInfo {
+  id        String   @id @default("default")
+  address   String
+  phones    String   // JSON array of phone numbers
+  email     String
+  hours     String   // JSON object with schedule info
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

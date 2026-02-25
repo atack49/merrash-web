@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TESTIMONIALS } from "@/lib/data";
 import { Star, ChevronLeft, ChevronRight, User } from "lucide-react";
+
+interface Testimonial {
+  id: number;
+  name: string;
+  service: string;
+  text: string;
+  rating: number;
+}
 
 const styles = `
 @keyframes fadeSlideIn {
@@ -53,23 +60,46 @@ const styles = `
 `;
 
 export function Testimonials() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  // Obtener testimonios de la API
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch('/api/testimonials');
+        const data = await res.json();
+        setTestimonials(data);
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
 
   useEffect(() => {
-    if (!isAutoPlay) return;
+    if (!isAutoPlay || testimonials.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentIndex(i => (i + 1) % TESTIMONIALS.length);
+      setCurrentIndex(i => (i + 1) % testimonials.length);
     }, 6000);
     return () => clearInterval(interval);
-  }, [isAutoPlay]);
+  }, [isAutoPlay, testimonials.length]);
 
   const changeSlide = (index: number) => {
     setCurrentIndex(index);
     setIsAutoPlay(false);
   };
 
-  const testimonial = TESTIMONIALS[currentIndex];
+  if (loading || testimonials.length === 0) {
+    return null;
+  }
+
+  const testimonial = testimonials[currentIndex];
 
   return (
     <section id="testimonios" className="py-28 bg-white">
@@ -130,7 +160,7 @@ export function Testimonials() {
                 onClick={() =>
                   changeSlide(
                     currentIndex === 0
-                      ? TESTIMONIALS.length - 1
+                      ? testimonials.length - 1
                       : currentIndex - 1
                   )
                 }
@@ -140,7 +170,7 @@ export function Testimonials() {
               </button>
 
               <div className="flex gap-2">
-                {TESTIMONIALS.map((_, i) => (
+                {testimonials.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => changeSlide(i)}
@@ -155,7 +185,7 @@ export function Testimonials() {
 
               <button
                 onClick={() =>
-                  changeSlide((currentIndex + 1) % TESTIMONIALS.length)
+                  changeSlide((currentIndex + 1) % testimonials.length)
                 }
                 className="p-2 rounded-full hover:bg-primary/10 transition"
               >

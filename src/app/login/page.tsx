@@ -30,18 +30,18 @@ export default function LoginPage() {
 
                         {/* Form Section */}
                         <form className="px-8 py-10 space-y-6" action={formAction}>
-                            {/* Username Field */}
+                            {/* Email Field */}
                             <div className="space-y-2">
-                                <label htmlFor="username" className="block text-sm font-semibold text-slate-700">
-                                    Usuario
+                                <label htmlFor="email" className="block text-sm font-semibold text-slate-700">
+                                    Email
                                 </label>
                                 <input
-                                    id="username"
-                                    name="username"
-                                    type="text"
+                                    id="email"
+                                    name="email"
+                                    type="email"
                                     required
                                     className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
-                                    placeholder="Ingresa tu usuario"
+                                    placeholder="Ingresa tu correo"
                                 />
                             </div>
 

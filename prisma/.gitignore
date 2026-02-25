@@ -1,0 +1,4 @@
+# Prisma
+.env
+.env.local
+.env.*.local

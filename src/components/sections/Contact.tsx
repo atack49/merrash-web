@@ -1,19 +1,24 @@
+'use client';
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
-import { CONTACT_INFO } from "@/lib/data";
+import { useEffect, useState } from "react";
 
 export function Contact() {
+    const [contact, setContact] = useState<any>(null);
+    useEffect(() => {
+        fetch("/api/admin/contact")
+            .then(res => res.ok ? res.json() : null)
+            .then(data => setContact(data));
+    }, []);
     return (
         <section id="contacto" className="py-24 bg-white">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-
                     {/* Info Side */}
                     <div className="space-y-10">
                         <div>
                             <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4">Contáctanos</h2>
                             <p className="text-lg text-muted-foreground font-light">Estamos aquí para responder tus dudas y agendar tu próxima sesión de bienestar.</p>
                         </div>
-
                         <div className="space-y-8">
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-secondary/30 rounded-full flex items-center justify-center text-primary shrink-0">
@@ -21,10 +26,9 @@ export function Contact() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Ubicación</h3>
-                                    <p className="text-muted-foreground">{CONTACT_INFO.address}</p>
+                                    <p className="text-muted-foreground">{contact?.address || "Cargando..."}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-secondary/30 rounded-full flex items-center justify-center text-primary shrink-0">
                                     <Phone className="w-6 h-6" />
@@ -32,36 +36,33 @@ export function Contact() {
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Teléfonos</h3>
                                     <div className="flex flex-col text-muted-foreground">
-                                        {CONTACT_INFO.phone.map(p => <span key={p}>{p}</span>)}
+                                        {contact?.phones?.map((p: string) => <span key={p}>{p}</span>) || "Cargando..."}
                                     </div>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-secondary/30 rounded-full flex items-center justify-center text-primary shrink-0">
                                     <Mail className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Correo</h3>
-                                    <a href={`mailto:${CONTACT_INFO.email}`} className="text-muted-foreground hover:text-primary transition-colors">
-                                        {CONTACT_INFO.email}
+                                    <a href={`mailto:${contact?.email || ""}`} className="text-muted-foreground hover:text-primary transition-colors">
+                                        {contact?.email || "Cargando..."}
                                     </a>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-secondary/30 rounded-full flex items-center justify-center text-primary shrink-0">
                                     <Clock className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Horarios</h3>
-                                    <p className="text-muted-foreground">Lunes a Viernes: 10:00 AM - 7:00 PM</p>
-                                    <p className="text-muted-foreground">Sábado: 10:00 AM - 3:00 PM</p>
+                                    <p className="text-muted-foreground">Lunes a Viernes: {contact?.hours?.weekdays || "Cargando..."}</p>
+                                    <p className="text-muted-foreground">Sábado: {contact?.hours?.saturday || "Cargando..."}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     {/* Map Side */}
                     <div className="h-[400px] md:h-full min-h-[400px] w-full bg-secondary/10 rounded-3xl overflow-hidden shadow-lg border border-border/50">
                         <iframe
@@ -74,7 +75,6 @@ export function Contact() {
                             referrerPolicy="no-referrer-when-downgrade"
                             title="Ubicación Merrash"
                         ></iframe>
-                        {/* Note: The embed URL is constructed based on address. */}
                     </div>
                 </div>
             </div>
