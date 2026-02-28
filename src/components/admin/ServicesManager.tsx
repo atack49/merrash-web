@@ -202,7 +202,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
             {/* Add Button */}
             <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-medium"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 transition font-medium shadow-sm"
             >
                 <Plus className="w-5 h-5" />
                 Nuevo Servicio
@@ -210,50 +210,69 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
 
             {/* Add Form Modal */}
             {showAddForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6 space-y-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg md:text-2xl lg:text-3xl font-bold">Nuevo Servicio</h3>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 md:p-7 shadow-2xl space-y-5">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-slate-900">Nuevo Servicio</h3>
                             <button
                                 onClick={() => setShowAddForm(false)}
-                                className="p-1 hover:bg-gray-100 rounded transition"
+                                className="p-2 hover:bg-slate-100 rounded-full transition"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Título"
-                            value={newService.title}
-                            onChange={(e) => setNewService({ ...newService, title: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                        <textarea
-                            placeholder="Descripción"
-                            value={newService.description}
-                            onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg h-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                        <select
-                            value={newService.category}
-                            onChange={(e) => setNewService({ ...newService, category: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                        <div className="flex gap-2 pt-4">
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">Título</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej. Acupuntura terapéutica"
+                                    value={newService.title}
+                                    onChange={(e) => setNewService({ ...newService, title: e.target.value })}
+                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">Descripción</label>
+                                <textarea
+                                    placeholder="Describe brevemente el servicio"
+                                    value={newService.description}
+                                    onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">Categoría</label>
+                                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                                    {categories.map((category) => (
+                                        <button
+                                            key={category}
+                                            type="button"
+                                            onClick={() => setNewService({ ...newService, category })}
+                                            className={cn(
+                                                "px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                                                newService.category === category
+                                                    ? "bg-primary text-white"
+                                                    : "text-foreground hover:bg-slate-100"
+                                            )}
+                                        >
+                                            {category}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-2 pt-1">
                             <button
                                 onClick={addService}
                                 disabled={isLoading}
-                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium transition"
+                                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-50 font-medium transition"
                             >
                                 Guardar
                             </button>
                             <button
                                 onClick={() => setShowAddForm(false)}
-                                className="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 font-medium transition"
+                                className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-800 rounded-full hover:bg-slate-300 font-medium transition"
                             >
                                 Cancelar
                             </button>
@@ -269,10 +288,10 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                         key={category}
                         onClick={() => setSelectedCategory(category)}
                         className={cn(
-                            "px-4 md:px-6 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-medium transition-all border",
+                            "px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
                             selectedCategory === category
-                                ? "bg-primary text-white border-primary shadow-md"
-                                : "bg-transparent text-gray-600 border-gray-300 hover:border-primary/50 hover:text-primary"
+                                ? "bg-primary text-white"
+                                : "text-foreground hover:bg-slate-100"
                         )}
                     >
                         {category}

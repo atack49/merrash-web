@@ -1,8 +1,44 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Facebook, Instagram, MapPin, Mail, Phone } from "lucide-react";
-// CONTACT_INFO removed, use static values below
+
+interface FooterContactInfo {
+    id: string;
+    address: string;
+    phones: string[];
+    email: string;
+    hours: {
+        weekdays: string;
+        saturday: string;
+    };
+}
+
+const defaultContactInfo: FooterContactInfo = {
+    id: "default",
+    address: "Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.",
+    phones: ["222 238 6181", "722 495 8550", "729 165 4769"],
+    email: "dramalumolina@gmail.com",
+    hours: { weekdays: "10:00 AM - 7:00 PM", saturday: "10:00 AM - 3:00 PM" },
+};
 
 export function Footer() {
+    const [contact, setContact] = useState<FooterContactInfo>(defaultContactInfo);
+
+    useEffect(() => {
+        fetch('/api/contact')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (data) {
+                    setContact(data);
+                }
+            })
+            .catch(() => {
+                setContact(defaultContactInfo);
+            });
+    }, []);
+
     return (
         <footer className="bg-secondary text-secondary-foreground pt-16 pb-8">
             <div className="container mx-auto px-4 md:px-6">
@@ -40,19 +76,19 @@ export function Footer() {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                                <span className="text-sm opacity-90">Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.</span>
+                                <span className="text-sm opacity-90">{contact.address}</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-primary shrink-0" />
                                 <div className="flex flex-col text-sm opacity-90">
-                                    <span>222 238 6181</span>
-                                    <span>722 495 8550</span>
-                                    <span>729 165 4769</span>
+                                    {contact.phones.map((phone) => (
+                                        <span key={phone}>{phone}</span>
+                                    ))}
                                 </div>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-primary shrink-0" />
-                                <a href="mailto:dramalumolina@gmail.com" className="text-sm hover:text-primary transition-colors">dramalumolina@gmail.com</a>
+                                <a href={`mailto:${contact.email}`} className="text-sm hover:text-primary transition-colors">{contact.email}</a>
                             </li>
                         </ul>
                     </div>

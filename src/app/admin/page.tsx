@@ -66,19 +66,25 @@ export default async function AdminPage() {
             orderBy: { order: 'asc' },
         });
 
-        contactInfo = {
-            id: 'default',
-            address: 'Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.',
-            phones: ['222 238 6181', '722 495 8550', '729 165 4769'],
-            email: 'dramalumolina@gmail.com',
-            hours: { weekdays: '10:00 AM - 7:00 PM', saturday: '10:00 AM - 3:00 PM' },
-        };
+        const dbContact = await prisma.contactInfo.findUnique({
+            where: { id: 'default' },
+        });
 
-        if (contactInfo) {
+        if (dbContact) {
             contactInfo = {
-                ...contactInfo,
-                phones: typeof contactInfo.phones === 'string' ? JSON.parse(contactInfo.phones) : contactInfo.phones,
-                hours: typeof contactInfo.hours === 'string' ? JSON.parse(contactInfo.hours) : contactInfo.hours,
+                id: dbContact.id,
+                address: dbContact.address,
+                phones: typeof dbContact.phones === 'string' ? JSON.parse(dbContact.phones) : dbContact.phones,
+                email: dbContact.email,
+                hours: typeof dbContact.hours === 'string' ? JSON.parse(dbContact.hours) : dbContact.hours,
+            };
+        } else {
+            contactInfo = {
+                id: 'default',
+                address: 'Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.',
+                phones: ['222 238 6181', '722 495 8550', '729 165 4769'],
+                email: 'dramalumolina@gmail.com',
+                hours: { weekdays: '10:00 AM - 7:00 PM', saturday: '10:00 AM - 3:00 PM' },
             };
         }
     } catch (error) {

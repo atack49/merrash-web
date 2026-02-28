@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export function Contact() {
     const [contact, setContact] = useState<any>(null);
     useEffect(() => {
-        fetch("/api/admin/contact")
+        fetch("/api/contact")
             .then(res => res.ok ? res.json() : null)
             .then(data => setContact(data));
     }, []);
