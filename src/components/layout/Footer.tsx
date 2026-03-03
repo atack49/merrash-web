@@ -20,7 +20,7 @@ const defaultContactInfo: FooterContactInfo = {
     address: "Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.",
     phones: ["222 238 6181", "722 495 8550", "729 165 4769"],
     email: "dramalumolina@gmail.com",
-    hours: { weekdays: "10:00 AM - 7:00 PM", saturday: "10:00 AM - 3:00 PM" },
+    hours: { weekdays: "10:00 AM - 4:00 PM", saturday: "10:00 AM - 4:00 PM" },
 };
 
 export function Footer() {

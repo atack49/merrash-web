@@ -2,12 +2,55 @@
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 
+type ContactInfo = {
+    address: string;
+    phones: string[];
+    email: string;
+    hours: {
+        weekdays: string;
+        saturday: string;
+    };
+};
+
+const fallbackContact: ContactInfo = {
+    address: "",
+    phones: [],
+    email: "",
+    hours: {
+        weekdays: "",
+        saturday: "",
+    },
+};
+
+const normalizeContact = (payload: unknown): ContactInfo => {
+    if (!payload || typeof payload !== 'object') {
+        return fallbackContact;
+    }
+
+    const row = payload as Record<string, unknown>;
+    const phones = Array.isArray(row.phones)
+        ? row.phones.map((phone) => String(phone)).filter((phone) => phone.trim().length > 0)
+        : [];
+    const hours = row.hours && typeof row.hours === 'object' ? (row.hours as Record<string, unknown>) : {};
+
+    return {
+        address: String(row.address || ''),
+        phones,
+        email: String(row.email || ''),
+        hours: {
+            weekdays: String(hours.weekdays || ''),
+            saturday: String(hours.saturday || ''),
+        },
+    };
+};
+
 export function Contact() {
-    const [contact, setContact] = useState<any>(null);
+    const [contact, setContact] = useState<ContactInfo>(fallbackContact);
     useEffect(() => {
         fetch("/api/contact")
             .then(res => res.ok ? res.json() : null)
-            .then(data => setContact(data));
+            .then(data => setContact(normalizeContact(data)))
+            .catch(() => setContact(fallbackContact));
     }, []);
     return (
         <section id="contacto" className="py-24 bg-white">
@@ -26,7 +69,7 @@ export function Contact() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Ubicación</h3>
-                                    <p className="text-muted-foreground">{contact?.address || "Cargando..."}</p>
+                                    <p className="text-muted-foreground">{contact.address || "Cargando..."}</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-4">
@@ -36,7 +79,7 @@ export function Contact() {
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Teléfonos</h3>
                                     <div className="flex flex-col text-muted-foreground">
-                                        {contact?.phones?.map((p: string) => <span key={p}>{p}</span>) || "Cargando..."}
+                                        {contact.phones.length > 0 ? contact.phones.map((p) => <span key={p}>{p}</span>) : "Cargando..."}
                                     </div>
                                 </div>
                             </div>
@@ -46,8 +89,8 @@ export function Contact() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Correo</h3>
-                                    <a href={`mailto:${contact?.email || ""}`} className="text-muted-foreground hover:text-primary transition-colors">
-                                        {contact?.email || "Cargando..."}
+                                    <a href={`mailto:${contact.email || ""}`} className="text-muted-foreground hover:text-primary transition-colors">
+                                        {contact.email || "Cargando..."}
                                     </a>
                                 </div>
                             </div>
@@ -57,8 +100,8 @@ export function Contact() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-1">Horarios</h3>
-                                    <p className="text-muted-foreground">Lunes a Viernes: {contact?.hours?.weekdays || "Cargando..."}</p>
-                                    <p className="text-muted-foreground">Sábado: {contact?.hours?.saturday || "Cargando..."}</p>
+                                    <p className="text-muted-foreground">Lunes a Viernes: {contact.hours.weekdays || "Cargando..."}</p>
+                                    <p className="text-muted-foreground">Sábado: {contact.hours.saturday || "Cargando..."}</p>
                                 </div>
                             </div>
                         </div>

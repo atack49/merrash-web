@@ -69,11 +69,14 @@ model Appointment {
   id             String   @id @default(cuid())
   surveyId       String?
   survey         Survey?  @relation(fields: [surveyId], references: [id], onDelete: SetNull)
+  customerName   String?
+  source         String   @default("global") // 'global' | 'google' | 'huli'
   email          String
   phone          String?
   preferredDate  String?
   preferredTime  String?
   service        String?
+  googleEventId  String?
   notes          String?
   status         String   @default("pending") // 'pending' | 'confirmed' | 'cancelled'
   createdAt      DateTime @default(now())

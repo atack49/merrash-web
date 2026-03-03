@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
 
 const NAVIGATION = [
   { name: "Inicio", href: "/#inicio" },
@@ -98,10 +99,9 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
               </Link>
             ))}
 
-            <a
-              href="https://wa.me/527224958550"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={openChatbotWidget}
               className={cn(
                 "px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2",
                 useWhiteStyle
@@ -111,7 +111,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
             >
               <Phone className="w-4 h-4" />
               Agendar Cita
-            </a>
+            </button>
           </nav>
         ) : (
           <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 import { Activity } from "lucide-react";
 
@@ -13,22 +13,44 @@ interface Service {
     active: boolean;
 }
 
+const normalizeServices = (payload: unknown): Service[] => {
+    if (!Array.isArray(payload)) return [];
+
+    return payload
+        .filter((item) => item && typeof item === 'object')
+        .map((item, index) => {
+            const row = item as Record<string, unknown>;
+            return {
+                id: String(row.id || `service-${index}`),
+                title: String(row.title || ''),
+                description: String(row.description || ''),
+                icon: (row.icon as string | null) ?? null,
+                category: String(row.category || ''),
+                active: Boolean(row.active ?? true),
+            };
+        })
+        .filter((item) => item.title.trim().length > 0 && item.category.trim().length > 0);
+};
+
 function useIsDesktop() {
-    const [isDesktop, setIsDesktop] = useState(() => {
-        if (typeof window !== "undefined") {
+    return useSyncExternalStore(
+        (onStoreChange) => {
+            if (typeof window === "undefined") {
+                return () => {};
+            }
+
+            const mq = window.matchMedia("(min-width: 768px)");
+            mq.addEventListener("change", onStoreChange);
+            return () => mq.removeEventListener("change", onStoreChange);
+        },
+        () => {
+            if (typeof window === "undefined") {
+                return false;
+            }
             return window.matchMedia("(min-width: 768px)").matches;
-        }
-        return false;
-    });
-
-    useEffect(() => {
-        const mq = window.matchMedia("(min-width: 768px)");
-        const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-        mq.addEventListener("change", handler);
-        return () => mq.removeEventListener("change", handler);
-    }, []);
-
-    return isDesktop;
+        },
+        () => false
+    );
 }
 
 export function Services() {
@@ -47,10 +69,15 @@ export function Services() {
         const fetchServices = async () => {
             try {
                 const res = await fetch('/api/services');
+                if (!res.ok) {
+                    setServices([]);
+                    return;
+                }
                 const data = await res.json();
-                setServices(data);
+                setServices(normalizeServices(data));
             } catch (error) {
-                console.error('Error fetching services:', error);
+                console.warn('Error fetching services:', error);
+                setServices([]);
             } finally {
                 setLoading(false);
             }
@@ -95,7 +122,7 @@ export function Services() {
     };
 
     const servicesToShow = visibleCategory
-        ? services.filter(s => s.category === visibleCategory)
+        ? services.filter((service) => service.category === visibleCategory)
         : [];
 
     return (

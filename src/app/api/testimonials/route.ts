@@ -18,12 +18,18 @@ export async function GET() {
             orderBy: { order: 'asc' },
         });
 
-        return NextResponse.json(testimonials);
+        const normalized = testimonials.map((item) => {
+            const numericRating = Number(item.rating);
+            const rating = Number.isFinite(numericRating) ? Math.max(1, Math.min(5, Math.round(numericRating))) : 5;
+            return {
+                ...item,
+                rating,
+            };
+        });
+
+        return NextResponse.json(normalized);
     } catch (error) {
         console.error('Error fetching testimonials:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch testimonials' },
-            { status: 500 }
-        );
+        return NextResponse.json([]);
     }
 }

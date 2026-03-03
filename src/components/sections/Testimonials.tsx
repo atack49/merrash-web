@@ -9,8 +9,32 @@ interface Testimonial {
   name: string;
   service: string;
   text: string;
-  rating: number;
+  rating?: number;
 }
+
+const toSafeRating = (value: unknown) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 5;
+  return Math.max(1, Math.min(5, Math.round(numeric)));
+};
+
+const normalizeTestimonials = (payload: unknown): Testimonial[] => {
+  if (!Array.isArray(payload)) return [];
+
+  return payload
+    .filter((item) => item && typeof item === 'object')
+    .map((item, index) => {
+      const row = item as Record<string, unknown>;
+      return {
+        id: Number(row.id) || index + 1,
+        name: String(row.name || 'Cliente'),
+        service: String(row.service || 'Servicio'),
+        text: String(row.text || ''),
+        rating: toSafeRating(row.rating),
+      };
+    })
+    .filter((item) => item.text.trim().length > 0);
+};
 
 const styles = `
 @keyframes fadeSlideIn {
@@ -70,10 +94,15 @@ export function Testimonials() {
     const fetchTestimonials = async () => {
       try {
         const res = await fetch('/api/testimonials');
+        if (!res.ok) {
+          setTestimonials([]);
+          return;
+        }
         const data = await res.json();
-        setTestimonials(data);
+        setTestimonials(normalizeTestimonials(data));
       } catch (error) {
-        console.error('Error fetching testimonials:', error);
+        console.warn('Error fetching testimonials:', error);
+        setTestimonials([]);
       } finally {
         setLoading(false);
       }
@@ -90,6 +119,17 @@ export function Testimonials() {
     return () => clearInterval(interval);
   }, [isAutoPlay, testimonials.length]);
 
+  useEffect(() => {
+    if (testimonials.length === 0) {
+      setCurrentIndex(0);
+      return;
+    }
+
+    if (currentIndex >= testimonials.length) {
+      setCurrentIndex(0);
+    }
+  }, [currentIndex, testimonials.length]);
+
   const changeSlide = (index: number) => {
     setCurrentIndex(index);
     setIsAutoPlay(false);
@@ -99,7 +139,9 @@ export function Testimonials() {
     return null;
   }
 
-  const testimonial = testimonials[currentIndex];
+  const testimonial = testimonials[currentIndex] || testimonials[0];
+  if (!testimonial) return null;
+  const stars = toSafeRating(testimonial.rating);
 
   return (
     <section id="testimonios" className="py-28 bg-white">
@@ -127,7 +169,7 @@ export function Testimonials() {
           >
             {/* Stars */}
             <div className="flex gap-1 mb-6">
-              {[...Array(testimonial.rating)].map((_, i) => (
+              {[...Array(stars)].map((_, i) => (
                 <Star
                   key={i}
                   style={{ animationDelay: `${i * 60}ms` }}

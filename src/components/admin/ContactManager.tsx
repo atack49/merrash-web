@@ -362,7 +362,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                                 },
                                             })
                                         }
-                                        placeholder="10:00 AM - 7:00 PM"
+                                        placeholder="10:00 AM - 4:00 PM"
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                                     />
                                 </div>
@@ -380,7 +380,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                                 },
                                             })
                                         }
-                                        placeholder="10:00 AM - 3:00 PM"
+                                        placeholder="10:00 AM - 4:00 PM"
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                                     />
                                 </div>

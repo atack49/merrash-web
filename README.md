@@ -34,3 +34,26 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Chatbot IA (OpenAI opcional)
+
+El chatbot funciona siempre con IA local (reglas internas). Si configuras OpenAI, usará OpenAI automáticamente y si falla volverá al modo local.
+
+Variables opcionales en `.env.local`:
+
+```env
+OPENAI_API_KEY=tu_api_key
+OPENAI_MODEL=gpt-4o-mini
+CHATBOT_MODE=auto
+WHATSAPP_CHATBOT_NUMBER=521234567890
+```
+
+Sin `OPENAI_API_KEY`, el chatbot sigue funcionando con la IA local actual.
+
+`CHATBOT_MODE` puede ser:
+- `auto`: usa OpenAI si hay API key, si no IA local
+- `local`: fuerza IA local
+- `openai`: intenta OpenAI y si falla, vuelve a IA local
+
+También puedes cambiar el modo desde Admin > Configuración Chat Bot.
+Ese ajuste se guarda en `data/chatbot-settings.json` (archivo local), sin usar base de datos.

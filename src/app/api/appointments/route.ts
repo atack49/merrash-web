@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
         // Create appointment
         const appointment = await prisma.appointment.create({
             data: {
+                source: 'global',
                 email: validatedData.email,
                 phone: validatedData.phone,
                 preferredDate: validatedData.preferredDate,

@@ -5,6 +5,7 @@ import { FileText, MessageSquare } from 'lucide-react';
 import { ServicesManager } from './ServicesManager';
 import { TestimonialsManager } from './TestimonialsManager';
 import { ContactManager } from './ContactManager';
+import { AppointmentsCalendar } from './AppointmentsCalendar';
 
 export function AdminTabs({ activeTab, surveys, services, testimonials, contactInfo }: any) {
     return (
@@ -65,7 +66,7 @@ export function AdminTabs({ activeTab, surveys, services, testimonials, contactI
                 {activeTab === 'citas' && (
                     <div className="space-y-4 md:space-y-6">
                         <h2 className="text-lg md:text-xl font-bold">Citas Agendadas</h2>
-                        <p className="text-slate-600 text-sm md:text-base lg:text-lg">Función en desarrollo...</p>
+                        <AppointmentsCalendar />
                     </div>
                 )}
             </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { SERVICES } from "@/lib/data";
+import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
 
 // Assuming the image will be saved at /hero_background.png in the public folder after I move it.
 // For now I will reference it, and I will move it in the next step.
@@ -99,12 +100,13 @@ export function Hero() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                    <Link
-                        href="#contacto"
+                    <button
+                        type="button"
+                        onClick={openChatbotWidget}
                         className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-full font-medium transition-all text-lg shadow-lg hover:shadow-xl hover:-translate-y-1"
                     >
                         Agendar Cita
-                    </Link>
+                    </button>
                     <Link
                         href="#servicios"
                         className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-4 rounded-full font-medium transition-all text-lg"
