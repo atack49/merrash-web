@@ -225,11 +225,10 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-2 rounded-lg transition ${
-                                        currentPage === page
+                                    className={`px-3 py-2 rounded-lg transition ${currentPage === page
                                             ? 'bg-primary text-white font-semibold'
                                             : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                                    }`}
+                                        }`}
                                 >
                                     {page}
                                 </button>
@@ -248,131 +247,143 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                 {/* Grid */}
                 <div className="grid grid-cols-1 gap-6">
                     {paginatedTestimonials.map((testimonial) => (
-                    <div
-                        key={testimonial.id}
-                        className={cn(
-                            "p-6 rounded-lg border-2 transition",
-                            editingId === testimonial.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : testimonial.active
-                                    ? 'border-slate-200 bg-white hover:border-primary/50'
-                                    : 'border-slate-200 bg-gray-100 opacity-60'
-                        )}
-                    >
-                        {editingId === testimonial.id ? (
-                            // Edit Mode
-                            <div className="space-y-4">
-                                <input
-                                    type="text"
-                                    placeholder="Nombre"
-                                    value={editData.name || testimonial.name}
-                                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded text-sm"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Servicio"
-                                    value={editData.service || testimonial.service}
-                                    onChange={(e) => setEditData({ ...editData, service: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded text-sm"
-                                />
-                                <textarea
-                                    placeholder="Testimonio"
-                                    value={editData.text || testimonial.text}
-                                    onChange={(e) => setEditData({ ...editData, text: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded text-sm h-20 resize-none"
-                                />
-                                <div>
-                                    <label className="text-xs font-medium block mb-2">Calificación</label>
-                                    <div className="flex gap-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                onClick={() => setEditData({ ...editData, rating: star })}
-                                                className="transition-all hover:scale-110"
-                                            >
-                                                <Star
-                                                    className={cn(
-                                                        'w-5 h-5 transition-colors',
-                                                        star <= (editData.rating || testimonial.rating)
-                                                            ? 'fill-yellow-400 text-yellow-400'
-                                                            : 'text-slate-300'
-                                                    )}
-                                                />
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => saveEdit(testimonial.id)}
-                                        disabled={isLoading}
-                                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
-                                    >
-                                        Guardar
-                                    </button>
-                                    <button
-                                        onClick={() => { setEditingId(null); setEditData({}); }}
-                                        className="flex-1 px-3 py-2 bg-gray-400 text-white rounded text-sm"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            // View Mode
-                            <>
-                                <div className="flex items-start justify-between mb-4">
+                        <div
+                            key={testimonial.id}
+                            className={cn(
+                                "p-6 rounded-2xl transition-all shadow-sm border border-border/50 flex flex-col items-start min-h-[140px] bg-gradient-to-br",
+                                editingId === testimonial.id
+                                    ? 'border-blue-500 from-blue-50 to-white ring-2 ring-blue-300 shadow-md'
+                                    : testimonial.active
+                                        ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
+                                        : 'from-gray-50 to-gray-100 opacity-70'
+                            )}
+                        >
+                            {editingId === testimonial.id ? (
+                                // Edit Mode
+                                <div className="space-y-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre"
+                                        value={editData.name || testimonial.name}
+                                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded text-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Servicio"
+                                        value={editData.service || testimonial.service}
+                                        onChange={(e) => setEditData({ ...editData, service: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded text-sm"
+                                    />
+                                    <textarea
+                                        placeholder="Testimonio"
+                                        value={editData.text || testimonial.text}
+                                        onChange={(e) => setEditData({ ...editData, text: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded text-sm h-20 resize-none"
+                                    />
                                     <div>
-                                        <h3 className="font-bold text-lg">{testimonial.name}</h3>
-                                        <p className="text-sm text-primary font-medium">{testimonial.service}</p>
+                                        <label className="text-xs font-medium block mb-2">Calificación</label>
+                                        <div className="flex gap-2">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    onClick={() => setEditData({ ...editData, rating: star })}
+                                                    className="transition-all hover:scale-110"
+                                                >
+                                                    <Star
+                                                        className={cn(
+                                                            'w-5 h-5 transition-colors',
+                                                            star <= (editData.rating || testimonial.rating)
+                                                                ? 'fill-yellow-400 text-yellow-400'
+                                                                : 'text-slate-300'
+                                                        )}
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <span className={`text-xs px-2 py-1 rounded ${testimonial.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                        {testimonial.active ? 'Visible' : 'Oculto'}
-                                    </span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => saveEdit(testimonial.id)}
+                                            disabled={isLoading}
+                                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                                        >
+                                            Guardar
+                                        </button>
+                                        <button
+                                            onClick={() => { setEditingId(null); setEditData({}); }}
+                                            className="flex-1 px-3 py-2 bg-gray-400 text-white rounded text-sm"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
                                 </div>
-                                <p className="text-slate-600 mb-4 italic">"{testimonial.text}"</p>
-                                <div className="flex gap-1 mb-4">
-                                    {[...Array(testimonial.rating)].map((_, i) => (
-                                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                    ))}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => { setEditingId(testimonial.id); setEditData(testimonial); }}
-                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => toggleActive(testimonial.id, testimonial.active)}
-                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition"
-                                    >
-                                        {testimonial.active ? (
-                                            <>
-                                                <Eye className="w-4 h-4" />
-                                                Ocultar
-                                            </>
-                                        ) : (
-                                            <>
-                                                <EyeOff className="w-4 h-4" />
-                                                Mostrar
-                                            </>
-                                        )}
-                                    </button>
-                                    <button
-                                        onClick={() => deleteTestimonial(testimonial.id)}
-                                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                ))}
+                            ) : (
+                                // View Mode
+                                <>
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full mb-3 gap-2 md:gap-4">
+                                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                                            <h3 className="font-bold text-lg md:text-xl text-slate-800">{testimonial.name}</h3>
+                                            <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                                            <p className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">{testimonial.service}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                                            <div className="flex gap-1 bg-white/50 px-3 py-1.5 rounded-full border border-slate-200/60">
+                                                {[...Array(testimonial.rating)].map((_, i) => (
+                                                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                ))}
+                                            </div>
+                                            <span className={cn(
+                                                "text-xs px-3 py-1.5 rounded-full font-medium shadow-sm border",
+                                                testimonial.active ? 'bg-white text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                                            )}>
+                                                {testimonial.active ? '✓ Visible' : '✕ Oculto'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-slate-600 mb-6 italic text-sm md:text-base leading-relaxed bg-white/40 p-4 rounded-xl border border-white flex-1 w-full relative">
+                                        <span className="text-3xl text-primary/20 absolute -top-1 -left-1 font-serif">"</span>
+                                        {testimonial.text}
+                                        <span className="text-3xl text-primary/20 absolute -bottom-4 right-1 font-serif">"</span>
+                                    </p>
+
+                                    <div className="flex flex-wrap gap-2 w-full mt-auto">
+                                        <button
+                                            onClick={() => { setEditingId(testimonial.id); setEditData(testimonial); }}
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-6 py-2 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 transition shadow-sm"
+                                        >
+                                            <Edit2 className="w-3.5 h-3.5" />
+                                            Editar
+                                        </button>
+                                        <button
+                                            onClick={() => toggleActive(testimonial.id, testimonial.active)}
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-6 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80 transition shadow-sm border border-secondary-foreground/10"
+                                        >
+                                            {testimonial.active ? (
+                                                <>
+                                                    <Eye className="w-3.5 h-3.5" />
+                                                    Ocultar
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <EyeOff className="w-3.5 h-3.5" />
+                                                    Mostrar
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => deleteTestimonial(testimonial.id)}
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-6 py-2 bg-destructive text-destructive-foreground rounded-full text-xs font-medium hover:bg-destructive/90 transition shadow-sm"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    ))}
                 </div>
 
                 {/* Pagination Info */}

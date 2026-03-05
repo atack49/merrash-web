@@ -58,7 +58,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ active: !currentActive }),
             });
-            
+
             if (!res.ok) {
                 const error = await res.json();
                 throw new Error(error.error || 'Error al actualizar');
@@ -85,7 +85,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
             const res = await fetch(`/api/admin/services/${id}`, {
                 method: 'DELETE',
             });
-            
+
             if (!res.ok) {
                 const error = await res.json();
                 throw new Error(error.error || 'Error al eliminar');
@@ -150,7 +150,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
             showMessage('error', 'Completa todos los campos');
             return;
         }
-        
+
         setIsLoading(true);
         try {
             const res = await fetch('/api/admin/services', {
@@ -313,12 +313,12 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                         <div
                             key={service.id}
                             className={cn(
-                                "p-4 rounded-2xl border border-border/50 transition-all",
+                                "p-4 rounded-2xl border border-border/50 transition-all bg-gradient-to-br",
                                 editingId === service.id
-                                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-300 shadow-lg'
+                                    ? 'border-blue-500 from-blue-50 to-white ring-2 ring-blue-300 shadow-lg'
                                     : service.active
-                                        ? 'bg-secondary/10 hover:bg-secondary/30 hover:shadow-md'
-                                        : 'bg-gray-100 opacity-70'
+                                        ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
+                                        : 'from-gray-50 to-gray-100 opacity-70'
                             )}
                         >
                             {editingId === service.id ? (
@@ -334,7 +334,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                             <span className="text-lg">✏️</span>
                                         </div>
                                     </div>
-                                    
+
                                     <input
                                         type="text"
                                         placeholder="Título"
@@ -357,7 +357,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
                                     </select>
-                                    
+
                                     <div className="flex gap-1 pt-2 border-t border-blue-200">
                                         <button
                                             onClick={() => saveEdit(service.id)}
@@ -379,7 +379,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                 <>
                                     <h3 className="font-semibold text-sm mb-1 line-clamp-2">{service.title}</h3>
                                     <p className="text-xs md:text-sm lg:text-base text-slate-600 mb-3 line-clamp-2">{service.description}</p>
-                                    
+
                                     <div className="flex flex-wrap gap-1 mb-3">
                                         <span className="text-xs md:text-sm lg:text-base bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                                             {service.category}
@@ -388,36 +388,36 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                             {service.active ? '✓ Visible' : '✗ Oculto'}
                                         </span>
                                     </div>
-                                    
-                                    <div className="flex gap-1">
+
+                                    <div className="flex gap-2 mt-4">
                                         <button
                                             onClick={() => { setEditingId(service.id); setEditData({}); }}
-                                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded text-xs md:text-sm lg:text-base hover:bg-blue-200 transition font-medium"
+                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 transition shadow-sm"
                                         >
-                                            <Edit2 className="w-3 h-3" />
+                                            <Edit2 className="w-3.5 h-3.5" />
                                             Editar
                                         </button>
                                         <button
                                             onClick={() => toggleActive(service.id, service.active)}
-                                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-yellow-100 text-yellow-700 rounded text-xs md:text-sm lg:text-base hover:bg-yellow-200 transition font-medium"
+                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80 transition shadow-sm border border-secondary-foreground/10"
                                         >
                                             {service.active ? (
                                                 <>
-                                                    <Eye className="w-3 h-3" />
+                                                    <Eye className="w-3.5 h-3.5" />
                                                     Ocultar
                                                 </>
                                             ) : (
                                                 <>
-                                                    <EyeOff className="w-3 h-3" />
+                                                    <EyeOff className="w-3.5 h-3.5" />
                                                     Mostrar
                                                 </>
                                             )}
                                         </button>
                                         <button
                                             onClick={() => deleteService(service.id)}
-                                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-red-100 text-red-700 rounded text-xs md:text-sm lg:text-base hover:bg-red-200 transition font-medium"
+                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-destructive text-destructive-foreground rounded-full text-xs font-medium hover:bg-destructive/90 transition shadow-sm"
                                         >
-                                            <Trash2 className="w-3 h-3" />
+                                            <Trash2 className="w-3.5 h-3.5" />
                                             Eliminar
                                         </button>
                                     </div>

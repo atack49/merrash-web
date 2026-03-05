@@ -142,8 +142,8 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
 
             {!isEditing ? (
                 // VIEW MODE - Professional Card Design
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="space-y-6 p-8">
+                <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-border/50 shadow-sm p-6 md:p-8 flex flex-col gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Address Card */}
                         <div className="bg-white rounded-xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
                             <div className="flex items-start gap-4">
@@ -226,21 +226,21 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                             </div>
                         </div>
 
-                        {/* Edit Button */}
-                        <button
-                            onClick={startEditing}
-                            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 mt-2"
-                            disabled={isLoading}
-                        >
-                            <Edit2 className="w-5 h-5" />
-                            Editar Información
-                        </button>
                     </div>
+                    {/* Edit Button */}
+                    <button
+                        onClick={startEditing}
+                        className="w-full inline-flex md:w-auto self-center md:self-end items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-full transition-all hover:bg-primary/90 hover:shadow-sm disabled:opacity-50 mt-2"
+                        disabled={isLoading}
+                    >
+                        <Edit2 className="w-4 h-4" />
+                        Editar Información
+                    </button>
                 </div>
             ) : (
                 // EDIT MODE - Professional Form Design
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-8 space-y-6">
+                <div className="bg-gradient-to-br from-blue-50 to-white ring-2 ring-blue-300 rounded-2xl border border-blue-500 shadow-lg p-6 md:p-8 flex flex-col gap-6">
+                    <div className="space-y-6">
                         {/* Form Header */}
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-slate-900">Editar Información de Contacto</h3>
@@ -388,20 +388,20 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3 pt-6 border-t border-slate-200">
+                        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-blue-200">
                             <button
                                 onClick={saveChanges}
                                 disabled={isLoading}
-                                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-full transition-all hover:bg-primary/90 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader className="w-5 h-5 animate-spin" />
+                                        <Loader className="w-4 h-4 animate-spin" />
                                         Guardando...
                                     </>
                                 ) : (
                                     <>
-                                        <Save className="w-5 h-5" />
+                                        <Save className="w-4 h-4" />
                                         Guardar Cambios
                                     </>
                                 )}
@@ -409,9 +409,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                             <button
                                 onClick={cancelEditing}
                                 disabled={isLoading}
-                                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-200 text-slate-900 font-semibold rounded-lg transition-all hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-secondary text-secondary-foreground font-medium rounded-full transition-all hover:bg-secondary/80 border border-secondary-foreground/10 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-4 h-4" />
                                 Cancelar
                             </button>
                         </div>

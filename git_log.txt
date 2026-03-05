@@ -1,0 +1,17 @@
+commit dc66ee038880ee00d7d49a63f73058176ad79caa
+Author: Axel <axelmercado126@gmail.com>
+Date:   Tue Mar 3 05:25:30 2026 -0600
+
+    Implementación de chatbot con soporte Ollama/OpenAI, integración Google Calendar y mejoras en panel admin
+
+commit 7d74fa6b15777340c802ba6ed6c9220c33a199da
+Author: Axel <axelmercado126@gmail.com>
+Date:   Sat Feb 28 08:37:51 2026 -0600
+
+    cambios de diseños
+
+commit aecf534185144f6b325f87a1262ad547c8cfd775
+Author: Axel <axelmercado126@gmail.com>
+Date:   Tue Feb 24 20:57:38 2026 -0600
+
+    feat(admin): implementar panel admin con prisma, auth y api routes
