@@ -142,61 +142,62 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
 
             {/* Add Form */}
             {showAddForm && (
-                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 space-y-4">
-                    <h3 className="font-semibold text-lg">Nuevo Testimonio</h3>
-                    <div className="space-y-4">
+                <div className="bg-gradient-to-br from-primary/5 to-white ring-2 ring-primary/30 rounded-2xl border border-primary/50 shadow-lg p-6 md:p-8 space-y-4 w-full">
+                    <h3 className="font-bold text-lg text-slate-900">Nuevo Testimonio</h3>
+                    <div className="space-y-4 w-full">
                         <input
                             type="text"
                             placeholder="Nombre"
                             value={newTestimonial.name}
                             onChange={(e) => setNewTestimonial({ ...newTestimonial, name: e.target.value })}
-                            className="w-full px-4 py-2 border rounded-lg"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                         <input
                             type="text"
                             placeholder="Servicio (ej: Acupuntura)"
                             value={newTestimonial.service}
                             onChange={(e) => setNewTestimonial({ ...newTestimonial, service: e.target.value })}
-                            className="w-full px-4 py-2 border rounded-lg"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                         <textarea
                             placeholder="Testimonio"
                             value={newTestimonial.text}
                             onChange={(e) => setNewTestimonial({ ...newTestimonial, text: e.target.value })}
-                            className="w-full px-4 py-2 border rounded-lg h-24 resize-none"
+                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary h-24 resize-none transition-all"
                         />
                         <div>
-                            <label className="text-sm font-medium block mb-2">Calificación</label>
-                            <div className="flex gap-2">
+                            <label className="text-sm font-medium text-slate-700 block mb-2 px-1">Calificación</label>
+                            <div className="inline-flex gap-1.5 bg-white px-4 py-2.5 rounded-full border border-slate-200 shadow-sm">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
                                         onClick={() => setNewTestimonial({ ...newTestimonial, rating: star })}
-                                        className="transition-all hover:scale-110"
+                                        className="transition-all hover:scale-110 focus:outline-none"
+                                        title={`Calificar con ${star} estrellas`}
                                     >
                                         <Star
                                             className={cn(
                                                 'w-6 h-6 transition-colors',
                                                 star <= newTestimonial.rating
-                                                    ? 'fill-yellow-400 text-yellow-400'
-                                                    : 'text-slate-300'
+                                                    ? 'fill-amber-400 text-amber-400'
+                                                    : 'text-slate-200 hover:text-amber-200'
                                             )}
                                         />
                                     </button>
                                 ))}
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-primary/20">
                             <button
                                 onClick={addTestimonial}
                                 disabled={isLoading}
-                                className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 font-medium transition-all"
+                                className="flex-1 px-6 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-50 font-medium transition-all shadow-sm flex items-center justify-center gap-2"
                             >
                                 Guardar
                             </button>
                             <button
                                 onClick={() => setShowAddForm(false)}
-                                className="px-6 py-2 bg-gray-300 text-gray-900 rounded-full hover:bg-gray-400 font-medium transition-all"
+                                className="flex-1 px-6 py-2.5 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 font-medium transition-all border border-secondary-foreground/10 flex items-center justify-center gap-2"
                             >
                                 Cancelar
                             </button>
@@ -216,7 +217,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                         <button
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             ← Anterior
                         </button>
@@ -225,7 +226,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-2 rounded-lg transition ${currentPage === page
+                                    className={`px-3 py-2 rounded-full transition ${currentPage === page
                                             ? 'bg-primary text-white font-semibold'
                                             : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                                         }`}
@@ -237,7 +238,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                         <button
                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             Siguiente →
                         </button>
@@ -252,7 +253,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                             className={cn(
                                 "p-6 rounded-2xl transition-all shadow-sm border border-border/50 flex flex-col items-start min-h-[140px] bg-gradient-to-br",
                                 editingId === testimonial.id
-                                    ? 'border-blue-500 from-blue-50 to-white ring-2 ring-blue-300 shadow-md'
+                                    ? 'border-primary/50 from-primary/5 to-white ring-2 ring-primary/30 shadow-md'
                                     : testimonial.active
                                         ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
                                         : 'from-gray-50 to-gray-100 opacity-70'
@@ -260,59 +261,60 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                         >
                             {editingId === testimonial.id ? (
                                 // Edit Mode
-                                <div className="space-y-4">
+                                <div className="space-y-4 w-full">
                                     <input
                                         type="text"
                                         placeholder="Nombre"
                                         value={editData.name || testimonial.name}
                                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded text-sm"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base transition-all"
                                     />
                                     <input
                                         type="text"
                                         placeholder="Servicio"
                                         value={editData.service || testimonial.service}
                                         onChange={(e) => setEditData({ ...editData, service: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded text-sm"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base transition-all"
                                     />
                                     <textarea
                                         placeholder="Testimonio"
                                         value={editData.text || testimonial.text}
                                         onChange={(e) => setEditData({ ...editData, text: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded text-sm h-20 resize-none"
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base h-24 resize-none transition-all"
                                     />
                                     <div>
-                                        <label className="text-xs font-medium block mb-2">Calificación</label>
-                                        <div className="flex gap-2">
+                                        <label className="text-xs font-medium text-slate-700 block mb-2 px-1">Calificación</label>
+                                        <div className="inline-flex gap-1.5 bg-white px-4 py-2.5 rounded-full border border-slate-200 shadow-sm">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <button
                                                     key={star}
                                                     onClick={() => setEditData({ ...editData, rating: star })}
-                                                    className="transition-all hover:scale-110"
+                                                    className="transition-all hover:scale-110 focus:outline-none"
+                                                    title={`Calificar con ${star} estrellas`}
                                                 >
                                                     <Star
                                                         className={cn(
-                                                            'w-5 h-5 transition-colors',
+                                                            'w-6 h-6 transition-colors',
                                                             star <= (editData.rating || testimonial.rating)
-                                                                ? 'fill-yellow-400 text-yellow-400'
-                                                                : 'text-slate-300'
+                                                                ? 'fill-amber-400 text-amber-400'
+                                                                : 'text-slate-200 hover:text-amber-200'
                                                         )}
                                                     />
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-primary/20 mt-4">
                                         <button
                                             onClick={() => saveEdit(testimonial.id)}
                                             disabled={isLoading}
-                                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                                            className="flex-1 px-4 py-2.5 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition shadow-sm"
                                         >
                                             Guardar
                                         </button>
                                         <button
                                             onClick={() => { setEditingId(null); setEditData({}); }}
-                                            className="flex-1 px-3 py-2 bg-gray-400 text-white rounded text-sm"
+                                            className="flex-1 px-4 py-2.5 bg-secondary text-secondary-foreground rounded-full text-sm font-medium hover:bg-secondary/80 border border-secondary-foreground/10 transition shadow-sm"
                                         >
                                             Cancelar
                                         </button>
@@ -392,7 +394,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                         <button
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             ← Anterior
                         </button>
@@ -402,7 +404,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                         <button
                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             Siguiente →
                         </button>

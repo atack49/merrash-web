@@ -72,7 +72,7 @@ export function AdminPageClientWrapper({
                 <button
                     type="button"
                     onClick={() => setIsLogoutModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-lg transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-semibold shadow-lg transition-colors"
                     aria-label="Cerrar sesion"
                 >
                     <LogOut className="w-4 h-4" />
@@ -106,7 +106,7 @@ export function AdminPageClientWrapper({
                             <form action={signOutAction} className="flex-1">
                                 <button
                                     type="submit"
-                                    className="w-full px-4 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors"
+                                    className="w-full px-4 py-2.5 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 font-semibold transition-colors"
                                 >
                                     Si, cerrar sesion
                                 </button>

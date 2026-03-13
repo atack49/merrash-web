@@ -158,9 +158,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                 <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-border/50 shadow-sm p-6 md:p-8 flex flex-col gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Address Card */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -174,9 +174,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Email Card */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
@@ -191,9 +191,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Phones Card */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
@@ -216,9 +216,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Hours Card */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -243,7 +243,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                 </div>
             ) : (
                 // EDIT MODE - Professional Form Design
-                <div className="bg-gradient-to-br from-blue-50 to-white ring-2 ring-blue-300 rounded-2xl border border-blue-500 shadow-lg p-6 md:p-8 flex flex-col gap-6">
+                <div className="bg-gradient-to-br from-primary/5 to-white ring-2 ring-primary/30 rounded-2xl border border-primary/50 shadow-lg p-6 md:p-8 flex flex-col gap-6">
                     <div className="space-y-6">
                         {/* Form Header */}
                         <div className="mb-6">
@@ -252,9 +252,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Address Field */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
                             <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     </svg>
@@ -265,14 +265,14 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                 value={editData.address || ''}
                                 onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                                 rows={2}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
+                                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none transition-all"
                             />
                         </div>
 
                         {/* Email Field */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
                             <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8" />
                                     </svg>
@@ -283,14 +283,14 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                 type="email"
                                 value={editData.email || ''}
                                 onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                             />
                         </div>
 
                         {/* Phones Field */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
                             <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493" />
                                     </svg>
@@ -299,7 +299,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                             </label>
                             <div className="space-y-3">
                                 {(editData.phones || []).map((phone, index) => (
-                                    <div key={index} className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg">
+                                    <div key={index} className="flex items-center gap-3 bg-slate-50 p-2 rounded-full border border-slate-100/50">
                                         <input
                                             type="tel"
                                             value={phone}
@@ -308,11 +308,11 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                                 newPhones[index] = e.target.value;
                                                 setEditData({ ...editData, phones: newPhones });
                                             }}
-                                            className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                            className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                         />
                                         <button
                                             onClick={() => handleRemovePhone(index)}
-                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
                                             title="Eliminar teléfono"
                                         >
                                             <Trash2 className="w-5 h-5" />
@@ -321,18 +321,18 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                 ))}
 
                                 {/* Add Phone Input */}
-                                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg">
+                                <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-full border border-slate-100/50">
                                     <input
                                         type="tel"
                                         value={newPhone}
                                         onChange={(e) => setNewPhone(e.target.value)}
                                         placeholder="Agregar nuevo teléfono"
                                         onKeyPress={(e) => e.key === 'Enter' && handleAddPhone()}
-                                        className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-slate-400 transition-all"
+                                        className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400 transition-all"
                                     />
                                     <button
                                         onClick={handleAddPhone}
-                                        className="p-2 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors"
+                                        className="p-2 bg-primary text-white hover:bg-primary/90 rounded-full transition-colors"
                                         title="Agregar teléfono"
                                     >
                                         <Plus className="w-5 h-5" />
@@ -342,9 +342,9 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Hours Fields */}
-                        <div className="bg-white rounded-xl p-6 border border-slate-100">
+                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
                             <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
                                     </svg>
@@ -367,7 +367,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                             })
                                         }
                                         placeholder="10:00 AM - 4:00 PM"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
                                 <div>
@@ -385,14 +385,14 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                             })
                                         }
                                         placeholder="10:00 AM - 4:00 PM"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-blue-200">
+                        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-primary/20">
                             <button
                                 onClick={saveChanges}
                                 disabled={isLoading}

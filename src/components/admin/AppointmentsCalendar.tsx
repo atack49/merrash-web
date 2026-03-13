@@ -124,12 +124,12 @@ const parseAppointmentDate = (appointment: Appointment): Date => {
 
 const getStatusBadgeClass = (status: AppointmentStatus) => {
     if (status === 'confirmed') {
-        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+        return 'bg-primary/10 text-primary border-primary/20';
     }
     if (status === 'cancelled') {
-        return 'bg-rose-100 text-rose-700 border-rose-200';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
     }
-    return 'bg-amber-100 text-amber-700 border-amber-200';
+    return 'bg-secondary text-secondary-foreground border-primary/20';
 };
 
 const getStatusText = (status: AppointmentStatus) => {
@@ -144,14 +144,14 @@ const getSourceInfo = (appointment: Appointment) => {
     if (source === 'google') {
         return {
             label: 'Google + Global',
-            className: 'bg-sky-100 text-sky-700 border-sky-200',
+            className: 'bg-accent text-accent-foreground border-primary/20',
         };
     }
 
     if (source === 'global') {
         return {
             label: 'Global',
-            className: 'bg-slate-100 text-slate-700 border-slate-200',
+            className: 'bg-slate-100 text-slate-600 border-slate-200',
         };
     }
 
@@ -160,13 +160,13 @@ const getSourceInfo = (appointment: Appointment) => {
     if (notes.includes('chatbot web')) {
         return {
             label: 'Google + Global',
-            className: 'bg-sky-100 text-sky-700 border-sky-200',
+            className: 'bg-accent text-accent-foreground border-primary/20',
         };
     }
 
     return {
         label: 'Global',
-        className: 'bg-slate-100 text-slate-700 border-slate-200',
+        className: 'bg-slate-100 text-slate-600 border-slate-200',
     };
 };
 
@@ -514,17 +514,17 @@ export function AppointmentsCalendar() {
             {activeView === 'global' && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Total citas</p>
                             <p className="text-xl font-bold text-slate-900">{appointments.length}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Pendientes</p>
-                            <p className="text-xl font-bold text-amber-600">{pendingCount}</p>
+                            <p className="text-xl font-bold text-secondary-foreground">{pendingCount}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Confirmadas</p>
-                            <p className="text-xl font-bold text-emerald-600">{confirmedCount}</p>
+                            <p className="text-xl font-bold text-primary">{confirmedCount}</p>
                         </div>
                     </div>
 
@@ -724,21 +724,21 @@ export function AppointmentsCalendar() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Total</p>
                             <p className="text-xl font-bold text-slate-900">{appointments.length}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Pendientes</p>
-                            <p className="text-xl font-bold text-amber-600">{pendingCount}</p>
+                            <p className="text-xl font-bold text-secondary-foreground">{pendingCount}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Confirmadas</p>
-                            <p className="text-xl font-bold text-emerald-600">{confirmedCount}</p>
+                            <p className="text-xl font-bold text-primary">{confirmedCount}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
                             <p className="text-xs text-slate-500">Canceladas</p>
-                            <p className="text-xl font-bold text-rose-600">{cancelledCount}</p>
+                            <p className="text-xl font-bold text-destructive">{cancelledCount}</p>
                         </div>
                     </div>
 
@@ -748,7 +748,7 @@ export function AppointmentsCalendar() {
                         {appointments.map((appointment) => (
                             <div
                                 key={appointment.id}
-                                className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 space-y-4 min-h-[250px] flex flex-col"
+                                className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 space-y-4 min-h-[250px] flex flex-col shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
@@ -771,7 +771,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'confirmed', 'Marcada como realizada por admin.')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                                     >
                                         Ya se hizo
                                     </button>
@@ -779,7 +779,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'cancelled', 'Cancelada por admin.')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-rose-100 text-rose-700 border border-rose-200"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
                                     >
                                         Cancelar
                                     </button>
@@ -787,7 +787,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'cancelled', 'No show (no llegó a tiempo).')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-amber-100 text-amber-700 border border-amber-200"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 transition-colors"
                                     >
                                         No llegó a tiempo
                                     </button>
@@ -806,7 +806,7 @@ export function AppointmentsCalendar() {
                                                 },
                                             }))
                                         }
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="time"
@@ -820,13 +820,13 @@ export function AppointmentsCalendar() {
                                                 },
                                             }))
                                         }
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <button
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => submitReschedule(appointment)}
-                                        className="px-3 py-2 rounded-full text-xs bg-primary text-white"
+                                        className="px-3 py-2 rounded-full text-xs bg-primary text-white hover:bg-primary/90 transition-colors"
                                     >
                                         Reagendar
                                     </button>
@@ -862,47 +862,47 @@ export function AppointmentsCalendar() {
                                         value={manualForm.customerName}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, customerName: e.target.value }))}
                                         placeholder="Nombre cliente"
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="email"
                                         value={manualForm.email}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, email: e.target.value }))}
                                         placeholder="Email"
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="text"
                                         value={manualForm.phone}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, phone: e.target.value }))}
                                         placeholder="Teléfono"
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="text"
                                         value={manualForm.service}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, service: e.target.value }))}
                                         placeholder="Servicio"
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="date"
                                         value={manualForm.preferredDate}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="time"
                                         value={manualForm.preferredTime}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
-                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="text"
                                         value={manualForm.notes}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, notes: e.target.value }))}
                                         placeholder="Notas"
-                                        className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300"
+                                        className="md:col-span-2 px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
 
