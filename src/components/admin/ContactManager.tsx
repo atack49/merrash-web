@@ -140,6 +140,19 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                 </div>
             )}
 
+            {!isEditing && (
+                <div className="flex items-center justify-start">
+                    <button
+                        onClick={startEditing}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-full transition-all hover:bg-primary/90 hover:shadow-sm disabled:opacity-50"
+                        disabled={isLoading}
+                    >
+                        <Edit2 className="w-4 h-4" />
+                        Editar Informacion
+                    </button>
+                </div>
+            )}
+
             {!isEditing ? (
                 // VIEW MODE - Professional Card Design
                 <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-border/50 shadow-sm p-6 md:p-8 flex flex-col gap-6">
@@ -227,15 +240,6 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                     </div>
-                    {/* Edit Button */}
-                    <button
-                        onClick={startEditing}
-                        className="w-full inline-flex md:w-auto self-center md:self-end items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-full transition-all hover:bg-primary/90 hover:shadow-sm disabled:opacity-50 mt-2"
-                        disabled={isLoading}
-                    >
-                        <Edit2 className="w-4 h-4" />
-                        Editar Información
-                    </button>
                 </div>
             ) : (
                 // EDIT MODE - Professional Form Design

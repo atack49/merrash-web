@@ -45,9 +45,23 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { title, description, icon, category, order } = body;
 
+                const normalizedIcon =
+                        icon === null || icon === undefined || icon === ''
+                                ? null
+                                : typeof icon === 'string'
+                                    ? icon.trim()
+                                    : null;
+
         if (!title || !description || !category) {
             return NextResponse.json(
                 { error: 'title, description, and category are required' },
+                { status: 400 }
+            );
+        }
+
+        if (normalizedIcon && normalizedIcon.startsWith('data:image/')) {
+            return NextResponse.json(
+                { error: 'No se permite guardar imágenes en base64. Sube la imagen a Cloudinary y guarda la URL.' },
                 { status: 400 }
             );
         }
@@ -56,7 +70,7 @@ export async function POST(request: NextRequest) {
             data: {
                 title,
                 description,
-                icon: icon || null,
+                icon: normalizedIcon,
                 category,
                 order: order || 0,
                 active: true,

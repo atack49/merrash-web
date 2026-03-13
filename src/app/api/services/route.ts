@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-export const revalidate = 3600; // Revalidate every hour
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
     try {
@@ -22,7 +23,11 @@ export async function GET() {
             ],
         });
 
-        return NextResponse.json(services);
+        const response = NextResponse.json(services);
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+        return response;
     } catch (error) {
         console.error('Error fetching services:', error);
         return NextResponse.json([]);

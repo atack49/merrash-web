@@ -65,7 +65,16 @@ export function AdminTabs({ activeTab, surveys, services, testimonials, contactI
 
                 {activeTab === 'citas' && (
                     <div className="space-y-4 md:space-y-6">
-                        <h2 className="text-lg md:text-xl font-bold">Citas Agendadas</h2>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h2 className="text-lg md:text-xl font-bold">Citas Agendadas</h2>
+                            <button
+                                type="button"
+                                onClick={() => window.dispatchEvent(new Event('merrash:open-gestion-citas'))}
+                                className="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+                            >
+                                Gestionar citas
+                            </button>
+                        </div>
                         <AppointmentsCalendar />
                     </div>
                 )}

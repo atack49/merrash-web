@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, CalendarDays, HeartPulse, PhoneCall, Star, ClipboardList, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
 
@@ -18,11 +18,11 @@ const NAVIGATION = [
 ];
 
 const ADMIN_TABS = [
-  { name: "📋 Encuestas", href: "encuestas" },
-  { name: "🏥 Servicios", href: "servicios" },
-  { name: "⭐ Testimonios", href: "testimonios" },
-  { name: "📞 Contactanos", href: "contacto" },
-  { name: "📅 Citas Agendadas", href: "citas" },
+  { name: "Citas Agendadas", shortName: "Citas", href: "citas", icon: CalendarDays },
+  { name: "Servicios", shortName: "Servicios", href: "servicios", icon: HeartPulse },
+  { name: "Contactanos", shortName: "Contacto", href: "contacto", icon: PhoneCall },
+  { name: "Testimonios", shortName: "Testimonios", href: "testimonios", icon: Star },
+  { name: "Encuestas", shortName: "Encuestas", href: "encuestas", icon: ClipboardList },
 ];
 
 interface HeaderProps {
@@ -79,6 +79,13 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
           >
             Merrash
           </span>
+
+          {isAdmin && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-wide">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Panel de Administracion
+            </span>
+          )}
         </Link>
 
         {/* Desktop Navigation */}
@@ -128,7 +135,10 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                       : "text-foreground hover:bg-slate-100"
                   )}
                 >
-                  {tab.name}
+                  <span className="inline-flex items-center gap-2">
+                    <tab.icon className="w-4 h-4" />
+                    {tab.name}
+                  </span>
                 </button>
               ))}
             </nav>
@@ -146,7 +156,10 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                       : "text-foreground hover:bg-slate-100"
                   )}
                 >
-                  {tab.name.split(' ')[0]}
+                  <span className="inline-flex items-center gap-1.5">
+                    <tab.icon className="w-3.5 h-3.5" />
+                    {tab.shortName}
+                  </span>
                 </button>
               ))}
             </nav>
@@ -186,7 +199,10 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                       : "text-foreground hover:bg-slate-100"
                   )}
                 >
-                  {tab.name}
+                  <span className="inline-flex items-center gap-2">
+                    <tab.icon className="w-4 h-4" />
+                    {tab.name}
+                  </span>
                 </button>
               ))}
             </>

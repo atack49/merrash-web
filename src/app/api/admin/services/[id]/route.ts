@@ -53,11 +53,27 @@ export async function PATCH(
         const body = await request.json();
         const { title, description, icon, category, order, active } = body;
 
+        const normalizedIcon =
+            icon === undefined
+                ? undefined
+                : icon === null || icon === ''
+                  ? null
+                  : typeof icon === 'string'
+                    ? icon.trim()
+                    : undefined;
+
+        if (typeof normalizedIcon === 'string' && normalizedIcon.startsWith('data:image/')) {
+            return NextResponse.json(
+                { error: 'No se permite guardar imágenes en base64. Sube la imagen a Cloudinary y guarda la URL.' },
+                { status: 400 }
+            );
+        }
+
         // Build update data object with only provided fields
         const updateData: any = {};
         if (title !== undefined) updateData.title = title;
         if (description !== undefined) updateData.description = description;
-        if (icon !== undefined) updateData.icon = icon;
+        if (normalizedIcon !== undefined) updateData.icon = normalizedIcon;
         if (category !== undefined) updateData.category = category;
         if (order !== undefined) updateData.order = order;
         if (active !== undefined) updateData.active = active;

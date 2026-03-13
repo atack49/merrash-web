@@ -1,13 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { LogOut } from 'lucide-react';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 
+const VALID_ADMIN_TABS = ['citas', 'servicios', 'contacto', 'testimonios', 'encuestas'] as const;
+type AdminTab = (typeof VALID_ADMIN_TABS)[number];
+
+const normalizeAdminTab = (value: string | null): AdminTab => {
+    if (value && VALID_ADMIN_TABS.includes(value as AdminTab)) {
+        return value as AdminTab;
+    }
+    return 'citas';
+};
+
 interface AdminPageClientWrapperProps {
-    session: any;
     surveys: any[];
     services: any[];
     testimonials: any[];
@@ -16,38 +26,37 @@ interface AdminPageClientWrapperProps {
 }
 
 export function AdminPageClientWrapper({
-    session,
     surveys,
     services,
     testimonials,
     contactInfo,
     signOutAction,
 }: AdminPageClientWrapperProps) {
-    const [activeTab, setActiveTab] = useState<string>('encuestas');
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    const urlTab = useMemo(() => normalizeAdminTab(searchParams.get('tab')), [searchParams]);
+    const [activeTab, setActiveTab] = useState<AdminTab>('citas');
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+    useEffect(() => {
+        setActiveTab(urlTab);
+    }, [urlTab]);
+
+    const handleAdminTabChange = (tab: string) => {
+        const normalizedTab = normalizeAdminTab(tab);
+        setActiveTab(normalizedTab);
+
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('tab', normalizedTab);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-            <Header activeAdminTab={activeTab} onAdminTabChange={setActiveTab} />
+            <Header activeAdminTab={activeTab} onAdminTabChange={handleAdminTabChange} />
             <main className="flex-grow mt-16 md:mt-20 container mx-auto px-3 md:px-6 py-6 md:py-8 lg:py-12">
-                {/* Header Section */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:gap-6 mb-8 md:mb-12">
-                    <div className="space-y-1 md:space-y-2">
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Panel de Administración</h1>
-                        <p className="text-xs md:text-sm text-slate-600">
-                            Bienvenido, <span className="font-semibold text-primary">{session?.user?.name}</span>
-                        </p>
-                    </div>
-                    <form action={signOutAction}>
-                        <button
-                            type="submit"
-                            className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold text-sm md:text-base lg:text-lg rounded-full transition-all duration-300 shadow-md hover:shadow-lg whitespace-nowrap"
-                        >
-                            <LogOut className="w-4 h-4 md:w-5 md:h-5" />
-                            Cerrar Sesión
-                        </button>
-                    </form>
-                </div>
-
                 {/* Tabs Section */}
                 <AdminTabs 
                     activeTab={activeTab}
@@ -58,6 +67,54 @@ export function AdminPageClientWrapper({
                 />
             </main>
             <Footer />
+
+            <div className="fixed bottom-5 right-5 z-[60]">
+                <button
+                    type="button"
+                    onClick={() => setIsLogoutModalOpen(true)}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-lg transition-colors"
+                    aria-label="Cerrar sesion"
+                >
+                    <LogOut className="w-4 h-4" />
+                    Cerrar sesion
+                </button>
+            </div>
+
+            {isLogoutModalOpen && (
+                <div
+                    className="fixed inset-0 z-[80] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                    onClick={() => setIsLogoutModalOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-slate-900">Confirmar cierre de sesion</h3>
+                        <p className="mt-2 text-sm text-slate-600">
+                            Estas a punto de cerrar tu sesion del panel de administracion.
+                        </p>
+
+                        <div className="mt-5 flex flex-col sm:flex-row gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsLogoutModalOpen(false)}
+                                className="flex-1 px-4 py-2.5 rounded-full bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+
+                            <form action={signOutAction} className="flex-1">
+                                <button
+                                    type="submit"
+                                    className="w-full px-4 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors"
+                                >
+                                    Si, cerrar sesion
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

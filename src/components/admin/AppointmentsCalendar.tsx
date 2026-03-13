@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Phone, RefreshCw, Save } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Phone, RefreshCw, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled';
@@ -29,7 +29,8 @@ interface GoogleCalendarSettings {
     webhookUrl: string;
 }
 
-type CalendarView = 'global' | 'gestion' | 'google' | 'huli';
+type CalendarView = 'global' | 'gestion' | 'google';
+const OPEN_GESTION_CITAS_EVENT = 'merrash:open-gestion-citas';
 
 type ManualForm = {
     customerName: string;
@@ -140,13 +141,6 @@ const getStatusText = (status: AppointmentStatus) => {
 const getSourceInfo = (appointment: Appointment) => {
     const source = (appointment.source || '').toLowerCase();
 
-    if (source === 'huli') {
-        return {
-            label: 'Huli',
-            className: 'bg-violet-100 text-violet-700 border-violet-200',
-        };
-    }
-
     if (source === 'google') {
         return {
             label: 'Google + Global',
@@ -162,13 +156,6 @@ const getSourceInfo = (appointment: Appointment) => {
     }
 
     const notes = (appointment.notes || '').toLowerCase();
-
-    if (notes.includes('huli')) {
-        return {
-            label: 'Huli',
-            className: 'bg-violet-100 text-violet-700 border-violet-200',
-        };
-    }
 
     if (notes.includes('chatbot web')) {
         return {
@@ -196,6 +183,7 @@ export function AppointmentsCalendar() {
     const [settings, setSettings] = useState<GoogleCalendarSettings>({ embedUrl: '', webhookUrl: '' });
     const [settingsLoading, setSettingsLoading] = useState(true);
     const [settingsSaving, setSettingsSaving] = useState(false);
+    const [syncingGoogle, setSyncingGoogle] = useState(false);
     const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
     const [managementMessage, setManagementMessage] = useState<string | null>(null);
@@ -209,6 +197,7 @@ export function AppointmentsCalendar() {
         preferredTime: '',
         notes: '',
     });
+    const [isManualModalOpen, setIsManualModalOpen] = useState(false);
 
     const loadAppointments = async () => {
         setIsLoading(true);
@@ -259,6 +248,15 @@ export function AppointmentsCalendar() {
         loadGoogleSettings();
     }, []);
 
+    useEffect(() => {
+        const handleOpenGestion = () => {
+            setActiveView('gestion');
+        };
+
+        window.addEventListener(OPEN_GESTION_CITAS_EVENT, handleOpenGestion);
+        return () => window.removeEventListener(OPEN_GESTION_CITAS_EVENT, handleOpenGestion);
+    }, []);
+
     const saveGoogleSettings = async () => {
         setSettingsSaving(true);
         setSettingsMessage(null);
@@ -283,6 +281,37 @@ export function AppointmentsCalendar() {
             setSettingsMessage(err instanceof Error ? err.message : 'Error guardando configuración');
         } finally {
             setSettingsSaving(false);
+        }
+    };
+
+    const syncGoogleCalendar = async () => {
+        setSyncingGoogle(true);
+        setSettingsMessage(null);
+        try {
+            const response = await fetch('/api/admin/google-calendar/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.error || 'No se pudo sincronizar con Google Calendar');
+            }
+
+            const stats = data?.stats;
+            const warnings = Array.isArray(stats?.warnings) && stats.warnings.length > 0
+                ? ` Avisos: ${stats.warnings.length}.`
+                : '';
+
+            setSettingsMessage(
+                `Sincronizacion completada. Subidas: ${stats?.pushedToGoogle || 0}, importadas: ${stats?.importedFromGoogle || 0}, enlazadas: ${stats?.linkedExisting || 0}, actualizadas: ${stats?.updatedExisting || 0}.${warnings}`
+            );
+
+            await loadAppointments();
+        } catch (err) {
+            setSettingsMessage(err instanceof Error ? err.message : 'Error sincronizando Google Calendar');
+        } finally {
+            setSyncingGoogle(false);
         }
     };
 
@@ -436,6 +465,7 @@ export function AppointmentsCalendar() {
                 preferredTime: '',
                 notes: '',
             });
+            setIsManualModalOpen(false);
             setManagementMessage('Cita creada manualmente ✅');
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error creando cita manual');
@@ -446,47 +476,39 @@ export function AppointmentsCalendar() {
 
     return (
         <div className="space-y-4 md:space-y-6">
-            <div className="flex flex-wrap gap-2">
-                <button
-                    type="button"
-                    onClick={() => setActiveView('global')}
-                    className={cn(
-                        'px-4 py-2.5 rounded-full text-sm font-medium transition-colors',
-                        activeView === 'global' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    )}
-                >
-                    Calendario Global
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveView('gestion')}
-                    className={cn(
-                        'px-4 py-2.5 rounded-full text-sm font-medium transition-colors',
-                        activeView === 'gestion' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    )}
-                >
-                    Gestión de Citas
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveView('google')}
-                    className={cn(
-                        'px-4 py-2.5 rounded-full text-sm font-medium transition-colors',
-                        activeView === 'google' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    )}
-                >
-                    Citas en Google Calendar
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveView('huli')}
-                    className={cn(
-                        'px-4 py-2.5 rounded-full text-sm font-medium transition-colors',
-                        activeView === 'huli' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    )}
-                >
-                    Citas en Huli
-                </button>
+            <div className="bg-white border border-slate-200 rounded-2xl p-3 md:p-4 space-y-3">
+                <div>
+                    <h3 className="text-base md:text-lg font-semibold text-slate-900">Centro de citas</h3>
+                    <p className="text-xs md:text-sm text-slate-600">
+                        Revisa el calendario general, gestiona estatus y configura la sincronización con Google Calendar.
+                    </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setActiveView('global')}
+                        className={cn(
+                            'px-4 py-2.5 rounded-full text-sm font-medium transition-colors border',
+                            activeView === 'global'
+                                ? 'bg-primary text-white border-primary'
+                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        )}
+                    >
+                        Calendario Global
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveView('google')}
+                        className={cn(
+                            'px-4 py-2.5 rounded-full text-sm font-medium transition-colors border',
+                            activeView === 'google'
+                                ? 'bg-primary text-white border-primary'
+                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        )}
+                    >
+                        Google Calendar
+                    </button>
+                </div>
             </div>
 
             {activeView === 'global' && (
@@ -691,6 +713,16 @@ export function AppointmentsCalendar() {
 
             {activeView === 'gestion' && (
                 <div className="space-y-4">
+                    <div className="flex justify-start">
+                        <button
+                            type="button"
+                            onClick={() => setIsManualModalOpen(true)}
+                            className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 transition-colors"
+                        >
+                            Agendar cita manual
+                        </button>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
                             <p className="text-xs text-slate-500">Total</p>
@@ -710,73 +742,14 @@ export function AppointmentsCalendar() {
                         </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 space-y-3">
-                        <h4 className="text-base md:text-lg font-semibold text-slate-900">Agendar cita manual (admin)</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <input
-                                type="text"
-                                value={manualForm.customerName}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, customerName: e.target.value }))}
-                                placeholder="Nombre cliente"
-                                className="px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                            <input
-                                type="email"
-                                value={manualForm.email}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, email: e.target.value }))}
-                                placeholder="Email"
-                                className="px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                            <input
-                                type="text"
-                                value={manualForm.phone}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, phone: e.target.value }))}
-                                placeholder="Teléfono"
-                                className="px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                            <input
-                                type="text"
-                                value={manualForm.service}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, service: e.target.value }))}
-                                placeholder="Servicio"
-                                className="px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                            <input
-                                type="date"
-                                value={manualForm.preferredDate}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
-                                className="px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                            <input
-                                type="time"
-                                value={manualForm.preferredTime}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
-                                className="px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                            <input
-                                type="text"
-                                value={manualForm.notes}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, notes: e.target.value }))}
-                                placeholder="Notas"
-                                className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300"
-                            />
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={createManualAppointment}
-                            disabled={actionLoadingId === 'create-manual'}
-                            className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60"
-                        >
-                            Crear cita manual
-                        </button>
-                    </div>
-
                     {managementMessage && <p className="text-sm text-slate-700">{managementMessage}</p>}
 
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {appointments.map((appointment) => (
-                            <div key={appointment.id} className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
+                            <div
+                                key={appointment.id}
+                                className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 space-y-4 min-h-[250px] flex flex-col"
+                            >
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
                                         <p className="font-semibold text-slate-900">{appointment.service || 'Cita'}</p>
@@ -820,7 +793,7 @@ export function AppointmentsCalendar() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center mt-auto">
                                     <input
                                         type="date"
                                         value={rescheduleDrafts[appointment.id]?.preferredDate || ''}
@@ -861,6 +834,98 @@ export function AppointmentsCalendar() {
                             </div>
                         ))}
                     </div>
+
+                    {isManualModalOpen && (
+                        <div
+                            className="fixed inset-0 z-[70] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                            onClick={() => setIsManualModalOpen(false)}
+                        >
+                            <div
+                                className="w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 md:p-6 space-y-4"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <h4 className="text-base md:text-lg font-semibold text-slate-900">Agendar cita manual (admin)</h4>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsManualModalOpen(false)}
+                                        className="h-9 w-9 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center"
+                                        aria-label="Cerrar modal"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        value={manualForm.customerName}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, customerName: e.target.value }))}
+                                        placeholder="Nombre cliente"
+                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                    <input
+                                        type="email"
+                                        value={manualForm.email}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, email: e.target.value }))}
+                                        placeholder="Email"
+                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={manualForm.phone}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, phone: e.target.value }))}
+                                        placeholder="Teléfono"
+                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={manualForm.service}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, service: e.target.value }))}
+                                        placeholder="Servicio"
+                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={manualForm.preferredDate}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
+                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                    <input
+                                        type="time"
+                                        value={manualForm.preferredTime}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
+                                        className="px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={manualForm.notes}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, notes: e.target.value }))}
+                                        placeholder="Notas"
+                                        className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsManualModalOpen(false)}
+                                        className="px-5 py-2.5 rounded-full bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={createManualAppointment}
+                                        disabled={actionLoadingId === 'create-manual'}
+                                        className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60"
+                                    >
+                                        Crear cita manual
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -869,14 +934,25 @@ export function AppointmentsCalendar() {
                     <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 space-y-4">
                         <div className="flex items-center justify-between gap-3">
                             <h4 className="text-base md:text-lg font-semibold text-slate-900">Ajustes de Google Calendar</h4>
-                            <button
-                                type="button"
-                                onClick={loadGoogleSettings}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-slate-100 hover:bg-slate-200 text-slate-700"
-                            >
-                                <RefreshCw className="w-3.5 h-3.5" />
-                                Recargar
-                            </button>
+                            <div className="flex flex-wrap justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={syncGoogleCalendar}
+                                    disabled={syncingGoogle || settingsLoading}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-primary text-white hover:bg-primary/90 disabled:opacity-60"
+                                >
+                                    <RefreshCw className={cn('w-3.5 h-3.5', syncingGoogle && 'animate-spin')} />
+                                    Sincronizar Google y App
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={loadGoogleSettings}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-slate-100 hover:bg-slate-200 text-slate-700"
+                                >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    Recargar
+                                </button>
+                            </div>
                         </div>
 
                         <div className="space-y-3">
@@ -905,7 +981,7 @@ export function AppointmentsCalendar() {
                         </div>
 
                         <p className="text-xs text-slate-500">
-                            La URL embebida muestra tu calendario en esta pestaña. La URL webhook se usa para enviar nuevas citas creadas por chatbot al Google Calendar.
+                            La URL embebida muestra tu calendario en esta pestaña. La URL webhook se usa para enviar nuevas citas al Google Calendar y tambien para leer eventos existentes desde Google hacia la app.
                         </p>
 
                         {settingsMessage && (
@@ -937,15 +1013,6 @@ export function AppointmentsCalendar() {
                             </div>
                         )}
                     </div>
-                </div>
-            )}
-
-            {activeView === 'huli' && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
-                    <h4 className="text-base md:text-lg font-semibold text-slate-900 mb-2">Citas en Huli</h4>
-                    <p className="text-sm text-slate-600">
-                        Integración en desarrollo. Cuando tengas la API de Huli, aquí mostraremos esas citas y se sumarán al Calendario Global.
-                    </p>
                 </div>
             )}
         </div>

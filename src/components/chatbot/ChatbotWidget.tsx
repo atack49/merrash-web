@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CHATBOT_OPEN_EVENT } from '@/lib/chatbot/widgetEvents';
+import { RotateCcw } from 'lucide-react';
 
 type ChatAction = {
     id: string;
@@ -16,6 +17,24 @@ type Message = {
     text: string;
     actions?: ChatAction[];
 };
+
+type PersistedChatState = {
+    conversationId: string;
+    messages: Message[];
+    whatsappUrl: string;
+    isOpen: boolean;
+    expiresAt: number;
+};
+
+const CHATBOT_STORAGE_KEY = 'merrash-chatbot-state-v1';
+const CHATBOT_TTL_MS = 1000 * 60 * 45;
+const INITIAL_BOT_MESSAGE: Message = {
+    id: 'welcome',
+    role: 'bot',
+    text: 'Hola 👋 Soy el asistente de Merrash. Si quieres, te ayudo a reservar en menos de un minuto.',
+};
+
+const createConversationId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 const renderFormattedMessageText = (text: string) => {
     const lines = text.split('\n');
@@ -68,16 +87,25 @@ export function ChatbotWidget() {
     const [whatsappUrl, setWhatsappUrl] = useState<string>('');
     const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth());
     const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear());
-    const [conversationId] = useState(() => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+    const [conversationId, setConversationId] = useState(() => createConversationId());
+    const [expiresAt, setExpiresAt] = useState(() => Date.now() + CHATBOT_TTL_MS);
     const messagesViewportRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLTextAreaElement | null>(null);
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: 'welcome',
-            role: 'bot',
-            text: 'Hola 👋 Soy el asistente de Merrash. Si quieres, te ayudo a reservar en menos de un minuto.',
-        },
-    ]);
+    const widgetRef = useRef<HTMLDivElement | null>(null);
+    const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
+    const [messages, setMessages] = useState<Message[]>([INITIAL_BOT_MESSAGE]);
+
+    const resetConversation = useCallback(() => {
+        setMessages([INITIAL_BOT_MESSAGE]);
+        setWhatsappUrl('');
+        setInput('');
+        setConversationId(createConversationId());
+        setExpiresAt(Date.now() + CHATBOT_TTL_MS);
+        if (inputRef.current) {
+            inputRef.current.style.height = 'auto';
+        }
+        localStorage.removeItem(CHATBOT_STORAGE_KEY);
+    }, []);
 
     const latestBotMessage = useMemo(() => {
         for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -165,11 +193,84 @@ export function ChatbotWidget() {
     useEffect(() => {
         const handleOpenChatbot = () => {
             setIsOpen(true);
+            setExpiresAt(Date.now() + CHATBOT_TTL_MS);
         };
 
         window.addEventListener(CHATBOT_OPEN_EVENT, handleOpenChatbot);
         return () => window.removeEventListener(CHATBOT_OPEN_EVENT, handleOpenChatbot);
     }, []);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handlePointerDownOutside = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node | null;
+            if (!target) return;
+
+            if (widgetRef.current?.contains(target)) return;
+            if (toggleButtonRef.current?.contains(target)) return;
+
+            setIsOpen(false);
+        };
+
+        document.addEventListener('mousedown', handlePointerDownOutside);
+        document.addEventListener('touchstart', handlePointerDownOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDownOutside);
+            document.removeEventListener('touchstart', handlePointerDownOutside);
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
+        const raw = localStorage.getItem(CHATBOT_STORAGE_KEY);
+        if (!raw) return;
+
+        try {
+            const parsed = JSON.parse(raw) as PersistedChatState;
+            const hasValidMessages = Array.isArray(parsed.messages) && parsed.messages.length > 0;
+            const hasExpired = !parsed.expiresAt || parsed.expiresAt <= Date.now();
+
+            if (hasExpired || !hasValidMessages) {
+                localStorage.removeItem(CHATBOT_STORAGE_KEY);
+                return;
+            }
+
+            setConversationId(parsed.conversationId || createConversationId());
+            setMessages(parsed.messages);
+            setWhatsappUrl(parsed.whatsappUrl || '');
+            setIsOpen(Boolean(parsed.isOpen));
+            setExpiresAt(parsed.expiresAt);
+        } catch {
+            localStorage.removeItem(CHATBOT_STORAGE_KEY);
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: PersistedChatState = {
+            conversationId,
+            messages,
+            whatsappUrl,
+            isOpen,
+            expiresAt,
+        };
+        localStorage.setItem(CHATBOT_STORAGE_KEY, JSON.stringify(payload));
+    }, [conversationId, messages, whatsappUrl, isOpen, expiresAt]);
+
+    useEffect(() => {
+        const remaining = expiresAt - Date.now();
+
+        if (remaining <= 0) {
+            resetConversation();
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            resetConversation();
+        }, remaining);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [expiresAt, resetConversation]);
 
     const handleInputChange = (value: string) => {
         setInput(value);
@@ -188,6 +289,8 @@ export function ChatbotWidget() {
         if (!text || isLoading) {
             return;
         }
+
+        setExpiresAt(Date.now() + CHATBOT_TTL_MS);
 
         const userMessage: Message = {
             id: `${Date.now()}-user`,
@@ -275,6 +378,7 @@ export function ChatbotWidget() {
     return (
         <>
             <button
+                ref={toggleButtonRef}
                 type="button"
                 onClick={() => setIsOpen((prev) => !prev)}
                 className="fixed bottom-5 right-5 z-50 rounded-full bg-primary text-white px-5 py-3 shadow-lg hover:bg-primary/90 transition-colors font-medium"
@@ -283,10 +387,26 @@ export function ChatbotWidget() {
             </button>
 
             {isOpen && (
-                <div className="fixed bottom-20 right-5 z-50 w-[92vw] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+                <div
+                    ref={widgetRef}
+                    className="fixed bottom-20 right-5 z-50 w-[92vw] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+                >
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <p className="font-semibold text-slate-900">Asistente Merrash</p>
-                        <p className="text-xs text-slate-500">Conexión rápida a WhatsApp</p>
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <p className="font-semibold text-slate-900">Asistente Merrash</p>
+                                <p className="text-xs text-slate-500">Conexion rapida a WhatsApp</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={resetConversation}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-100 transition-colors"
+                                aria-label="Reiniciar conversacion"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                Reiniciar
+                            </button>
+                        </div>
                     </div>
 
                     <div ref={messagesViewportRef} className="h-80 overflow-y-auto p-3 space-y-2 bg-white">

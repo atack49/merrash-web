@@ -57,3 +57,22 @@ Sin `OPENAI_API_KEY`, el chatbot sigue funcionando con la IA local actual.
 
 También puedes cambiar el modo desde Admin > Configuración Chat Bot.
 Ese ajuste se guarda en `data/chatbot-settings.json` (archivo local), sin usar base de datos.
+
+## Imagenes de Servicios (Cloudinary Gratis)
+
+Para evitar gastar almacenamiento de la base de datos, las imagenes de servicios se suben a Cloudinary y en DB solo se guarda la URL.
+
+Agrega en `.env.local`:
+
+```env
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=tu_cloud_name
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=tu_unsigned_upload_preset
+```
+
+Comportamiento actual:
+- Acepta cualquier tipo de imagen (`image/*`).
+- PNG/JPG/WebP se optimizan en el navegador antes de subir (resize + compresion).
+- SVG se sube sin rasterizar.
+- En DB solo se guarda URL (se bloquea base64 en APIs de admin).
+
+Nota: Cloudinary plan gratuito tiene limite mensual. Revisa tu panel para ver creditos, almacenamiento y ancho de banda disponibles.

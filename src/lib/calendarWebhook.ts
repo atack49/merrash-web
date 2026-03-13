@@ -1,14 +1,17 @@
 export interface GoogleCalendarWebhookPayload {
-    action?: 'create' | 'update' | 'delete';
+    action?: 'create' | 'update' | 'delete' | 'list';
     eventId?: string;
-    name: string;
-    email: string;
+    name?: string;
+    email?: string;
     phone?: string;
     service?: string;
     preferredDate?: string;
     preferredTime?: string;
     notes?: string;
-    source: 'chatbot-web';
+    source?: 'chatbot-web' | 'google-sync';
+    timeMin?: string;
+    timeMax?: string;
+    includeDeleted?: boolean;
 }
 
 export const sendAppointmentToGoogleCalendar = async (

@@ -18,7 +18,7 @@ export default async function AdminPage() {
 
     // Fetch surveys, services, testimonials, and contact info
     let surveys: { id: string; title: string; type: string; active: boolean; createdAt: Date; _count: { questions: number; responses: number; appointments: number; }; }[] = [];
-    let services: { id: string; title: string; description: string; category: string; active: boolean; order: number; }[] = [];
+    let services: { id: string; title: string; description: string; icon: string | null; category: string; active: boolean; order: number; }[] = [];
     let testimonials: { id: string; name: string; service: string; text: string; rating: number; active: boolean; order: number; }[] = [];
     let contactInfo: { id: string; address: string; phones: string[]; email: string; hours: { weekdays: string; saturday: string; }; } | null = null;
 
@@ -46,6 +46,7 @@ export default async function AdminPage() {
                 id: true,
                 title: true,
                 description: true,
+                icon: true,
                 category: true,
                 active: true,
                 order: true,
@@ -93,7 +94,6 @@ export default async function AdminPage() {
 
     return (
         <AdminPageClientWrapper 
-            session={session}
             surveys={surveys}
             services={services}
             testimonials={testimonials}
