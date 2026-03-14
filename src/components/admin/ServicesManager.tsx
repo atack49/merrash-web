@@ -21,7 +21,7 @@ const categoryVisuals: Record<string, { iconBg: string; icon: typeof Brain }> = 
     Espíritu: { iconBg: '#7FBFA6', icon: Sparkles },
 };
 
-const sharedGradient = 'linear-gradient(135deg, #3CB8A8 0%, #5B8BD0 52%, #7FBFA6 100%)';
+const sharedGradient = 'linear-gradient(135deg, #43C6B5 0%, #8FD9D0 52%, #C2F0E9 100%)';
 
 const isImageSource = (value?: string | null) => {
     if (!value) return false;
@@ -503,60 +503,57 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                             return (
                                                 <>
                                         <div
-                                            className="absolute inset-0"
-                                            style={{ background: sharedGradient }}
+                                            className="absolute inset-0 bg-gradient-to-br from-[#f1fffd] to-[#d8f5ef]"
                                         />
-                                        {isImageSource(service.icon) && (
+
+                                        {!isImageSource(service.icon) && (
                                             <div
-                                                className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
-                                                style={{ backgroundImage: `url(${service.icon})` }}
+                                                className="absolute inset-0 opacity-80 mix-blend-multiply"
+                                                style={{
+                                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='xMidYMid slice'%3E%3Cpath fill='%2343C6B5' fill-opacity='0.15' d='M0 0 L0 250 Q 200 350 450 150 T 800 50 L 800 0 Z' /%3E%3Cpath fill='%238FD9D0' fill-opacity='0.25' d='M0 0 L0 100 Q 250 200 500 50 T 800 200 L 800 0 Z' /%3E%3Cpath fill='%231DB4A1' fill-opacity='0.1' d='M800 600 L800 350 Q 550 200 300 450 T 0 500 L 0 600 Z' /%3E%3C/svg%3E")`,
+                                                    backgroundSize: 'cover',
+                                                }}
                                             />
                                         )}
-                                        {!isImageSource(service.icon) && (
-                                            <div className="absolute inset-0 opacity-55">
-                                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_78%,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0)_54%)]" />
-                                                <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.00)_45%,rgba(0,0,0,0.16)_100%)]" />
-                                            </div>
-                                        )}
-                                        <div
-                                            className="absolute inset-0"
-                                            style={{
-                                                background:
-                                                    'linear-gradient(135deg, rgba(60,184,168,0.86) 0%, rgba(91,139,208,0.64) 38%, rgba(127,191,166,0.28) 70%, rgba(255,255,255,0.00) 100%)',
-                                            }}
-                                        />
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(255,255,255,0.55)_0%,rgba(255,255,255,0.20)_30%,rgba(255,255,255,0)_58%)]" />
-                                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.18)_56%,rgba(0,0,0,0.36)_100%)]" />
 
-                                        <div className="relative z-10 h-full p-4 flex flex-col justify-between text-white">
+                                        {isImageSource(service.icon) && (
+                                            <>
+                                                <div
+                                                    className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
+                                                    style={{ backgroundImage: `url(${service.icon})` }}
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/80 to-transparent" />
+                                            </>
+                                        )}
+
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0)_50%)]" />
+
+                                        <div className="relative z-10 h-full p-4 flex flex-col justify-between">
                                             <div
-                                                className="h-9 w-9 rounded-full backdrop-blur-sm flex items-center justify-center border border-white/35"
-                                                style={{ backgroundColor: `${visual.iconBg}CC` }}
+                                                className="h-9 w-9 text-primary rounded-full bg-white/70 shadow-sm backdrop-blur-md flex items-center justify-center border border-white"
                                             >
-                                                <ServiceIcon className="w-4.5 h-4.5 text-white" />
+                                                <ServiceIcon className="w-4.5 h-4.5 text-primary" />
                                             </div>
 
                                             <div>
-                                            <h3
-                                                className="font-semibold text-base mb-1 line-clamp-2"
-                                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.70), 0 0 1px rgba(255,255,255,0.75)' }}
-                                            >
-                                                {service.title}
-                                            </h3>
-                                            <p
-                                                className="text-xs text-white/95 mb-2 line-clamp-2 max-w-[85%]"
-                                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.68), 0 0 1px rgba(255,255,255,0.7)' }}
-                                            >
-                                                {service.description}
-                                            </p>
-                                            <div className="flex flex-wrap gap-1">
-                                                <span className="text-[11px] bg-white/22 text-white px-2 py-0.5 rounded-full border border-white/50 shadow-sm">
-                                                    {service.category}
-                                                </span>
-                                                <span className={`text-[11px] px-2 py-0.5 rounded-full border shadow-sm ${service.active ? 'bg-emerald-500/30 text-white border-emerald-100/45' : 'bg-rose-500/30 text-white border-rose-100/45'}`}>
-                                                    {service.active ? 'Visible' : 'Oculto'}
-                                                </span>
-                                            </div>
+                                                <h3
+                                                    className="font-bold text-slate-800 text-base mb-1 line-clamp-2"
+                                                >
+                                                    {service.title}
+                                                </h3>
+                                                <p
+                                                    className="text-xs font-medium text-slate-600 mb-2 line-clamp-2 max-w-[85%]"
+                                                >
+                                                    {service.description}
+                                                </p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    <span className="text-[11px] bg-white text-primary px-2 py-0.5 rounded-full border border-primary/20 shadow-sm font-medium">
+                                                        {service.category}
+                                                    </span>
+                                                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium border shadow-sm ${service.active ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+                                                        {service.active ? 'Visible' : 'Oculto'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                                 </>
