@@ -54,7 +54,7 @@ export function AdminPageClientWrapper({
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+        <div className="flex flex-col min-h-screen bg-background">
             <Header activeAdminTab={activeTab} onAdminTabChange={handleAdminTabChange} />
             <main className="flex-grow mt-16 md:mt-20 container mx-auto px-3 md:px-6 py-6 md:py-8 lg:py-12">
                 {/* Tabs Section */}
@@ -86,11 +86,11 @@ export function AdminPageClientWrapper({
                     onClick={() => setIsLogoutModalOpen(false)}
                 >
                     <div
-                        className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl"
+                        className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
                         onClick={(event) => event.stopPropagation()}
                     >
-                        <h3 className="text-lg font-semibold text-slate-900">Confirmar cierre de sesion</h3>
-                        <p className="mt-2 text-sm text-slate-600">
+                        <h3 className="text-lg font-semibold text-foreground">Confirmar cierre de sesion</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
                             Estas a punto de cerrar tu sesion del panel de administracion.
                         </p>
 
@@ -98,7 +98,7 @@ export function AdminPageClientWrapper({
                             <button
                                 type="button"
                                 onClick={() => setIsLogoutModalOpen(false)}
-                                className="flex-1 px-4 py-2.5 rounded-full bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-colors"
+                                className="flex-1 px-4 py-2.5 rounded-full bg-muted text-muted-foreground font-medium hover:bg-slate-200 transition-colors"
                             >
                                 Cancelar
                             </button>

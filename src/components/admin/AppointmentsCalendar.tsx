@@ -151,7 +151,7 @@ const getSourceInfo = (appointment: Appointment) => {
     if (source === 'global') {
         return {
             label: 'Global',
-            className: 'bg-slate-100 text-slate-600 border-slate-200',
+            className: 'bg-muted text-muted-foreground border-border',
         };
     }
 
@@ -166,7 +166,7 @@ const getSourceInfo = (appointment: Appointment) => {
 
     return {
         label: 'Global',
-        className: 'bg-slate-100 text-slate-600 border-slate-200',
+        className: 'bg-muted text-muted-foreground border-border',
     };
 };
 
@@ -476,10 +476,10 @@ export function AppointmentsCalendar() {
 
     return (
         <div className="space-y-4 md:space-y-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-3 md:p-4 space-y-3">
+            <div className="bg-card border border-border rounded-2xl p-3 md:p-4 space-y-3">
                 <div>
-                    <h3 className="text-base md:text-lg font-semibold text-slate-900">Centro de citas</h3>
-                    <p className="text-xs md:text-sm text-slate-600">
+                    <h3 className="text-base md:text-lg font-semibold text-foreground">Centro de citas</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">
                         Revisa el calendario general, gestiona estatus y configura la sincronización con Google Calendar.
                     </p>
                 </div>
@@ -491,7 +491,7 @@ export function AppointmentsCalendar() {
                             'px-4 py-2.5 rounded-full text-sm font-medium transition-colors border',
                             activeView === 'global'
                                 ? 'bg-primary text-white border-primary'
-                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                : 'bg-card text-muted-foreground border-border hover:bg-muted'
                         )}
                     >
                         Calendario Global
@@ -503,7 +503,7 @@ export function AppointmentsCalendar() {
                             'px-4 py-2.5 rounded-full text-sm font-medium transition-colors border',
                             activeView === 'google'
                                 ? 'bg-primary text-white border-primary'
-                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                : 'bg-card text-muted-foreground border-border hover:bg-muted'
                         )}
                     >
                         Google Calendar
@@ -514,22 +514,22 @@ export function AppointmentsCalendar() {
             {activeView === 'global' && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Total citas</p>
-                            <p className="text-xl font-bold text-slate-900">{appointments.length}</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Total citas</p>
+                            <p className="text-xl font-bold text-foreground">{appointments.length}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Pendientes</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Pendientes</p>
                             <p className="text-xl font-bold text-secondary-foreground">{pendingCount}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Confirmadas</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Confirmadas</p>
                             <p className="text-xl font-bold text-primary">{confirmedCount}</p>
                         </div>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
-                        <div className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-4 md:p-6">
+                        <div className="flex-1 bg-card border border-border rounded-2xl p-4 md:p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <button
                                     type="button"
@@ -544,7 +544,7 @@ export function AppointmentsCalendar() {
                                     <ChevronLeft className="w-5 h-5" />
                                 </button>
 
-                                <div className="flex items-center gap-2 text-slate-900">
+                                <div className="flex items-center gap-2 text-foreground">
                                     <CalendarDays className="w-5 h-5 text-primary" />
                                     <h3 className="text-base md:text-lg font-semibold">{monthLabel}</h3>
                                 </div>
@@ -565,7 +565,7 @@ export function AppointmentsCalendar() {
 
                             <div className="grid grid-cols-7 gap-2 mb-2">
                                 {WEEK_DAYS.map((day) => (
-                                    <div key={day} className="text-center text-xs md:text-sm font-semibold text-slate-500 py-2">
+                                    <div key={day} className="text-center text-xs md:text-sm font-semibold text-muted-foreground py-2">
                                         {day}
                                     </div>
                                 ))}
@@ -585,9 +585,9 @@ export function AppointmentsCalendar() {
                                             type="button"
                                             onClick={() => setSelectedDayKey(dayKey)}
                                             className={cn(
-                                                'min-h-[92px] text-left border rounded-xl p-2 transition-all bg-white',
+                                                'min-h-[92px] text-left border rounded-xl p-2 transition-all bg-card',
                                                 isSelected && 'ring-2 ring-primary/40 border-primary/40',
-                                                !isSelected && 'hover:border-slate-300',
+                                                !isSelected && 'hover:border-border',
                                                 !isCurrentMonth && 'opacity-45'
                                             )}
                                         >
@@ -595,7 +595,7 @@ export function AppointmentsCalendar() {
                                                 <span
                                                     className={cn(
                                                         'text-xs font-semibold',
-                                                        isToday ? 'text-primary' : 'text-slate-700'
+                                                        isToday ? 'text-primary' : 'text-muted-foreground'
                                                     )}
                                                 >
                                                     {date.getDate()}
@@ -622,7 +622,7 @@ export function AppointmentsCalendar() {
                                                     </div>
                                                 ))}
                                                 {dayAppointments.length > 2 && (
-                                                    <div className="text-[10px] text-slate-500 font-medium">
+                                                    <div className="text-[10px] text-muted-foreground font-medium">
                                                         +{dayAppointments.length - 2} más
                                                     </div>
                                                 )}
@@ -633,32 +633,32 @@ export function AppointmentsCalendar() {
                             </div>
                         </div>
 
-                        <aside className="w-full lg:w-[360px] bg-white border border-slate-200 rounded-2xl p-4 md:p-5">
+                        <aside className="w-full lg:w-[360px] bg-card border border-border rounded-2xl p-4 md:p-5">
                             <div className="flex items-center justify-between mb-3">
-                                <h4 className="font-semibold text-slate-900 text-base">Detalle del día</h4>
+                                <h4 className="font-semibold text-foreground text-base">Detalle del día</h4>
                                 <button
                                     type="button"
                                     onClick={loadAppointments}
-                                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                                    className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-slate-200 text-muted-foreground transition-colors"
                                 >
                                     Recargar
                                 </button>
                             </div>
 
-                            <p className="text-sm text-slate-500 mb-4">{selectedDayKey}</p>
+                            <p className="text-sm text-muted-foreground mb-4">{selectedDayKey}</p>
 
                             {isLoading ? (
-                                <p className="text-sm text-slate-500">Cargando citas...</p>
+                                <p className="text-sm text-muted-foreground">Cargando citas...</p>
                             ) : error ? (
                                 <p className="text-sm text-rose-600">{error}</p>
                             ) : selectedDayAppointments.length === 0 ? (
-                                <p className="text-sm text-slate-500">No hay citas para este día.</p>
+                                <p className="text-sm text-muted-foreground">No hay citas para este día.</p>
                             ) : (
                                 <div className="space-y-3">
                                     {selectedDayAppointments.map((appointment) => (
-                                        <div key={appointment.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50">
+                                        <div key={appointment.id} className="p-3 rounded-xl border border-border bg-card">
                                             <div className="flex items-start justify-between gap-2 mb-2">
-                                                <p className="text-sm font-semibold text-slate-900">
+                                                <p className="text-sm font-semibold text-foreground">
                                                     {appointment.service || appointment.survey?.title || 'Cita'}
                                                 </p>
                                                 <div className="flex flex-col items-end gap-1">
@@ -681,25 +681,25 @@ export function AppointmentsCalendar() {
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-1 text-xs text-slate-600">
+                                            <div className="space-y-1 text-xs text-muted-foreground">
                                                 {appointment.preferredTime && (
                                                     <p className="flex items-center gap-1.5">
-                                                        <Clock className="w-3.5 h-3.5 text-slate-500" />
+                                                        <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                                                         {appointment.preferredTime}
                                                     </p>
                                                 )}
                                                 <p className="flex items-center gap-1.5 break-all">
-                                                    <Mail className="w-3.5 h-3.5 text-slate-500" />
+                                                    <Mail className="w-3.5 h-3.5 text-muted-foreground" />
                                                     {appointment.email}
                                                 </p>
                                                 {appointment.phone && (
                                                     <p className="flex items-center gap-1.5">
-                                                        <Phone className="w-3.5 h-3.5 text-slate-500" />
+                                                        <Phone className="w-3.5 h-3.5 text-muted-foreground" />
                                                         {appointment.phone}
                                                     </p>
                                                 )}
                                                 {appointment.notes && (
-                                                    <p className="text-slate-500 pt-1">Nota: {appointment.notes}</p>
+                                                    <p className="text-muted-foreground pt-1">Nota: {appointment.notes}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -724,37 +724,37 @@ export function AppointmentsCalendar() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Total</p>
-                            <p className="text-xl font-bold text-slate-900">{appointments.length}</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Total</p>
+                            <p className="text-xl font-bold text-foreground">{appointments.length}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Pendientes</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Pendientes</p>
                             <p className="text-xl font-bold text-secondary-foreground">{pendingCount}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Confirmadas</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Confirmadas</p>
                             <p className="text-xl font-bold text-primary">{confirmedCount}</p>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                            <p className="text-xs text-slate-500">Canceladas</p>
+                        <div className="bg-card border border-border rounded-2xl p-3">
+                            <p className="text-xs text-muted-foreground">Canceladas</p>
                             <p className="text-xl font-bold text-destructive">{cancelledCount}</p>
                         </div>
                     </div>
 
-                    {managementMessage && <p className="text-sm text-slate-700">{managementMessage}</p>}
+                    {managementMessage && <p className="text-sm text-muted-foreground">{managementMessage}</p>}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {appointments.map((appointment) => (
                             <div
                                 key={appointment.id}
-                                className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 space-y-4 min-h-[250px] flex flex-col shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                                className="bg-card border border-border rounded-2xl p-4 md:p-5 space-y-4 min-h-[250px] flex flex-col shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <p className="font-semibold text-slate-900">{appointment.service || 'Cita'}</p>
-                                        <p className="text-sm text-slate-600">{appointment.preferredDate || 'Sin fecha'} · {appointment.preferredTime || 'Sin hora'}</p>
-                                        <p className="text-xs text-slate-500">{appointment.email} {appointment.phone ? `· ${appointment.phone}` : ''}</p>
+                                        <p className="font-semibold text-foreground">{appointment.service || 'Cita'}</p>
+                                        <p className="text-sm text-muted-foreground">{appointment.preferredDate || 'Sin fecha'} · {appointment.preferredTime || 'Sin hora'}</p>
+                                        <p className="text-xs text-muted-foreground">{appointment.email} {appointment.phone ? `· ${appointment.phone}` : ''}</p>
                                     </div>
                                     <div className="flex flex-col items-end gap-1">
                                         <span className={cn('text-[11px] px-2 py-0.5 rounded-full border font-semibold', getStatusBadgeClass(appointment.status))}>
@@ -787,7 +787,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'cancelled', 'No show (no llegó a tiempo).')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 transition-colors"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-muted text-muted-foreground border border-border hover:bg-slate-200 transition-colors"
                                     >
                                         No llegó a tiempo
                                     </button>
@@ -806,7 +806,7 @@ export function AppointmentsCalendar() {
                                                 },
                                             }))
                                         }
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="time"
@@ -820,7 +820,7 @@ export function AppointmentsCalendar() {
                                                 },
                                             }))
                                         }
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <button
                                         type="button"
@@ -841,15 +841,15 @@ export function AppointmentsCalendar() {
                             onClick={() => setIsManualModalOpen(false)}
                         >
                             <div
-                                className="w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 md:p-6 space-y-4"
+                                className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-2xl p-4 md:p-6 space-y-4"
                                 onClick={(event) => event.stopPropagation()}
                             >
                                 <div className="flex items-center justify-between gap-3">
-                                    <h4 className="text-base md:text-lg font-semibold text-slate-900">Agendar cita manual (admin)</h4>
+                                    <h4 className="text-base md:text-lg font-semibold text-foreground">Agendar cita manual (admin)</h4>
                                     <button
                                         type="button"
                                         onClick={() => setIsManualModalOpen(false)}
-                                        className="h-9 w-9 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center"
+                                        className="h-9 w-9 rounded-full border border-border text-muted-foreground hover:bg-muted flex items-center justify-center"
                                         aria-label="Cerrar modal"
                                     >
                                         <X className="w-4 h-4" />
@@ -862,47 +862,47 @@ export function AppointmentsCalendar() {
                                         value={manualForm.customerName}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, customerName: e.target.value }))}
                                         placeholder="Nombre cliente"
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="email"
                                         value={manualForm.email}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, email: e.target.value }))}
                                         placeholder="Email"
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="text"
                                         value={manualForm.phone}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, phone: e.target.value }))}
                                         placeholder="Teléfono"
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="text"
                                         value={manualForm.service}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, service: e.target.value }))}
                                         placeholder="Servicio"
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="date"
                                         value={manualForm.preferredDate}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="time"
                                         value={manualForm.preferredTime}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
-                                        className="px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                     <input
                                         type="text"
                                         value={manualForm.notes}
                                         onChange={(e) => setManualForm((prev) => ({ ...prev, notes: e.target.value }))}
                                         placeholder="Notas"
-                                        className="md:col-span-2 px-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="md:col-span-2 px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
 
@@ -910,7 +910,7 @@ export function AppointmentsCalendar() {
                                     <button
                                         type="button"
                                         onClick={() => setIsManualModalOpen(false)}
-                                        className="px-5 py-2.5 rounded-full bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition-colors"
+                                        className="px-5 py-2.5 rounded-full bg-muted text-muted-foreground font-semibold hover:bg-slate-200 transition-colors"
                                     >
                                         Cancelar
                                     </button>
@@ -931,9 +931,9 @@ export function AppointmentsCalendar() {
 
             {activeView === 'google' && (
                 <div className="space-y-4">
-                    <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 space-y-4">
+                    <div className="bg-card border border-border rounded-2xl p-4 md:p-6 space-y-4">
                         <div className="flex items-center justify-between gap-3">
-                            <h4 className="text-base md:text-lg font-semibold text-slate-900">Ajustes de Google Calendar</h4>
+                            <h4 className="text-base md:text-lg font-semibold text-foreground">Ajustes de Google Calendar</h4>
                             <div className="flex flex-wrap justify-end gap-2">
                                 <button
                                     type="button"
@@ -947,7 +947,7 @@ export function AppointmentsCalendar() {
                                 <button
                                     type="button"
                                     onClick={loadGoogleSettings}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-slate-100 hover:bg-slate-200 text-slate-700"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-muted hover:bg-slate-200 text-muted-foreground"
                                 >
                                     <RefreshCw className="w-3.5 h-3.5" />
                                     Recargar
@@ -957,35 +957,35 @@ export function AppointmentsCalendar() {
 
                         <div className="space-y-3">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">URL embebida de Google Calendar</label>
+                                <label className="block text-sm font-medium text-muted-foreground mb-1.5">URL embebida de Google Calendar</label>
                                 <input
                                     type="text"
                                     value={settings.embedUrl}
                                     onChange={(e) => setSettings((prev) => ({ ...prev, embedUrl: e.target.value }))}
                                     placeholder="https://calendar.google.com/calendar/embed?..."
-                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/40"
                                     disabled={settingsLoading || settingsSaving}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">URL webhook para crear eventos (opcional)</label>
+                                <label className="block text-sm font-medium text-muted-foreground mb-1.5">URL webhook para crear eventos (opcional)</label>
                                 <input
                                     type="text"
                                     value={settings.webhookUrl}
                                     onChange={(e) => setSettings((prev) => ({ ...prev, webhookUrl: e.target.value }))}
                                     placeholder="https://script.google.com/macros/s/.../exec"
-                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/40"
                                     disabled={settingsLoading || settingsSaving}
                                 />
                             </div>
                         </div>
 
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted-foreground">
                             La URL embebida muestra tu calendario en esta pestaña. La URL webhook se usa para enviar nuevas citas al Google Calendar y tambien para leer eventos existentes desde Google hacia la app.
                         </p>
 
                         {settingsMessage && (
-                            <p className="text-sm text-slate-700">{settingsMessage}</p>
+                            <p className="text-sm text-muted-foreground">{settingsMessage}</p>
                         )}
 
                         <button
@@ -999,7 +999,7 @@ export function AppointmentsCalendar() {
                         </button>
                     </div>
 
-                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden min-h-[540px]">
+                    <div className="bg-card border border-border rounded-2xl overflow-hidden min-h-[540px]">
                         {settings.embedUrl ? (
                             <iframe
                                 src={settings.embedUrl}
@@ -1008,7 +1008,7 @@ export function AppointmentsCalendar() {
                                 loading="lazy"
                             />
                         ) : (
-                            <div className="h-[540px] flex items-center justify-center p-6 text-center text-slate-500">
+                            <div className="h-[540px] flex items-center justify-center p-6 text-center text-muted-foreground">
                                 Aún no hay URL embebida configurada. Guarda la URL de Google Calendar para visualizar las citas aquí.
                             </div>
                         )}

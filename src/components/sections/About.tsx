@@ -19,7 +19,7 @@ export function About() {
                             {ABOUT_TEXT.description}
                         </p>
 
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-border/50">
+                        <div className="bg-card p-6 rounded-xl shadow-sm border border-border/50">
                             <p className="italic text-foreground/80 mb-4">"{ABOUT_TEXT.mission}"</p>
                             <div className="space-y-2">
                                 <p className="font-semibold text-primary">{ABOUT_TEXT.doctor}</p>

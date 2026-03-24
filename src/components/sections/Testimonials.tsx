@@ -144,7 +144,7 @@ export function Testimonials() {
   const stars = toSafeRating(testimonial.rating);
 
   return (
-    <section id="testimonios" className="py-28 bg-white">
+    <section id="testimonios" className="py-28 bg-background">
       <style>{styles}</style>
 
       <div className="container mx-auto px-4 md:px-6">
@@ -165,7 +165,7 @@ export function Testimonials() {
 
           <div
             key={currentIndex}
-            className="relative bg-white rounded-3xl p-10 md:p-14 border border-primary/10 shadow-xl animate-testimonial"
+            className="relative bg-card rounded-3xl p-10 md:p-14 border border-primary/10 shadow-xl animate-testimonial"
           >
             {/* Stars */}
             <div className="flex gap-1 mb-6">

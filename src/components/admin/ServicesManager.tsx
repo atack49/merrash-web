@@ -244,38 +244,38 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
             {/* Add Form Modal */}
             {showAddForm && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 md:p-7 shadow-2xl space-y-5">
+                    <div className="bg-card rounded-2xl border border-border max-w-md w-full p-6 md:p-7 shadow-2xl space-y-5">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-slate-900">Nuevo Servicio</h3>
+                            <h3 className="text-xl font-bold text-foreground">Nuevo Servicio</h3>
                             <button
                                 onClick={() => setShowAddForm(false)}
-                                className="p-2 hover:bg-slate-100 rounded-full transition"
+                                className="p-2 hover:bg-muted rounded-full transition"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">Título</label>
+                                <label className="text-sm font-medium text-muted-foreground">Título</label>
                                 <input
                                     type="text"
                                     placeholder="Ej. Acupuntura terapéutica"
                                     value={newService.title}
                                     onChange={(e) => setNewService({ ...newService, title: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">Descripción</label>
+                                <label className="text-sm font-medium text-muted-foreground">Descripción</label>
                                 <textarea
                                     placeholder="Describe brevemente el servicio"
                                     value={newService.description}
                                     onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="w-full px-4 py-2.5 border border-border rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">Imagen del servicio</label>
+                                <label className="text-sm font-medium text-muted-foreground">Imagen del servicio</label>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -284,17 +284,17 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         if (!file) return;
                                         await handleImageSelection(file, 'new');
                                     }}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm file:mr-3 file:px-3 file:py-1.5 file:border-0 file:rounded-lg file:bg-primary/10 file:text-primary"
+                                    className="w-full px-3 py-2 border border-border rounded-xl text-sm file:mr-3 file:px-3 file:py-1.5 file:border-0 file:rounded-lg file:bg-primary/10 file:text-primary"
                                 />
                                 {isImageSource(newService.icon) && (
                                     <div
-                                        className="h-24 rounded-xl border border-slate-200 bg-cover bg-center"
+                                        className="h-24 rounded-xl border border-border bg-cover bg-center"
                                         style={{ backgroundImage: `url(${newService.icon})` }}
                                     />
                                 )}
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">Categoría</label>
+                                <label className="text-sm font-medium text-muted-foreground">Categoría</label>
                                 <div className="flex flex-wrap justify-center gap-2 pt-1">
                                     {categories.map((category) => (
                                         <button
@@ -305,7 +305,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                                 "px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
                                                 newService.category === category
                                                     ? "bg-primary text-white"
-                                                    : "text-foreground hover:bg-slate-100"
+                                                    : "text-foreground hover:bg-muted"
                                             )}
                                         >
                                             {category}
@@ -324,7 +324,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                             </button>
                             <button
                                 onClick={() => setShowAddForm(false)}
-                                className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-800 rounded-full hover:bg-slate-300 font-medium transition"
+                                className="flex-1 px-4 py-2.5 bg-slate-200 text-foreground rounded-full hover:bg-slate-300 font-medium transition"
                             >
                                 Cancelar
                             </button>
@@ -343,7 +343,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                             "px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
                             selectedCategory === category
                                 ? "bg-primary text-white"
-                                : "text-foreground hover:bg-slate-100"
+                                : "text-foreground hover:bg-muted"
                         )}
                     >
                         {category}
@@ -353,7 +353,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
 
             {/* Contador */}
             {filteredServices.length > 0 && (
-                <p className="text-xs md:text-sm lg:text-base text-slate-600 text-center mb-4 md:mb-6">
+                <p className="text-xs md:text-sm lg:text-base text-muted-foreground text-center mb-4 md:mb-6">
                     Mostrando <span className="font-semibold">{filteredServices.length}</span> servicio{filteredServices.length !== 1 ? 's' : ''} en {selectedCategory}
                 </p>
             )}
@@ -376,9 +376,9 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                             {editingId === service.id ? (
                                 // Edit Mode
                                 <div className="space-y-3">
-                                    <div className="bg-slate-100 border border-slate-200 rounded-xl p-2.5 mb-3">
+                                    <div className="bg-muted border border-border rounded-xl p-2.5 mb-3">
                                         <div className="flex items-center justify-between gap-2">
-                                            <p className="text-xs font-semibold text-slate-700">✏️ Editando servicio</p>
+                                            <p className="text-xs font-semibold text-muted-foreground">✏️ Editando servicio</p>
                                             <span className="text-sm">🛠️</span>
                                         </div>
                                     </div>
@@ -388,16 +388,16 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         placeholder="Título"
                                         value={editData.title !== undefined ? editData.title : service.title}
                                         onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                     />
                                     <textarea
                                         placeholder="Descripción"
                                         value={editData.description !== undefined ? editData.description : service.description}
                                         onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-full px-3 py-2 border border-border rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                                     />
                                     <div className="space-y-1">
-                                        <label className="text-xs font-medium text-slate-700">Imagen</label>
+                                        <label className="text-xs font-medium text-muted-foreground">Imagen</label>
                                         <input
                                             id={`edit-image-${service.id}`}
                                             type="file"
@@ -419,11 +419,11 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                                         : service.icon;
                                                     return isImageSource(currentImage) ? (
                                                     <div
-                                                        className="h-16 rounded-xl border border-slate-200 bg-cover bg-center"
+                                                        className="h-16 rounded-xl border border-border bg-cover bg-center"
                                                         style={{ backgroundImage: `url(${currentImage})` }}
                                                     />
                                                     ) : (
-                                                    <div className="h-16 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-[11px] text-slate-500">
+                                                    <div className="h-16 rounded-xl border border-dashed border-border bg-card flex items-center justify-center text-[11px] text-muted-foreground">
                                                         Sin imagen
                                                     </div>
                                                     );
@@ -454,7 +454,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         </div>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-medium text-slate-700">Categoría</label>
+                                        <label className="text-xs font-medium text-muted-foreground">Categoría</label>
                                         <div className="flex flex-wrap justify-center gap-2 pt-1">
                                             {categories.map((category) => {
                                                 const selected = (editData.category !== undefined ? editData.category : service.category) === category;
@@ -467,7 +467,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                                             "px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
                                                             selected
                                                                 ? "bg-primary text-white"
-                                                                : "text-foreground hover:bg-slate-100"
+                                                                : "text-foreground hover:bg-muted"
                                                         )}
                                                     >
                                                         {category}
@@ -487,7 +487,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         </button>
                                         <button
                                             onClick={() => { setEditingId(null); setEditData({}); }}
-                                            className="flex-1 px-3 py-1.5 bg-slate-200 text-slate-800 rounded-full text-xs font-medium hover:bg-slate-300 transition shadow-sm"
+                                            className="flex-1 px-3 py-1.5 bg-slate-200 text-foreground rounded-full text-xs font-medium hover:bg-slate-300 transition shadow-sm"
                                         >
                                             ✕ Cancelar
                                         </button>
@@ -496,19 +496,19 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                             ) : (
                                 // View Mode
                                 <>
-                                    <div className="relative -m-4 mb-3 min-h-[190px] rounded-2xl overflow-hidden border border-slate-200/70">
+                                    <div className="relative -m-4 mb-3 min-h-[190px] rounded-2xl overflow-hidden border border-border/70">
                                         {(() => {
                                             const visual = categoryVisuals[service.category] || categoryVisuals.Cuerpo;
                                             const ServiceIcon = visual.icon;
                                             return (
                                                 <>
                                         <div
-                                            className="absolute inset-0 bg-gradient-to-br from-[#f1fffd] to-[#d8f5ef]"
+                                            className="absolute inset-0 bg-service-card"
                                         />
 
                                         {!isImageSource(service.icon) && (
                                             <div
-                                                className="absolute inset-0 opacity-80 mix-blend-multiply"
+                                                className="absolute inset-0 service-card-shapes"
                                                 style={{
                                                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='xMidYMid slice'%3E%3Cpath fill='%2343C6B5' fill-opacity='0.15' d='M0 0 L0 250 Q 200 350 450 150 T 800 50 L 800 0 Z' /%3E%3Cpath fill='%238FD9D0' fill-opacity='0.25' d='M0 0 L0 100 Q 250 200 500 50 T 800 200 L 800 0 Z' /%3E%3Cpath fill='%231DB4A1' fill-opacity='0.1' d='M800 600 L800 350 Q 550 200 300 450 T 0 500 L 0 600 Z' /%3E%3C/svg%3E")`,
                                                     backgroundSize: 'cover',
@@ -526,28 +526,28 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                             </>
                                         )}
 
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0)_50%)]" />
+                                        <div className="absolute inset-0 service-card-highlight" />
 
                                         <div className="relative z-10 h-full p-4 flex flex-col justify-between">
                                             <div
-                                                className="h-9 w-9 text-primary rounded-full bg-white/70 shadow-sm backdrop-blur-md flex items-center justify-center border border-white"
+                                                className="h-9 w-9 text-primary rounded-full bg-card/70 shadow-sm backdrop-blur-md flex items-center justify-center border border-white"
                                             >
                                                 <ServiceIcon className="w-4.5 h-4.5 text-primary" />
                                             </div>
 
                                             <div>
                                                 <h3
-                                                    className="font-bold text-slate-800 text-base mb-1 line-clamp-2"
+                                                    className="font-bold text-foreground text-base mb-1 line-clamp-2"
                                                 >
                                                     {service.title}
                                                 </h3>
                                                 <p
-                                                    className="text-xs font-medium text-slate-600 mb-2 line-clamp-2 max-w-[85%]"
+                                                    className="text-xs font-medium text-muted-foreground mb-2 line-clamp-2 max-w-[85%]"
                                                 >
                                                     {service.description}
                                                 </p>
                                                 <div className="flex flex-wrap gap-1">
-                                                    <span className="text-[11px] bg-white text-primary px-2 py-0.5 rounded-full border border-primary/20 shadow-sm font-medium">
+                                                    <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-primary/20 shadow-sm font-medium">
                                                         {service.category}
                                                     </span>
                                                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium border shadow-sm ${service.active ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
@@ -600,7 +600,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                 </div>
             ) : (
                 <div className="text-center py-12">
-                    <p className="text-slate-600 text-sm">No hay servicios en la categoría {selectedCategory}</p>
+                    <p className="text-muted-foreground text-sm">No hay servicios en la categoría {selectedCategory}</p>
                 </div>
             )}
         </div>

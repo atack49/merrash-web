@@ -71,14 +71,14 @@ export function ChatbotModeManager() {
 
     return (
         <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8">
+            <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                 <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                         <Sparkles className="w-5 h-5" />
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-lg font-bold text-slate-900">Modelo de IA para el Chat Bot</h3>
-                        <p className="text-sm text-slate-600">
+                        <h3 className="text-lg font-bold text-foreground">Modelo de IA para el Chat Bot</h3>
+                        <p className="text-sm text-muted-foreground">
                             Elige cómo responderá el chatbot. Esta configuración no usa base de datos; se guarda en archivo local del proyecto.
                         </p>
                     </div>
@@ -92,13 +92,13 @@ export function ChatbotModeManager() {
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-4">
+            <div className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                     <button
                         type="button"
                         onClick={() => setMode('auto')}
                         disabled={isLoading || isSaving}
-                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'auto' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'auto' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-slate-200'}`}
                     >
                         Auto (recomendado)
                     </button>
@@ -106,7 +106,7 @@ export function ChatbotModeManager() {
                         type="button"
                         onClick={() => setMode('local')}
                         disabled={isLoading || isSaving}
-                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'local' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'local' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-slate-200'}`}
                     >
                         IA local
                     </button>
@@ -114,7 +114,7 @@ export function ChatbotModeManager() {
                         type="button"
                         onClick={() => setMode('team')}
                         disabled={isLoading || isSaving}
-                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'team' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'team' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-slate-200'}`}
                     >
                         Team IA (3 pasos)
                     </button>
@@ -122,13 +122,13 @@ export function ChatbotModeManager() {
                         type="button"
                         onClick={() => setMode('public')}
                         disabled={isLoading || isSaving}
-                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'public' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'public' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-slate-200'}`}
                     >
                         IA pública gratis
                     </button>
                 </div>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                     Auto: intenta Team IA y si falla usa IA pública y luego local. Team IA: borrador → auditoría → respuesta final. IA pública gratis: una sola pasada. IA local: motor interno del proyecto.
                 </p>
 

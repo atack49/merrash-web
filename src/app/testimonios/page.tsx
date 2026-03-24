@@ -33,7 +33,7 @@ export default function TestimoniosPage() {
             <Header />
 
             <main className="flex-grow">
-                <section className="py-24 bg-white">
+                <section className="py-24 bg-background">
                     <div className="container mx-auto px-4 md:px-6">
                         {/* Header */}
                         <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">

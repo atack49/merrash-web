@@ -12,7 +12,7 @@ export function AdminTabs({ activeTab, surveys, services, testimonials, contactI
     return (
         <div className="space-y-4 md:space-y-6">
             {/* Tab Content */}
-            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-slate-100 p-4 md:p-6 lg:p-8">
+            <div className="bg-card rounded-lg md:rounded-xl shadow-lg border border-border p-4 md:p-6 lg:p-8">
                 {activeTab === 'encuestas' && (
                     <SurveysManager initialSurveys={surveys} />
                 )}

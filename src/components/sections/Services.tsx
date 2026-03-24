@@ -180,7 +180,7 @@ export function Services() {
     return (
         <section
             id="servicios"
-            className="bg-white pt-32 pb-24 md:pt-40 md:pb-32 transition-all duration-300"
+            className="bg-background pt-32 pb-24 md:pt-40 md:pb-32 transition-all duration-300"
         >
             <div className="container mx-auto px-4 md:px-6">
                 {/* Header */}
@@ -241,12 +241,12 @@ export function Services() {
                                 )}
                             >
                                 <div
-                                    className="absolute inset-0 bg-gradient-to-br from-[#f1fffd] to-[#d8f5ef]"
+                                    className="absolute inset-0 bg-service-card"
                                 />
 
                                 {!isImageSource(service.icon) && (
                                     <div
-                                        className="absolute inset-0 opacity-80 mix-blend-multiply"
+                                        className="absolute inset-0 service-card-shapes"
                                         style={{
                                             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' preserveAspectRatio='xMidYMid slice'%3E%3Cpath fill='%2343C6B5' fill-opacity='0.15' d='M0 0 L0 250 Q 200 350 450 150 T 800 50 L 800 0 Z' /%3E%3Cpath fill='%238FD9D0' fill-opacity='0.25' d='M0 0 L0 100 Q 250 200 500 50 T 800 200 L 800 0 Z' /%3E%3Cpath fill='%231DB4A1' fill-opacity='0.1' d='M800 600 L800 350 Q 550 200 300 450 T 0 500 L 0 600 Z' /%3E%3C/svg%3E")`,
                                             backgroundSize: 'cover',
@@ -264,24 +264,24 @@ export function Services() {
                                     </>
                                 )}
 
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0)_50%)]" />
+                                <div className="absolute inset-0 service-card-highlight" />
 
                                 <div className="relative z-10 flex h-full flex-col justify-start p-4 md:p-5">
                                     <div
-                                        className="h-10 w-10 text-primary rounded-full bg-white/70 shadow-sm backdrop-blur-md flex items-center justify-center mb-4 md:mb-5 border border-white"
+                                        className="h-10 w-10 text-primary rounded-full bg-card/70 shadow-sm backdrop-blur-md flex items-center justify-center mb-4 md:mb-5 border border-border/50"
                                     >
                                         <ServiceIcon className="w-5 h-5 text-primary" />
                                     </div>
 
                                     <div className="mt-1 md:mt-2">
                                         <h3
-                                            className="text-base md:text-xl font-bold text-slate-800 leading-tight mb-2 line-clamp-2"
+                                            className="text-base md:text-xl font-bold text-foreground leading-tight mb-2 line-clamp-2"
                                         >
                                             {service.title}
                                         </h3>
 
                                         <p
-                                            className="text-[11px] md:text-sm font-medium text-slate-600 line-clamp-3 max-w-[90%] [word-break:break-word]"
+                                            className="text-[11px] md:text-sm font-medium text-muted-foreground line-clamp-3 max-w-[90%] [word-break:break-word]"
                                         >
                                             {service.description}
                                         </p>

@@ -15,10 +15,10 @@ export default function LoginPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="mt-20 flex-grow flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 py-12 sm:px-6 lg:px-8">
+            <main className="mt-20 flex-grow flex items-center justify-center bg-background py-12 sm:px-6 lg:px-8">
                 <div className="w-full max-w-md">
                     {/* Card Container */}
-                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                    <div className="bg-card rounded-2xl shadow-xl overflow-hidden border border-border">
                         {/* Header Section */}
                         <div className="bg-gradient-to-r from-primary to-primary/80 px-8 py-12 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4">
@@ -32,7 +32,7 @@ export default function LoginPage() {
                         <form className="px-8 py-10 space-y-6" action={formAction}>
                             {/* Email Field */}
                             <div className="space-y-2">
-                                <label htmlFor="email" className="block text-sm font-semibold text-slate-700">
+                                <label htmlFor="email" className="block text-sm font-semibold text-foreground">
                                     Email
                                 </label>
                                 <input
@@ -40,14 +40,14 @@ export default function LoginPage() {
                                     name="email"
                                     type="email"
                                     required
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
+                                    className="w-full px-4 py-3 border border-border rounded-lg text-foreground/90 placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
                                     placeholder="Ingresa tu correo"
                                 />
                             </div>
 
                             {/* Password Field */}
                             <div className="space-y-2">
-                                <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
+                                <label htmlFor="password" className="block text-sm font-semibold text-foreground">
                                     Contraseña
                                 </label>
                                 <input
@@ -55,7 +55,7 @@ export default function LoginPage() {
                                     name="password"
                                     type="password"
                                     required
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
+                                    className="w-full px-4 py-3 border border-border rounded-lg text-foreground/90 placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-md"
                                     placeholder="Ingresa tu contraseña"
                                 />
                             </div>
@@ -90,9 +90,9 @@ export default function LoginPage() {
                     </div>
 
                     {/* Footer Info */}
-                    <p className="text-center text-sm text-slate-600 mt-8">
+                    <p className="text-center text-sm text-muted-foreground mt-8">
                         ¿Problemas al iniciar sesión? <br/>
-                        <span className="text-slate-500">Contacta al administrador</span>
+                        <span className="text-muted-foreground/80">Contacta al administrador</span>
                     </p>
                 </div>
             </main>

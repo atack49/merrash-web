@@ -158,7 +158,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                 <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-border/50 shadow-sm p-6 md:p-8 flex flex-col gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Address Card */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-card rounded-2xl p-6 border border-border hover:border-border transition-colors">
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,14 +167,14 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                     </svg>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Ubicación</p>
-                                    <p className="text-slate-900 text-sm leading-relaxed">{contact.address}</p>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Ubicación</p>
+                                    <p className="text-foreground text-sm leading-relaxed">{contact.address}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Email Card */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-card rounded-2xl p-6 border border-border hover:border-border transition-colors">
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                     </svg>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Email</p>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Email</p>
                                     <a href={`mailto:${contact.email}`} className="text-primary hover:text-primary/80 font-medium transition-colors">
                                         {contact.email}
                                     </a>
@@ -191,7 +191,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Phones Card */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-card rounded-2xl p-6 border border-border hover:border-border transition-colors">
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,13 +199,13 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                     </svg>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Teléfonos</p>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Teléfonos</p>
                                     <div className="space-y-2">
                                         {contact.phones.map((phone, index) => (
                                             <a
                                                 key={index}
                                                 href={`tel:${phone}`}
-                                                className="block text-slate-900 hover:text-primary font-medium text-sm transition-colors py-1"
+                                                className="block text-foreground hover:text-primary font-medium text-sm transition-colors py-1"
                                             >
                                                 {phone}
                                             </a>
@@ -216,7 +216,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Hours Card */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="bg-card rounded-2xl p-6 border border-border hover:border-border transition-colors">
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,15 +224,15 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                     </svg>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Horarios</p>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Horarios</p>
                                     <div className="space-y-2">
                                         <div>
-                                            <p className="text-xs font-semibold text-slate-600 mb-1">Lunes a Viernes</p>
-                                            <p className="text-slate-900 font-medium text-sm">{contact.hours.weekdays}</p>
+                                            <p className="text-xs font-semibold text-muted-foreground mb-1">Lunes a Viernes</p>
+                                            <p className="text-foreground font-medium text-sm">{contact.hours.weekdays}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs font-semibold text-slate-600 mb-1">Sábado</p>
-                                            <p className="text-slate-900 font-medium text-sm">{contact.hours.saturday}</p>
+                                            <p className="text-xs font-semibold text-muted-foreground mb-1">Sábado</p>
+                                            <p className="text-foreground font-medium text-sm">{contact.hours.saturday}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -247,13 +247,13 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                     <div className="space-y-6">
                         {/* Form Header */}
                         <div className="mb-6">
-                            <h3 className="text-lg font-bold text-slate-900">Editar Información de Contacto</h3>
-                            <p className="text-sm text-slate-600 mt-1">Actualiza los datos para que aparezcan en tu sitio web</p>
+                            <h3 className="text-lg font-bold text-foreground">Editar Información de Contacto</h3>
+                            <p className="text-sm text-muted-foreground mt-1">Actualiza los datos para que aparezcan en tu sitio web</p>
                         </div>
 
                         {/* Address Field */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
-                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                        <div className="bg-card rounded-2xl p-6 border border-border">
+                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -265,13 +265,13 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                 value={editData.address || ''}
                                 onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                                 rows={2}
-                                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none transition-all"
+                                className="w-full px-5 py-4 bg-card border border-border rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none transition-all"
                             />
                         </div>
 
                         {/* Email Field */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
-                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                        <div className="bg-card rounded-2xl p-6 border border-border">
+                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8" />
@@ -283,13 +283,13 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                 type="email"
                                 value={editData.email || ''}
                                 onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                             />
                         </div>
 
                         {/* Phones Field */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
-                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                        <div className="bg-card rounded-2xl p-6 border border-border">
+                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493" />
@@ -299,7 +299,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                             </label>
                             <div className="space-y-3">
                                 {(editData.phones || []).map((phone, index) => (
-                                    <div key={index} className="flex items-center gap-3 bg-slate-50 p-2 rounded-full border border-slate-100/50">
+                                    <div key={index} className="flex items-center gap-3 bg-card p-2 rounded-full border border-border/50">
                                         <input
                                             type="tel"
                                             value={phone}
@@ -308,7 +308,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                                 newPhones[index] = e.target.value;
                                                 setEditData({ ...editData, phones: newPhones });
                                             }}
-                                            className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                            className="flex-1 px-4 py-2 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                         />
                                         <button
                                             onClick={() => handleRemovePhone(index)}
@@ -321,14 +321,14 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                 ))}
 
                                 {/* Add Phone Input */}
-                                <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-full border border-slate-100/50">
+                                <div className="flex items-center gap-3 bg-card p-2 rounded-full border border-border/50">
                                     <input
                                         type="tel"
                                         value={newPhone}
                                         onChange={(e) => setNewPhone(e.target.value)}
                                         placeholder="Agregar nuevo teléfono"
                                         onKeyPress={(e) => e.key === 'Enter' && handleAddPhone()}
-                                        className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400 transition-all"
+                                        className="flex-1 px-4 py-2 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400 transition-all"
                                     />
                                     <button
                                         onClick={handleAddPhone}
@@ -342,8 +342,8 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
 
                         {/* Hours Fields */}
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100">
-                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                        <div className="bg-card rounded-2xl p-6 border border-border">
+                            <label className="block text-sm md:text-base lg:text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
@@ -353,7 +353,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                             </label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Lunes a Viernes</p>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Lunes a Viernes</p>
                                     <input
                                         type="text"
                                         value={editData.hours?.weekdays || ''}
@@ -367,11 +367,11 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                             })
                                         }
                                         placeholder="10:00 AM - 4:00 PM"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Sábado</p>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Sábado</p>
                                     <input
                                         type="text"
                                         value={editData.hours?.saturday || ''}
@@ -385,7 +385,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                             })
                                         }
                                         placeholder="10:00 AM - 4:00 PM"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                        className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
                             </div>

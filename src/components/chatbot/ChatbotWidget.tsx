@@ -45,7 +45,7 @@ const renderFormattedMessageText = (text: string) => {
             const isBold = /^\*\*[^*]+\*\*$/.test(segment);
             if (isBold) {
                 return (
-                    <strong key={`${lineKey}-s-${segmentIndex}`} className="font-semibold text-slate-900">
+                    <strong key={`${lineKey}-s-${segmentIndex}`} className="font-semibold text-foreground">
                         {segment.slice(2, -2)}
                     </strong>
                 );
@@ -55,7 +55,7 @@ const renderFormattedMessageText = (text: string) => {
     };
 
     return (
-        <div className="space-y-1.5 text-[14px] leading-7 text-slate-800">
+        <div className="space-y-1.5 text-[14px] leading-7 text-foreground">
             {lines.map((rawLine, index) => {
                 const line = rawLine.trimEnd();
                 const lineKey = `l-${index}`;
@@ -389,18 +389,18 @@ export function ChatbotWidget() {
             {isOpen && (
                 <div
                     ref={widgetRef}
-                    className="fixed bottom-20 right-5 z-50 w-[92vw] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+                    className="fixed bottom-20 right-5 z-50 w-[92vw] max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
                 >
-                    <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                    <div className="px-4 py-3 border-b border-border bg-muted/50">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="font-semibold text-slate-900">Asistente Merrash</p>
-                                <p className="text-xs text-slate-500">Conexion rapida a WhatsApp</p>
+                                <p className="font-semibold text-foreground">Asistente Merrash</p>
+                                <p className="text-xs text-muted-foreground">Conexion rapida a WhatsApp</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={resetConversation}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-100 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-border bg-background text-foreground text-[11px] font-semibold hover:bg-muted transition-colors"
                                 aria-label="Reiniciar conversacion"
                             >
                                 <RotateCcw className="w-3.5 h-3.5" />
@@ -409,7 +409,7 @@ export function ChatbotWidget() {
                         </div>
                     </div>
 
-                    <div ref={messagesViewportRef} className="h-80 overflow-y-auto p-3 space-y-2 bg-white">
+                    <div ref={messagesViewportRef} className="h-80 overflow-y-auto p-3 space-y-2 bg-background">
                         {messages.map((message) => (
                             <div
                                 key={message.id}
@@ -418,8 +418,8 @@ export function ChatbotWidget() {
                                 <div
                                     className={
                                         message.role === 'user'
-                                            ? 'max-w-[85%] px-3 py-2 rounded-2xl bg-primary/10 text-slate-900 text-sm'
-                                            : 'max-w-[85%] px-3 py-2 rounded-2xl bg-slate-100 text-slate-800 text-sm'
+                                            ? 'max-w-[85%] px-3 py-2 rounded-2xl bg-primary/10 text-foreground text-sm'
+                                            : 'max-w-[85%] px-3 py-2 rounded-2xl bg-muted text-foreground text-sm'
                                     }
                                 >
                                     {message.role === 'bot' ? (
@@ -451,12 +451,12 @@ export function ChatbotWidget() {
 
                         {showCalendar && (
                             <div className="flex justify-start">
-                                <div className="max-w-[90%] w-full p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                                    <p className="text-xs text-slate-600 mb-2">Selecciona una fecha</p>
+                                <div className="max-w-[90%] w-full p-3 rounded-2xl bg-muted/30 border border-border">
+                                    <p className="text-xs text-muted-foreground mb-2">Selecciona una fecha</p>
 
                                     {dateActions.length > 0 && (
                                         <div className="mb-3">
-                                            <p className="text-[11px] text-slate-500 mb-1">Fechas sugeridas</p>
+                                            <p className="text-[11px] text-muted-foreground mb-1">Fechas sugeridas</p>
                                             <div className="flex flex-wrap gap-1.5">
                                                 {dateActions.map((action) => (
                                                     <button
@@ -478,7 +478,7 @@ export function ChatbotWidget() {
                                             value={calendarMonth}
                                             onChange={(e) => setCalendarMonth(Number(e.target.value))}
                                             disabled={isLoading}
-                                            className="flex-1 px-2 py-1.5 rounded-lg border border-slate-300 text-xs"
+                                            className="flex-1 px-2 py-1.5 rounded-lg border border-border text-xs"
                                         >
                                             {Array.from({ length: 12 }, (_, month) => (
                                                 <option key={month} value={month}>
@@ -490,7 +490,7 @@ export function ChatbotWidget() {
                                             value={calendarYear}
                                             onChange={(e) => setCalendarYear(Number(e.target.value))}
                                             disabled={isLoading}
-                                            className="w-24 px-2 py-1.5 rounded-lg border border-slate-300 text-xs"
+                                            className="w-24 px-2 py-1.5 rounded-lg border border-border text-xs"
                                         >
                                             {yearOptions.map((year) => (
                                                 <option key={year} value={year}>
@@ -500,7 +500,7 @@ export function ChatbotWidget() {
                                         </select>
                                     </div>
 
-                                    <div className="grid grid-cols-7 gap-1 text-[10px] text-slate-500 mb-1">
+                                    <div className="grid grid-cols-7 gap-1 text-[10px] text-muted-foreground mb-1">
                                         {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, dayIndex) => (
                                             <div key={`${day}-${dayIndex}`} className="text-center py-1">
                                                 {day}
@@ -525,8 +525,8 @@ export function ChatbotWidget() {
                                                     onClick={() => sendCalendarDate(entry.iso)}
                                                     className={`h-8 rounded-md text-xs font-medium transition-colors ${
                                                         disabled
-                                                            ? 'bg-slate-100 text-slate-400'
-                                                            : 'bg-white border border-slate-300 text-slate-700 hover:bg-primary/10'
+                                                            ? 'bg-muted text-muted-foreground'
+                                                            : 'bg-background border border-border text-foreground hover:bg-primary/10'
                                                     }`}
                                                     title={isSunday ? 'Domingo cerrado' : entry.iso}
                                                 >
@@ -541,9 +541,9 @@ export function ChatbotWidget() {
 
                         {showTimePicker && (
                             <div className="flex justify-start">
-                                <div className="max-w-[90%] w-full p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                                    <p className="text-xs text-slate-600 mb-2">Selecciona una hora</p>
-                                    <p className="text-[11px] text-slate-500 mb-2">Horario disponible de 10:00 AM a 4:00 PM</p>
+                                <div className="max-w-[90%] w-full p-3 rounded-2xl bg-muted/30 border border-border">
+                                    <p className="text-xs text-muted-foreground mb-2">Selecciona una hora</p>
+                                    <p className="text-[11px] text-muted-foreground mb-2">Horario disponible de 10:00 AM a 4:00 PM</p>
                                     <div className="grid grid-cols-3 gap-2">
                                         {timeActions
                                             .filter((action) => {
@@ -556,7 +556,7 @@ export function ChatbotWidget() {
                                                     type="button"
                                                     onClick={() => sendMessage(action.value, action.userText || `🕒 ${formatTimeLabel(action.value)}`)}
                                                     disabled={isLoading}
-                                                    className="h-9 rounded-md text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-primary/10 disabled:opacity-60"
+                                                    className="h-9 rounded-md text-xs font-semibold bg-background border border-border text-foreground hover:bg-primary/10 disabled:opacity-60"
                                                 >
                                                     {formatTimeLabel(action.label)}
                                                 </button>
@@ -568,14 +568,14 @@ export function ChatbotWidget() {
 
                         {isLoading && (
                             <div className="flex justify-start">
-                                <div className="max-w-[85%] px-3 py-2 rounded-2xl bg-slate-100 text-slate-500 text-sm">
+                                <div className="max-w-[85%] px-3 py-2 rounded-2xl bg-muted text-muted-foreground text-sm">
                                     Estoy revisando tu solicitud...
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="p-3 border-t border-slate-200 space-y-2">
+                    <div className="p-3 border-t border-border space-y-2">
                         <div className="flex items-center gap-2">
                             <textarea
                                 ref={inputRef}
@@ -589,7 +589,7 @@ export function ChatbotWidget() {
                                     }
                                 }}
                                 placeholder="Escribe tu mensaje..."
-                                className="flex-1 min-h-[42px] max-h-[66px] resize-none overflow-y-auto px-3 py-2 border border-slate-300 rounded-lg text-sm leading-[22px] focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                className="flex-1 min-h-[42px] max-h-[66px] resize-none overflow-y-auto px-3 py-2 border border-border rounded-lg text-sm leading-[22px] focus:outline-none focus:ring-2 focus:ring-primary/40"
                             />
                             <button
                                 type="button"

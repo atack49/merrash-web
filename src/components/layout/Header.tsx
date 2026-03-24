@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Phone, CalendarDays, HeartPulse, PhoneCall, Star, ClipboardList, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const NAVIGATION = [
   { name: "Inicio", href: "/#inicio" },
@@ -55,7 +56,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-white/80 backdrop-blur-md shadow-sm py-4"
+          ? "bg-card/80 backdrop-blur-md shadow-sm py-4"
           : "bg-transparent py-6"
       )}
     >
@@ -81,7 +82,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
           </span>
 
           {isAdmin && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-wide">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] font-semibold uppercase tracking-wide">
               <ShieldCheck className="w-3.5 h-3.5" />
               Panel de Administracion
             </span>
@@ -106,13 +107,15 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
               </Link>
             ))}
 
+            <AnimatedThemeToggler />
+
             <button
               type="button"
               onClick={openChatbotWidget}
               className={cn(
                 "px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2",
                 useWhiteStyle
-                  ? "bg-white/90 text-primary hover:bg-white"
+                  ? "bg-card/90 text-primary hover:bg-card"
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
               )}
             >
@@ -132,7 +135,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                     "px-4 py-2 text-sm md:text-base lg:text-lg font-medium rounded-full transition-colors whitespace-nowrap",
                     activeAdminTab === tab.href
                       ? "bg-primary text-white"
-                      : "text-foreground hover:bg-slate-100"
+                      : "text-foreground hover:bg-secondary/50"
                   )}
                 >
                   <span className="inline-flex items-center gap-2">
@@ -142,6 +145,10 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                 </button>
               ))}
             </nav>
+
+            <div className="hidden lg:flex items-center ml-2 border-l border-border/50 pl-4">
+              <AnimatedThemeToggler />
+            </div>
 
             {/* Tablet Admin Tabs */}
             <nav className="hidden md:flex lg:hidden items-center gap-0.5 flex-wrap justify-center">
@@ -153,7 +160,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                     "px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
                     activeAdminTab === tab.href
                       ? "bg-primary text-white"
-                      : "text-foreground hover:bg-slate-100"
+                      : "text-foreground hover:bg-secondary/50"
                   )}
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -166,17 +173,20 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
           </>
         )}
 
-        {/* Mobile Toggle */}
-        <button
-          className={cn(
-            "md:hidden p-2 transition-colors",
-            useWhiteStyle ? "text-white" : "text-foreground"
-          )}
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          aria-label="Abrir menú"
-        >
-          {mobileMenuOpen ? <X /> : <Menu />}
-        </button>
+        {/* Mobile Toggle & Theme */}
+        <div className="flex items-center gap-2 md:hidden">
+          <AnimatedThemeToggler />
+          <button
+            className={cn(
+              "p-2 transition-colors",
+              useWhiteStyle ? "text-white" : "text-foreground"
+            )}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label="Abrir menú"
+          >
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -184,7 +194,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
         <div className="absolute top-full left-0 right-0 bg-background border-b md:hidden p-4 flex flex-col gap-3 shadow-lg animate-in slide-in-from-top-2 max-h-[calc(100vh-70px)] overflow-y-auto">
           {isAdmin ? (
             <>
-              <p className="text-xs font-semibold text-slate-600 uppercase px-2">Panel de Control</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase px-2">Panel de Control</p>
               {ADMIN_TABS.map((tab) => (
                 <button
                   key={tab.name}
@@ -196,7 +206,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                     "w-full px-4 py-3 text-sm font-medium rounded-full transition-colors text-left",
                     activeAdminTab === tab.href
                       ? "bg-primary text-white"
-                      : "text-foreground hover:bg-slate-100"
+                      : "text-foreground hover:bg-secondary/50"
                   )}
                 >
                   <span className="inline-flex items-center gap-2">

@@ -71,7 +71,7 @@ export default function EncuestasPage() {
                                 <Star
                                     className={cn(
                                         "w-8 h-8 transition-colors",
-                                        typeof value === 'number' && star <= value ? "fill-yellow-400 text-yellow-400" : "text-slate-300 hover:text-yellow-300"
+                                        typeof value === 'number' && star <= value ? "fill-yellow-400 text-yellow-400" : "text-muted hover:text-yellow-300"
                                     )}
                                 />
                             </button>
@@ -83,7 +83,7 @@ export default function EncuestasPage() {
                     <select
                         value={value}
                         onChange={(e) => handleInputChange(question.id, e.target.value)}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 bg-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-border rounded-lg text-foreground bg-card focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     >
                         <option value="">Selecciona una opción</option>
                         {question.options && question.options.map((option: string) => (
@@ -104,7 +104,7 @@ export default function EncuestasPage() {
                                     onChange={(e) => handleInputChange(question.id, e.target.value)}
                                     className="w-5 h-5 text-primary cursor-pointer"
                                 />
-                                <span className="text-slate-700 font-medium">{option}</span>
+                                <span className="text-muted-foreground font-medium">{option}</span>
                             </label>
                         ))}
                     </div>
@@ -115,7 +115,7 @@ export default function EncuestasPage() {
                         value={value}
                         onChange={(e) => handleInputChange(question.id, e.target.value)}
                         placeholder="Escribe tus comentarios aquí..."
-                        className="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-primary focus:border-transparent min-h-[120px] transition-all resize-none"
+                        className="w-full px-4 py-3 border border-border rounded-lg text-foreground bg-card placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent min-h-[120px] transition-all resize-none"
                     />
                 );
             default:
@@ -129,31 +129,31 @@ export default function EncuestasPage() {
         <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow mt-20">
-                <section className="py-16 bg-gradient-to-br from-slate-50 via-white to-slate-100 min-h-screen">
+                <section className="py-16 bg-background min-h-screen">
                     <div className="container mx-auto px-4 md:px-6">
                         {/* Header Section */}
                         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
                                 <ClipboardList className="w-8 h-8 text-primary" />
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">
+                            <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
                                 Encuestas de Satisfacción
                             </h1>
-                            <p className="text-lg text-slate-600 font-light leading-relaxed">
+                            <p className="text-lg text-muted-foreground font-light leading-relaxed">
                                 Tu opinión es muy importante para nosotros. Ayúdanos a mejorar completando una de nuestras encuestas.
                             </p>
                         </div>
 
                         {/* Survey Selector */}
                         <div className="flex justify-center mb-16">
-                            <div className="inline-flex bg-white rounded-full p-2 shadow-md border border-slate-200">
+                            <div className="inline-flex bg-card rounded-full p-2 shadow-md border border-border">
                                 <button
                                     onClick={() => setActiveSurvey("satisfaccion")}
                                     className={cn(
                                         "px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300",
                                         activeSurvey === "satisfaccion"
                                             ? "bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg"
-                                            : "text-slate-600 hover:text-primary"
+                                            : "text-muted-foreground hover:text-primary dark:hover:text-primary"
                                     )}
                                 >
                                     Satisfacción del Servicio
@@ -164,7 +164,7 @@ export default function EncuestasPage() {
                                         "px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300",
                                         activeSurvey === "enterado"
                                             ? "bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg"
-                                            : "text-slate-600 hover:text-primary"
+                                            : "text-muted-foreground hover:text-primary dark:hover:text-primary"
                                     )}
                                 >
                                     Cómo nos Encontraste
@@ -176,12 +176,12 @@ export default function EncuestasPage() {
                         <div className="max-w-2xl mx-auto">
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 {questions.map((question, index) => (
-                                    <div key={question.id} className="space-y-4 pb-8 border-b border-slate-100 last:pb-0 last:border-b-0">
+                                    <div key={question.id} className="space-y-4 pb-8 border-b border-border last:pb-0 last:border-b-0">
                                         <div className="flex items-start gap-4">
                                             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                                 <span className="text-sm font-semibold text-primary">{index + 1}</span>
                                             </div>
-                                            <label className="block flex-1 text-base font-semibold text-slate-800 leading-relaxed">
+                                            <label className="block flex-1 text-base font-semibold text-foreground leading-relaxed">
                                                 {question.label}
                                             </label>
                                         </div>
@@ -215,7 +215,7 @@ export default function EncuestasPage() {
 
                         {/* Info Card */}
                         <div className="mt-8 p-6 bg-primary/5 rounded-xl border border-primary/20">
-                            <p className="text-sm text-slate-700 text-center">
+                            <p className="text-sm text-muted-foreground text-center">
                                 <span className="font-semibold text-primary">✓ Tiempo estimado:</span> 3-5 minutos | 
                                 <span className="font-semibold text-primary ml-2">✓ Respuestas confidenciales</span>
                             </p>

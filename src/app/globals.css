@@ -106,32 +106,34 @@
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
+  /* Fondo general elegante inspirado en el teal oscuro */
+  --background: 174 40% 9%; 
   --foreground: 210 40% 98%;
 
-  --card: 222.2 84% 4.9%;
+  /* Tarjetas ligeramente más iluminadas para resaltar */
+  --card: 174 40% 13%; 
   --card-foreground: 210 40% 98%;
 
-  --popover: 222.2 84% 4.9%;
+  --popover: 174 40% 9%;
   --popover-foreground: 210 40% 98%;
 
   --primary: 174 71% 50%;
-  --primary-foreground: 222.2 47.4% 11.2%;
+  --primary-foreground: 174 40% 9%;
 
-  --secondary: 174 30% 20%;
+  --secondary: 174 30% 18%;
   --secondary-foreground: 210 40% 98%;
 
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
+  --muted: 174 30% 18%;
+  --muted-foreground: 174 20% 65%;
 
-  --accent: 174 30% 25%;
+  --accent: 174 30% 22%;
   --accent-foreground: 210 40% 98%;
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
+  --border: 174 30% 20%;
+  --input: 174 30% 20%;
   --ring: 174 71% 50%;
 }
 
@@ -164,5 +166,30 @@
   to {
     opacity: 0;
     transform: translateY(24px) scale(0.96);
+  }
+}
+
+@layer utilities {
+  .bg-service-card {
+    background-image: linear-gradient(to bottom right, #f1fffd, #d8f5ef);
+  }
+  .dark .bg-service-card {
+    background-image: linear-gradient(to bottom right, hsl(174 30% 16%), hsl(174 30% 10%));
+  }
+
+  .service-card-shapes {
+    opacity: 0.8;
+    mix-blend-mode: multiply;
+  }
+  .dark .service-card-shapes {
+    opacity: 0.15;
+    mix-blend-mode: screen;
+  }
+
+  .service-card-highlight {
+    background-image: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 50%);
+  }
+  .dark .service-card-highlight {
+    background-image: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 50%);
   }
 }

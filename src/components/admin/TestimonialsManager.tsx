@@ -143,31 +143,31 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
             {/* Add Form */}
             {showAddForm && (
                 <div className="bg-gradient-to-br from-primary/5 to-white ring-2 ring-primary/30 rounded-2xl border border-primary/50 shadow-lg p-6 md:p-8 space-y-4 w-full">
-                    <h3 className="font-bold text-lg text-slate-900">Nuevo Testimonio</h3>
+                    <h3 className="font-bold text-lg text-foreground">Nuevo Testimonio</h3>
                     <div className="space-y-4 w-full">
                         <input
                             type="text"
                             placeholder="Nombre"
                             value={newTestimonial.name}
                             onChange={(e) => setNewTestimonial({ ...newTestimonial, name: e.target.value })}
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                         <input
                             type="text"
                             placeholder="Servicio (ej: Acupuntura)"
                             value={newTestimonial.service}
                             onChange={(e) => setNewTestimonial({ ...newTestimonial, service: e.target.value })}
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         />
                         <textarea
                             placeholder="Testimonio"
                             value={newTestimonial.text}
                             onChange={(e) => setNewTestimonial({ ...newTestimonial, text: e.target.value })}
-                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary h-24 resize-none transition-all"
+                            className="w-full px-5 py-4 bg-card border border-border rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary h-24 resize-none transition-all"
                         />
                         <div>
-                            <label className="text-sm font-medium text-slate-700 block mb-2 px-1">Calificación</label>
-                            <div className="inline-flex gap-1.5 bg-white px-4 py-2.5 rounded-full border border-slate-200 shadow-sm">
+                            <label className="text-sm font-medium text-muted-foreground block mb-2 px-1">Calificación</label>
+                            <div className="inline-flex gap-1.5 bg-card px-4 py-2.5 rounded-full border border-border shadow-sm">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
@@ -210,14 +210,14 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
             <div className="space-y-6">
                 {/* Info y Pagination */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2">
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-muted-foreground">
                         Mostrando <span className="font-semibold">{startIndex + 1}</span> a <span className="font-semibold">{Math.min(endIndex, testimonials.length)}</span> de <span className="font-semibold">{testimonials.length}</span> testimonios
                     </p>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-muted-foreground rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             ← Anterior
                         </button>
@@ -228,7 +228,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                                     onClick={() => setCurrentPage(page)}
                                     className={`px-3 py-2 rounded-full transition ${currentPage === page
                                             ? 'bg-primary text-white font-semibold'
-                                            : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                            : 'bg-slate-200 text-muted-foreground hover:bg-slate-300'
                                         }`}
                                 >
                                     {page}
@@ -238,7 +238,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                         <button
                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-muted-foreground rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             Siguiente →
                         </button>
@@ -267,24 +267,24 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                                         placeholder="Nombre"
                                         value={editData.name || testimonial.name}
                                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base transition-all"
+                                        className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base transition-all"
                                     />
                                     <input
                                         type="text"
                                         placeholder="Servicio"
                                         value={editData.service || testimonial.service}
                                         onChange={(e) => setEditData({ ...editData, service: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base transition-all"
+                                        className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base transition-all"
                                     />
                                     <textarea
                                         placeholder="Testimonio"
                                         value={editData.text || testimonial.text}
                                         onChange={(e) => setEditData({ ...editData, text: e.target.value })}
-                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base h-24 resize-none transition-all"
+                                        className="w-full px-5 py-4 bg-card border border-border rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm md:text-base h-24 resize-none transition-all"
                                     />
                                     <div>
-                                        <label className="text-xs font-medium text-slate-700 block mb-2 px-1">Calificación</label>
-                                        <div className="inline-flex gap-1.5 bg-white px-4 py-2.5 rounded-full border border-slate-200 shadow-sm">
+                                        <label className="text-xs font-medium text-muted-foreground block mb-2 px-1">Calificación</label>
+                                        <div className="inline-flex gap-1.5 bg-card px-4 py-2.5 rounded-full border border-border shadow-sm">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <button
                                                     key={star}
@@ -325,26 +325,26 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                                 <>
                                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full mb-3 gap-2 md:gap-4">
                                         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                                            <h3 className="font-bold text-lg md:text-xl text-slate-800">{testimonial.name}</h3>
+                                            <h3 className="font-bold text-lg md:text-xl text-foreground">{testimonial.name}</h3>
                                             <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-slate-300"></div>
                                             <p className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">{testimonial.service}</p>
                                         </div>
                                         <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                                            <div className="flex gap-1 bg-white/50 px-3 py-1.5 rounded-full border border-slate-200/60">
+                                            <div className="flex gap-1 bg-card/50 px-3 py-1.5 rounded-full border border-border/60">
                                                 {[...Array(testimonial.rating)].map((_, i) => (
                                                     <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                                                 ))}
                                             </div>
                                             <span className={cn(
                                                 "text-xs px-3 py-1.5 rounded-full font-medium shadow-sm border",
-                                                testimonial.active ? 'bg-white text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                                                testimonial.active ? 'bg-card text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
                                             )}>
                                                 {testimonial.active ? '✓ Visible' : '✕ Oculto'}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <p className="text-slate-600 mb-6 italic text-sm md:text-base leading-relaxed bg-white/40 p-4 rounded-xl border border-white flex-1 w-full relative">
+                                    <p className="text-muted-foreground mb-6 italic text-sm md:text-base leading-relaxed bg-card/40 p-4 rounded-xl border border-white flex-1 w-full relative">
                                         <span className="text-3xl text-primary/20 absolute -top-1 -left-1 font-serif">"</span>
                                         {testimonial.text}
                                         <span className="text-3xl text-primary/20 absolute -bottom-4 right-1 font-serif">"</span>
@@ -390,21 +390,21 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
 
                 {/* Pagination Info */}
                 {totalPages > 1 && (
-                    <div className="flex justify-center gap-2 pt-4 border-t border-slate-200 mt-4">
+                    <div className="flex justify-center gap-2 pt-4 border-t border-border mt-4">
                         <button
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-muted-foreground rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             ← Anterior
                         </button>
-                        <span className="px-4 py-2 text-slate-700 font-semibold">
+                        <span className="px-4 py-2 text-muted-foreground font-semibold">
                             Página {currentPage} de {totalPages}
                         </span>
                         <button
                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 bg-slate-200 text-muted-foreground rounded-full hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             Siguiente →
                         </button>
