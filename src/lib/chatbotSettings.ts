@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-export type ChatbotMode = 'auto' | 'local' | 'public' | 'team';
+export type ChatbotMode = 'auto' | 'local' | 'public' | 'team' | 'groq';
 
 export interface ChatbotSettings {
     mode: ChatbotMode;
@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS: ChatbotSettings = {
     mode: 'auto',
 };
 
-const ALLOWED_MODES: ChatbotMode[] = ['auto', 'local', 'public', 'team'];
+const ALLOWED_MODES: ChatbotMode[] = ['auto', 'local', 'public', 'team', 'groq'];
 
 async function ensureDataDir() {
     try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildChatbotReply, getWhatsappUrl, ChatHistoryItem } from '@/lib/chatbot/merrashChatbot';
-import { generatePublicHostedChatbotReply, generateTeamReviewedChatbotReply } from '@/lib/chatbot/openaiChatbot';
+import { generateGroqChatbotReply, generatePublicHostedChatbotReply, generateTeamReviewedChatbotReply } from '@/lib/chatbot/openaiChatbot';
 import { getChatbotSettings } from '@/lib/chatbotSettings';
 import { BookingData, decideBookingFlow } from '@/lib/chatbot/bookingAssistant';
 import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
@@ -8,16 +8,18 @@ import { sendAppointmentToGoogleCalendar } from '@/lib/calendarWebhook';
 import { parsePreferredDate, parsePreferredTime, validateBusinessDay, validateBusinessSlot } from '@/lib/chatbot/businessSchedule';
 import { getChatMemory, saveChatMemory } from '@/lib/chatbot/chatMemory';
 import { getHolidayForDate } from '@/lib/holidayCalendar';
+import { MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE, MAX_APPOINTMENTS_PER_HOUR_TOTAL } from '@/lib/appointments/capacityRules';
+import { SERVICES } from '@/lib/data';
 import { prisma } from '@/lib/db';
 
 const DEFAULT_WHATSAPP_NUMBER = '527224958550';
 const DEFAULT_CHATBOT_MODE = 'auto';
-const ALLOWED_CHATBOT_MODES = ['auto', 'local', 'public', 'team'];
-const ALLOWED_AUTO_PROVIDERS = ['team', 'public', 'local'] as const;
+const ALLOWED_CHATBOT_MODES = ['auto', 'local', 'public', 'team', 'groq'];
+const ALLOWED_AUTO_PROVIDERS = ['groq', 'team', 'public', 'local'] as const;
 type AutoProvider = (typeof ALLOWED_AUTO_PROVIDERS)[number];
 
 const parseAutoProviderOrder = (value?: string): AutoProvider[] => {
-    const fallback: AutoProvider[] = ['team', 'public', 'local'];
+    const fallback: AutoProvider[] = ['groq', 'team', 'public', 'local'];
     if (!value) return fallback;
 
     const parsed = value
@@ -48,6 +50,10 @@ const detectManageIntent = (text: string): ManageIntent => {
         return 'reschedule';
     }
 
+    if (/(agend|agendarme|agendame|reserv|apartar|quiero una cita|quiero cita|programar cita|me anotas)/.test(normalized)) {
+        return 'none';
+    }
+
     if (/(disponibilidad|disponible|hay lugar|hay espacio|tienen espacio|hay horario|atienden|agenda).*(fecha|hora|domingo|lunes|martes|miercoles|jueves|viernes|sabado)|\bdisponibilidad\b/.test(normalized)) {
         return 'availability';
     }
@@ -58,6 +64,12 @@ const detectManageIntent = (text: string): ManageIntent => {
 const extractEmail = (text: string): string | null => {
     const match = text.match(EMAIL_REGEX);
     return match?.[0]?.toLowerCase() ?? null;
+};
+
+const hasInvalidEmailCandidate = (text: string) => {
+    const hasAtPattern = /\S+@\S*/.test(text);
+    const hasValidEmail = EMAIL_REGEX.test(text);
+    return hasAtPattern && !hasValidEmail;
 };
 
 const extractDate = (text: string): string | null => {
@@ -85,9 +97,31 @@ const isStrongConfirmMessage = (text: string) => {
 
 const isInfoInquiryMessage = (text: string) => {
     const normalized = text.toLowerCase();
-    return /(horario|ubicación|ubicacion|dirección|direccion|servicios|tratamientos|precio|costo|información|informacion|recomienda|recomendación|recomendacion)/.test(
+    return /(horario|ubicación|ubicacion|dirección|direccion|servicios|tratamientos|precio|costo|información|informacion|recomienda|recomendación|recomendacion|recuerdame|recuérdame|recordame|cu[aá]l era|sirve|beneficio|beneficios|m[aá]s informaci[oó]n|mas informaci[oó]n|qu[eé] es|qu[eé] hace|para qu[eé])/.test(
         normalized
     );
+};
+
+const hasAnyBookingData = (data?: BookingData) => {
+    return Boolean(data && Object.values(data).some(Boolean));
+};
+
+const isBookingInfoInterruption = (text: string) => {
+    const normalized = text.toLowerCase();
+    return /(recuerdame|recuérdame|recordame|cu[aá]l era|sirve para|para qu[eé]|qu[eé] es|qu[eé] hace|beneficios|beneficio|m[aá]s info|m[aá]s informaci[oó]n|mas informaci[oó]n|expl[ií]came|dime m[aá]s)/.test(
+        normalized
+    );
+};
+
+const isRecommendationRecallQuestion = (text: string) => {
+    const normalized = text.toLowerCase();
+    return /(cu[aá]l era|recuerdame|recuérdame|recordame|que me recomendaste|qu[eé] me recomendaste|me habias dicho|me hab[ií]as dicho)/.test(
+        normalized
+    );
+};
+
+const isOnlyPunctuationMessage = (text: string) => {
+    return /^[\s¡!¿?.,;:]+$/.test(text);
 };
 
 const isSimpleGreetingMessage = (text: string) => {
@@ -125,14 +159,107 @@ const getSingleFieldPrompt = (field: string, withIntro = false) => {
     return intro ? `${intro}\n\n${question}` : question;
 };
 
+const formatMissingFieldsPrompt = (missingFields: string[]) => {
+    if (missingFields.length === 0) {
+        return 'Ya casi terminamos con tu cita. ¿Qué te gustaría ajustar?';
+    }
+
+    if (missingFields.length === 1) {
+        return `Para cerrar tu cita solo me falta este dato: ${missingFields[0]}.`;
+    }
+
+    return `Para agendarte solo me faltan estos datos: ${missingFields.join(', ')}.`;
+};
+
 const MONTH_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const MAX_APPOINTMENTS_PER_SERVICE_SLOT = 2;
+const CHATBOT_HISTORY_LIMIT = Number(process.env.CHATBOT_HISTORY_LIMIT || '120');
+const CHATBOT_SERVICE_CACHE_TTL_MS = Number(process.env.CHATBOT_SERVICE_CACHE_TTL_MS || '60000');
+
+type ChatbotService = { title: string; category: string | null; description: string | null };
+type ChatbotBaseDataCache = {
+    fetchedAt: number;
+    services: ChatbotService[];
+};
+
+let chatbotBaseDataCache: ChatbotBaseDataCache | null = null;
 
 const normalizeText = (value: string) =>
     value
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
+
+const findMentionedServices = (text: string, services: string[]) => {
+    const normalizedText = normalizeText(text);
+    return services.filter((service) => normalizedText.includes(normalizeText(service)));
+};
+
+const getLatestBotSuggestedServices = (history: ChatHistoryItem[], services: string[]) => {
+    const recentBotMessages = [...history].reverse().filter((item) => item.role === 'bot').slice(0, 6);
+
+    for (const item of recentBotMessages) {
+        const found = findMentionedServices(item.text, services);
+        if (found.length > 0) {
+            return found;
+        }
+    }
+
+    return [] as string[];
+};
+
+const getLatestUserMentionedService = (history: ChatHistoryItem[], services: string[]) => {
+    const recentUserMessages = [...history].reverse().filter((item) => item.role === 'user').slice(0, 10);
+
+    for (const item of recentUserMessages) {
+        const found = findMentionedServices(item.text, services);
+        if (found.length === 1) {
+            return found[0];
+        }
+    }
+
+    return undefined;
+};
+
+const formatServiceList = (services: string[]) => {
+    if (services.length === 0) return '';
+    if (services.length === 1) return services[0];
+    if (services.length === 2) return `${services[0]} y ${services[1]}`;
+    return `${services[0]}, ${services[1]} y ${services[2]}`;
+};
+
+const isIndirectServiceReference = (text: string) => {
+    const normalized = normalizeText(text);
+    return /(el que me (recomend|ayuda|dijiste|indicaste|suger)|el (recomendado|sugerido|primero|de cuerpo|de mente|de espiritu)|ese (mismo|servicio|tratamiento)?|agendame ese|el de (cuerpo|mente|espiritu|piel|dolor|estres|ansiedad)|el que (sirve|ayuda)|el mencionado)/.test(
+        normalized
+    );
+};
+
+const resolveIndirectService = (
+    message: string,
+    history: ChatHistoryItem[],
+    serviceTitles: string[],
+    serviceCatalog: Array<{ title: string; category?: string | null }>
+): string | undefined => {
+    const candidates = getLatestBotSuggestedServices(history, serviceTitles);
+    if (candidates.length === 0) return undefined;
+    if (candidates.length === 1) return candidates[0];
+
+    const normalizedMsg = normalizeText(message);
+    const hasCuerpoHint = /(cuerpo|fisico|muscular|dolor|corporal|masaje|rehabilit|intravenosa|facial|acupuntura)/.test(normalizedMsg);
+    const hasMenteHint = /(mente|mental|estres|emocional|ansiedad|insomnio|reiki|healy|cuantico|integral)/.test(normalizedMsg);
+    const hasEspirituHint = /(espiritu|espiritual|energia|tarot|arborolog|constelac)/.test(normalizedMsg);
+
+    if (hasCuerpoHint || hasMenteHint || hasEspirituHint) {
+        const hintCategory = hasCuerpoHint ? 'cuerpo' : hasMenteHint ? 'mente' : 'espiritu';
+        const match = candidates.find((candidate) => {
+            const svc = serviceCatalog.find((s) => normalizeText(s.title) === normalizeText(candidate));
+            return svc?.category && normalizeText(svc.category).includes(hintCategory);
+        });
+        if (match) return match;
+    }
+
+    return candidates[0];
+};
 
 const detectServiceFromMessage = (messageText: string, services: string[]) => {
     const normalizedMessage = normalizeText(messageText);
@@ -176,6 +303,70 @@ const normalizeTimeInput = (value?: string) => {
     return `${hours}:${minutes}`;
 };
 
+const STATIC_SERVICE_CATALOG: ChatbotService[] = SERVICES
+    .filter((service) => service.active)
+    .map((service) => ({
+        title: service.title,
+        category: service.category || null,
+        description: service.description || null,
+    }));
+
+const normalizeServicesPayload = (payload: unknown): ChatbotService[] => {
+    if (!Array.isArray(payload)) return [];
+
+    return payload
+        .filter((item) => item && typeof item === 'object')
+        .map((item) => {
+            const row = item as Record<string, unknown>;
+            return {
+                title: String(row.title || '').trim(),
+                category: String(row.category || '').trim() || null,
+                description: String(row.description || '').trim() || null,
+            };
+        })
+        .filter((service) => service.title.length > 0);
+};
+
+const fetchServicesFromWebsite = async (origin: string) => {
+    const response = await fetch(`${origin}/api/services`, {
+        cache: 'no-store',
+        headers: {
+            'x-chatbot-source': 'internal',
+        },
+    });
+
+    if (!response.ok) {
+        return [] as ChatbotService[];
+    }
+
+    const payload = await response.json();
+    return normalizeServicesPayload(payload);
+};
+
+const getCachedChatbotBaseData = async (origin: string) => {
+    const now = Date.now();
+    if (chatbotBaseDataCache && now - chatbotBaseDataCache.fetchedAt < CHATBOT_SERVICE_CACHE_TTL_MS) {
+        return chatbotBaseDataCache;
+    }
+
+    let services = STATIC_SERVICE_CATALOG;
+    try {
+        const websiteServices = await fetchServicesFromWebsite(origin);
+        if (websiteServices.length > 0) {
+            services = websiteServices;
+        }
+    } catch {
+        services = STATIC_SERVICE_CATALOG;
+    }
+
+    chatbotBaseDataCache = {
+        fetchedAt: now,
+        services,
+    };
+
+    return chatbotBaseDataCache;
+};
+
 const getSlotTemplateForDate = (isoDate: string) => {
     const dayValidation = validateBusinessDay(isoDate);
     if (!dayValidation.ok) return [] as string[];
@@ -202,28 +393,76 @@ const getAvailableTimeSlots = async (dateInput?: string, service?: string) => {
     const template = getSlotTemplateForDate(isoDate);
     if (template.length === 0) return { isoDate, slots: [] as string[] };
 
-    if (!service) {
-        return { isoDate, slots: template };
-    }
-
     const appointments = await prisma.appointment.findMany({
         where: {
             preferredDate: isoDate,
             status: { in: ['pending', 'confirmed'] },
-            service,
         },
-        select: { preferredTime: true },
+        select: { preferredTime: true, service: true },
     });
 
-    const occupiedCountBySlot = new Map<string, number>();
+    const totalCountBySlot = new Map<string, number>();
+    const serviceCountBySlot = new Map<string, number>();
+    const normalizedService = service ? normalizeText(service) : '';
+
     for (const appointment of appointments) {
         const slot = normalizeTimeInput(appointment.preferredTime || undefined) || appointment.preferredTime;
         if (!slot) continue;
-        occupiedCountBySlot.set(slot, (occupiedCountBySlot.get(slot) || 0) + 1);
+
+        totalCountBySlot.set(slot, (totalCountBySlot.get(slot) || 0) + 1);
+
+        if (normalizedService && appointment.service && normalizeText(appointment.service) === normalizedService) {
+            serviceCountBySlot.set(slot, (serviceCountBySlot.get(slot) || 0) + 1);
+        }
     }
 
-    const available = template.filter((slot) => (occupiedCountBySlot.get(slot) || 0) < MAX_APPOINTMENTS_PER_SERVICE_SLOT);
+    const available = template.filter((slot) => {
+        const totalCount = totalCountBySlot.get(slot) || 0;
+        const perServiceCount = serviceCountBySlot.get(slot) || 0;
+
+        const totalAvailable = totalCount < MAX_APPOINTMENTS_PER_HOUR_TOTAL;
+        const serviceAvailable = !normalizedService || perServiceCount < MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE;
+
+        return totalAvailable && serviceAvailable;
+    });
+
     return { isoDate, slots: available };
+};
+
+const getOccupiedCountByDateSlot = async (isoDates: string[]) => {
+    if (isoDates.length === 0) {
+        return new Map<string, Map<string, { total: number; byService: Map<string, number> }>>();
+    }
+
+    const appointments = await prisma.appointment.findMany({
+        where: {
+            preferredDate: { in: isoDates },
+            status: { in: ['pending', 'confirmed'] },
+        },
+        select: { preferredDate: true, preferredTime: true, service: true },
+    });
+
+    const occupiedByDate = new Map<string, Map<string, { total: number; byService: Map<string, number> }>>();
+    for (const appointment of appointments) {
+        if (!appointment.preferredDate) continue;
+
+        const slot = normalizeTimeInput(appointment.preferredTime || undefined) || appointment.preferredTime;
+        if (!slot) continue;
+
+        const slots = occupiedByDate.get(appointment.preferredDate) || new Map<string, { total: number; byService: Map<string, number> }>();
+        const current = slots.get(slot) || { total: 0, byService: new Map<string, number>() };
+        current.total += 1;
+
+        if (appointment.service) {
+            const serviceKey = normalizeText(appointment.service);
+            current.byService.set(serviceKey, (current.byService.get(serviceKey) || 0) + 1);
+        }
+
+        slots.set(slot, current);
+        occupiedByDate.set(appointment.preferredDate, slots);
+    }
+
+    return occupiedByDate;
 };
 
 const formatIsoShortLabel = (isoDate: string) => {
@@ -239,9 +478,10 @@ const buildDateSuggestions = async (service?: string) => {
     const fullDays: string[] = [];
     const cursor = new Date();
     cursor.setHours(0, 0, 0, 0);
+    const candidateDays: Array<{ iso: string; label: string }> = [];
 
     let scanned = 0;
-    while (actions.length < 6 && scanned < 30) {
+    while (candidateDays.length < 12 && scanned < 30) {
         scanned += 1;
         cursor.setDate(cursor.getDate() + 1);
         const day = cursor.getDay();
@@ -251,20 +491,41 @@ const buildDateSuggestions = async (service?: string) => {
         const holiday = await getHolidayForDate(iso);
         if (holiday) continue;
 
-        const available = await getAvailableTimeSlots(iso, service);
         const label = formatIsoShortLabel(iso);
+        candidateDays.push({ iso, label });
+    }
 
-        if (available.slots.length === 0) {
-            fullDays.push(label);
+    const occupiedByDate = await getOccupiedCountByDateSlot(candidateDays.map((item) => item.iso));
+    const normalizedService = service ? normalizeText(service) : '';
+
+    for (const day of candidateDays) {
+        const template = getSlotTemplateForDate(day.iso);
+        const occupiedSlots = occupiedByDate.get(day.iso) || new Map<string, { total: number; byService: Map<string, number> }>();
+        const availableSlots = template.filter((slot) => {
+            const usage = occupiedSlots.get(slot);
+            const total = usage?.total || 0;
+            const perService = normalizedService ? usage?.byService.get(normalizedService) || 0 : 0;
+
+            const totalAvailable = total < MAX_APPOINTMENTS_PER_HOUR_TOTAL;
+            const serviceAvailable = !normalizedService || perService < MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE;
+            return totalAvailable && serviceAvailable;
+        });
+
+        if (availableSlots.length === 0) {
+            fullDays.push(day.label);
             continue;
         }
 
         actions.push({
-            id: `date-${iso}`,
-            label,
-            value: iso,
-            userText: `📅 ${label}`,
+            id: `date-${day.iso}`,
+            label: day.label,
+            value: day.iso,
+            userText: `📅 ${day.label}`,
         });
+
+        if (actions.length >= 6) {
+            break;
+        }
     }
 
     return { actions, fullDays: fullDays.slice(0, 4) };
@@ -277,6 +538,15 @@ const buildTimeActionsByService = async (dateInput?: string, service?: string) =
         label: slot,
         value: slot,
         userText: `🕒 ${slot}`,
+    }));
+};
+
+const buildServiceActions = (services: Array<{ title: string }>) => {
+    return services.map((service, index) => ({
+        id: `service-${index}`,
+        label: service.title,
+        value: service.title,
+        userText: `💆 ${service.title}`,
     }));
 };
 
@@ -294,7 +564,35 @@ const countServiceAppointmentsForSlot = async (isoDate?: string | null, time?: s
     });
 };
 
+const countTotalAppointmentsForSlot = async (isoDate?: string | null, time?: string | null, excludeId?: string) => {
+    if (!isoDate || !time) return 0;
+
+    return prisma.appointment.count({
+        where: {
+            ...(excludeId ? { id: { not: excludeId } } : {}),
+            preferredDate: isoDate,
+            preferredTime: time,
+            status: { in: ['pending', 'confirmed'] },
+        },
+    });
+};
+
 const mergeBookingData = (base?: BookingData, incoming?: BookingData): BookingData | undefined => {
+        const sanitizeEmail = (value?: string) => {
+            if (!value) return undefined;
+            const email = value.trim().toLowerCase();
+            const basic = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            if (!basic.test(email)) return undefined;
+            if (email.includes('..')) return undefined;
+
+            const [localPart, domainPart] = email.split('@');
+            if (!localPart || !domainPart) return undefined;
+            if (localPart.startsWith('.') || localPart.endsWith('.')) return undefined;
+            if (domainPart.startsWith('.') || domainPart.endsWith('.')) return undefined;
+
+            return email;
+        };
+
     const sanitizeName = (value?: string) => {
         if (!value) return undefined;
         const cleaned = value
@@ -317,13 +615,18 @@ const mergeBookingData = (base?: BookingData, incoming?: BookingData): BookingDa
     const pickBestName = () => {
         const incomingName = sanitizeName(incoming?.name);
         const baseName = sanitizeName(base?.name);
+
+        if (incomingName && incoming?.service && normalizeText(incomingName) === normalizeText(incoming.service)) {
+            return baseName;
+        }
+
         if (incomingName && incomingName.length >= 2) return incomingName;
         return baseName;
     };
 
     const merged: BookingData = {
         name: pickBestName(),
-        email: incoming?.email || base?.email,
+        email: sanitizeEmail(incoming?.email) || sanitizeEmail(base?.email),
         phone: incoming?.phone || base?.phone,
         preferredDate: incoming?.preferredDate || base?.preferredDate,
         preferredTime: incoming?.preferredTime || base?.preferredTime,
@@ -406,7 +709,7 @@ export async function POST(req: NextRequest) {
         const requestHistory = Array.isArray(body?.history)
             ? (body.history as ChatHistoryItem[])
                   .filter((item) => item && (item.role === 'user' || item.role === 'bot') && typeof item.text === 'string')
-                  .slice(-400)
+                .slice(-CHATBOT_HISTORY_LIMIT)
             : [];
 
         if (!message) {
@@ -426,8 +729,9 @@ export async function POST(req: NextRequest) {
             options?: { bookingDraft?: BookingData; pendingConfirmation?: boolean }
         ) => {
             if (conversationId) {
+                const nextHistory: ChatHistoryItem[] = [...history, { role: 'bot', text: String(payload.reply || '') }];
                 await saveChatMemory(conversationId, {
-                    history: [...history, { role: 'bot', text: String(payload.reply || '') }],
+                    history: nextHistory.slice(-CHATBOT_HISTORY_LIMIT),
                     bookingDraft: options?.bookingDraft,
                     pendingConfirmation: options?.pendingConfirmation,
                 });
@@ -436,24 +740,73 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(payload);
         };
 
-        const dbContact = await prisma.contactInfo.findUnique({
-            where: { id: 'default' },
-        });
-        const services = await prisma.service.findMany({
-            where: { active: true },
-            select: { title: true, category: true, description: true },
-            orderBy: { order: 'asc' },
-        });
-
-        const dbPhones = dbContact
-            ? (typeof dbContact.phones === 'string' ? JSON.parse(dbContact.phones) : dbContact.phones)
-            : [];
-        const parsedHours = dbContact?.hours ? JSON.parse(dbContact.hours) : null;
+        const { services } = await getCachedChatbotBaseData(req.nextUrl.origin);
         const fileSettings = await getChatbotSettings();
         const googleSettings = await getGoogleCalendarSettings();
         const serviceTitles = services.map((service) => service.title);
-        const whatsappNumber = process.env.WHATSAPP_CHATBOT_NUMBER || dbPhones?.[0] || DEFAULT_WHATSAPP_NUMBER;
+        const whatsappNumber = process.env.WHATSAPP_CHATBOT_NUMBER || DEFAULT_WHATSAPP_NUMBER;
         const localResult = buildChatbotReply(message, history, { services: serviceTitles, serviceCatalog: services });
+        const configuredMode = (fileSettings?.mode || process.env.CHATBOT_MODE || DEFAULT_CHATBOT_MODE).toLowerCase();
+        const chatbotMode = ALLOWED_CHATBOT_MODES.includes(configuredMode) ? configuredMode : DEFAULT_CHATBOT_MODE;
+
+        const getSmartReply = async (messageText: string, historyItems: ChatHistoryItem[]) => {
+            const local = buildChatbotReply(messageText, historyItems, { services: serviceTitles, serviceCatalog: services });
+            const userTurns = historyItems.filter((item) => item.role === 'user').length;
+            const isGreetingTurn = isSimpleGreetingMessage(messageText) && userTurns <= 2;
+
+            if (isGreetingTurn || local.isOffTopic || chatbotMode === 'local') {
+                return local.reply;
+            }
+
+            const aiInput = {
+                message: messageText,
+                history: historyItems,
+                services: services.map((service) => service.title),
+                serviceCatalog: services,
+            };
+
+            const runProvider = async (provider: AutoProvider): Promise<string | null> => {
+                if (provider === 'groq') {
+                    return generateGroqChatbotReply(aiInput);
+                }
+                if (provider === 'team') {
+                    return generateTeamReviewedChatbotReply(aiInput);
+                }
+                if (provider === 'public') {
+                    return generatePublicHostedChatbotReply(aiInput);
+                }
+                return null;
+            };
+
+            let modelReply: string | null = null;
+
+            if (chatbotMode === 'team') {
+                modelReply = await generateTeamReviewedChatbotReply(aiInput);
+                if (!modelReply) {
+                    modelReply = await generatePublicHostedChatbotReply(aiInput);
+                }
+                if (!modelReply) {
+                    modelReply = await generateGroqChatbotReply(aiInput);
+                }
+            } else if (chatbotMode === 'groq') {
+                modelReply = await generateGroqChatbotReply(aiInput);
+            } else if (chatbotMode === 'public') {
+                modelReply = await generatePublicHostedChatbotReply(aiInput);
+            } else if (chatbotMode === 'auto') {
+                const providerOrder = parseAutoProviderOrder(process.env.CHATBOT_AUTO_PROVIDER_ORDER);
+                for (const provider of providerOrder) {
+                    if (provider === 'local') {
+                        break;
+                    }
+                    modelReply = await runProvider(provider);
+                    if (modelReply) {
+                        break;
+                    }
+                }
+            }
+
+            return modelReply || local.reply;
+        };
 
         const manageIntent = detectManageIntent(message);
         if (manageIntent !== 'none') {
@@ -545,6 +898,15 @@ export async function POST(req: NextRequest) {
                 }
 
                 if (!requestedService) {
+                    const totalLoad = await countTotalAppointmentsForSlot(normalizedDate, normalizedTime);
+                    if (totalLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
+                        return rememberAndRespond({
+                            reply: `Perdón 🙏 ese horario (${normalizedDate || date} ${normalizedTime || time || ''}) ya está lleno. ¿Me compartes otra hora y te ayudo enseguida?`,
+                            intent: 'CONSULTAR_DISPONIBILIDAD',
+                            whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
+                        });
+                    }
+
                     return rememberAndRespond({
                         reply: `Sí, ese horario se ve disponible ✅ (${normalizedDate || date} ${normalizedTime || time || ''}). Si me dices el servicio, te confirmo cupo exacto.`,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
@@ -552,9 +914,35 @@ export async function POST(req: NextRequest) {
                     });
                 }
 
-                const occupiedCount = await countServiceAppointmentsForSlot(normalizedDate, normalizedTime, requestedService);
+                const [totalLoad, serviceLoad] = await Promise.all([
+                    countTotalAppointmentsForSlot(normalizedDate, normalizedTime),
+                    countServiceAppointmentsForSlot(normalizedDate, normalizedTime, requestedService),
+                ]);
 
-                if (occupiedCount < MAX_APPOINTMENTS_PER_SERVICE_SLOT) {
+                if (totalLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
+                    const alternatives = normalizedDate ? await buildTimeActionsByService(normalizedDate, requestedService) : [];
+                    if (alternatives.length > 0) {
+                        return rememberAndRespond({
+                            reply: `Perdón 🙏 ese horario ya está lleno. En ${normalizedDate} todavía tengo estos horarios: ${alternatives
+                                .slice(0, 6)
+                                .map((item) => item.value)
+                                .join(', ')}`,
+                            intent: 'CONSULTAR_DISPONIBILIDAD',
+                            actions: alternatives,
+                            whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
+                        });
+                    }
+
+                    const dateSuggestions = await buildDateSuggestions(requestedService);
+                    return rememberAndRespond({
+                        reply: `Perdón 🙏 ese horario ya está lleno. Te propongo otras fechas disponibles 👇`,
+                        intent: 'CONSULTAR_DISPONIBILIDAD',
+                        actions: dateSuggestions.actions,
+                        whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
+                    });
+                }
+
+                if (serviceLoad < MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
                     return rememberAndRespond({
                         reply: `Sí, ese horario se ve disponible para ${requestedService} ✅ (${normalizedDate || date} ${normalizedTime || time || ''})`,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
@@ -565,7 +953,7 @@ export async function POST(req: NextRequest) {
                 const alternatives = normalizedDate ? await buildTimeActionsByService(normalizedDate, requestedService) : [];
                 if (alternatives.length > 0) {
                     return rememberAndRespond({
-                        reply: `Para ${requestedService}, ese horario ya llenó cupo. En ${normalizedDate} todavía tengo estos espacios: ${alternatives
+                        reply: `Perdón 🙏 para ${requestedService}, ese horario ya está lleno. En ${normalizedDate} todavía tengo estos espacios: ${alternatives
                             .slice(0, 6)
                             .map((item) => item.value)
                             .join(', ')}`,
@@ -577,7 +965,7 @@ export async function POST(req: NextRequest) {
 
                 const dateSuggestions = await buildDateSuggestions(requestedService);
                 return rememberAndRespond({
-                    reply: `Para ${requestedService}, ese horario ya está lleno. Te propongo otras fechas disponibles 👇`,
+                    reply: `Perdón 🙏 para ${requestedService}, ese horario ya está lleno. Te propongo otras fechas disponibles 👇`,
                     intent: 'CONSULTAR_DISPONIBILIDAD',
                     actions: dateSuggestions.actions,
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
@@ -664,9 +1052,23 @@ export async function POST(req: NextRequest) {
                 appointment.id
             );
 
-            if (conflictCount >= MAX_APPOINTMENTS_PER_SERVICE_SLOT) {
+            const totalConflictCount = await countTotalAppointmentsForSlot(
+                normalizedNewDate,
+                normalizedNewTime,
+                appointment.id
+            );
+
+            if (totalConflictCount >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
                 return rememberAndRespond({
-                    reply: `Ese horario (${newDate} ${newTime}) ya llenó cupo para ${appointment.service || 'ese servicio'}. Dime otra fecha u hora y la actualizo.`,
+                    reply: `Perdón 🙏 ese horario (${newDate} ${newTime}) ya está lleno. Dime otra fecha u hora y la actualizo.`,
+                    intent: 'REAGENDAR_CITA',
+                    whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero reagendar mi cita y ese horario estaba ocupado.`),
+                });
+            }
+
+            if (conflictCount >= MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
+                return rememberAndRespond({
+                    reply: `Perdón 🙏 para ${appointment.service || 'ese servicio'} ese horario ya está lleno. Dime otra fecha u hora y la actualizo.`,
                     intent: 'REAGENDAR_CITA',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero reagendar mi cita y ese horario estaba ocupado.`),
                 });
@@ -749,12 +1151,30 @@ export async function POST(req: NextRequest) {
                     );
                 }
 
-                const serviceSlotLoad = await countServiceAppointmentsForSlot(normalizedDate, normalizedTime, data.service || undefined);
-                if (serviceSlotLoad >= MAX_APPOINTMENTS_PER_SERVICE_SLOT) {
+                const [totalSlotLoad, serviceSlotLoad] = await Promise.all([
+                    countTotalAppointmentsForSlot(normalizedDate, normalizedTime),
+                    countServiceAppointmentsForSlot(normalizedDate, normalizedTime, data.service || undefined),
+                ]);
+
+                if (totalSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
                     const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
                     return rememberAndRespond(
                         {
-                            reply: `Ese horario ya llenó cupo para ${data.service}. Elige otra hora disponible 👇`,
+                            reply: 'Perdón 🙏 ese horario ya está lleno. ¿Me compartes otra hora? 👇',
+                            intent: 'AGENDAR',
+                            actions: timeActions,
+                            whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
+                            appointmentCreated: false,
+                        },
+                        { bookingDraft: data, pendingConfirmation: false }
+                    );
+                }
+
+                if (serviceSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
+                    const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
+                    return rememberAndRespond(
+                        {
+                            reply: `Perdón 🙏 para ${data.service} ese horario ya está lleno. ¿Me compartes otra hora? 👇`,
                             intent: 'AGENDAR',
                             actions: timeActions,
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
@@ -877,7 +1297,7 @@ Mensaje: ${message}`),
                 const dateSuggestions = await buildDateSuggestions(memory.bookingDraft.service);
                 return rememberAndRespond(
                     {
-                        reply: 'Perfecto 👍 Cambiemos la fecha. Elige una opción sugerida o selecciónala en el calendario 👇',
+                        reply: 'Perfecto 👍 Cambiemos la fecha. Elige una sugerencia o escríbeme la nueva fecha 👇',
                         intent: 'AGENDAR',
                         actions: dateSuggestions.actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la fecha de mi cita.\n\nMensaje: ${message}`),
@@ -893,8 +1313,8 @@ Mensaje: ${message}`),
                     {
                         reply:
                             timeActions.length > 0
-                                ? 'Perfecto 👍 Cambiemos la hora. Te muestro horarios disponibles 👇'
-                                : 'Para cambiar la hora primero necesito una fecha disponible. Elígela en el calendario 👇',
+                                ? 'Perfecto 👍 Cambiemos la hora. Elige una opción o escríbeme el nuevo horario 👇'
+                                : 'Para cambiar la hora primero necesito una fecha disponible. Dime otra fecha 👇',
                         intent: 'AGENDAR',
                             actions: timeActions.length > 0 ? timeActions : (await buildDateSuggestions(memory.bookingDraft.service)).actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la hora de mi cita.\n\nMensaje: ${message}`),
@@ -906,7 +1326,7 @@ Mensaje: ${message}`),
 
             return rememberAndRespond(
                 {
-                    reply: 'Perfecto 👍 Dime qué dato quieres cambiar (nombre, email, teléfono, servicio, fecha u hora) y te actualizo el resumen.',
+                    reply: 'Perfecto 👍 ¿Qué te faltó editar (nombre, email, teléfono, servicio, fecha u hora)?',
                     intent: 'AGENDAR',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar datos de mi cita.\n\nMensaje: ${message}`),
                     appointmentCreated: false,
@@ -918,7 +1338,24 @@ Mensaje: ${message}`),
         const shouldHandleBookingFlow = bookingDecision.shouldHandle || Boolean(memory?.bookingDraft);
 
         if (shouldHandleBookingFlow && (!isInfoInquiryMessage(message) || Boolean(memory?.bookingDraft))) {
-            const mergedDraft = mergeBookingData(memory?.bookingDraft, bookingDecision.data);
+            const hasInvalidEmailInMessage = hasInvalidEmailCandidate(message);
+            const recentContextService =
+                !bookingDecision.data?.service && !memory?.bookingDraft?.service
+                    ? getLatestUserMentionedService(history, serviceTitles) || getLatestBotSuggestedServices(history, serviceTitles)[0]
+                    : undefined;
+
+            const resolvedService =
+                !bookingDecision.data?.service && isIndirectServiceReference(message)
+                    ? resolveIndirectService(message, history, serviceTitles, services)
+                    : undefined;
+
+            const bookingDataWithService = resolvedService
+                ? { ...bookingDecision.data, service: resolvedService }
+                : recentContextService
+                  ? { ...bookingDecision.data, service: recentContextService }
+                : bookingDecision.data;
+
+            const mergedDraft = mergeBookingData(memory?.bookingDraft, bookingDataWithService);
             const requestedEditField = memory?.bookingDraft ? detectRequestedEditField(message) : null;
 
             if (mergedDraft?.preferredDate) {
@@ -942,11 +1379,67 @@ Mensaje: ${message}`),
 
             const effectiveMissingFields = getBookingMissingFields(mergedDraft);
 
+            if (
+                memory?.bookingDraft &&
+                isBookingInfoInterruption(message) &&
+                !requestedEditField &&
+                !hasAnyBookingData(bookingDecision.data) &&
+                !isConfirmMessage(message)
+            ) {
+                const nextField = effectiveMissingFields[0];
+                const infoReply = await getSmartReply(message, history);
+                const recallCandidates = mergedDraft?.service
+                    ? [mergedDraft.service]
+                    : getLatestBotSuggestedServices(history, serviceTitles);
+                const recallPrefix =
+                    isRecommendationRecallQuestion(message) && recallCandidates.length > 0
+                        ? `Claro 👌 Te había recomendado ${formatServiceList(recallCandidates)} para ese objetivo.`
+                        : '';
+                const composedInfoReply = recallPrefix ? `${recallPrefix}\n\n${infoReply}` : infoReply;
+                const followUp = nextField ? `\n\nSi quieres, seguimos con tu cita. ${getSingleFieldPrompt(nextField, false)}` : '';
+                let actions: Array<{ id: string; label: string; value: string; userText: string }> | undefined;
+
+                if (nextField === 'fecha') {
+                    actions = (await buildDateSuggestions(mergedDraft?.service)).actions;
+                } else if (nextField === 'hora') {
+                    actions = await buildTimeActionsByService(mergedDraft?.preferredDate, mergedDraft?.service);
+                }
+
+                return rememberAndRespond(
+                    {
+                        reply: `${composedInfoReply}${followUp}`,
+                        intent: 'AGENDAR',
+                        actions,
+                        whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero continuar por WhatsApp para agendar.\n\nMensaje: ${message}`),
+                        appointmentCreated: false,
+                    },
+                    { bookingDraft: mergedDraft, pendingConfirmation: false }
+                );
+            }
+
+            if (memory?.bookingDraft && isOnlyPunctuationMessage(message)) {
+                const nextField = effectiveMissingFields[0];
+                const currentService = mergedDraft?.service ? ` para ${mergedDraft.service}` : '';
+                const reply = nextField
+                    ? `Seguimos con tu cita${currentService}. ${getSingleFieldPrompt(nextField, false)}`
+                    : 'Seguimos con tu cita 👍';
+
+                return rememberAndRespond(
+                    {
+                        reply,
+                        intent: 'AGENDAR',
+                        whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero continuar por WhatsApp para agendar.\n\nMensaje: ${message}`),
+                        appointmentCreated: false,
+                    },
+                    { bookingDraft: mergedDraft, pendingConfirmation: false }
+                );
+            }
+
             if (requestedEditField === 'fecha') {
                 const dateSuggestions = await buildDateSuggestions(mergedDraft?.service);
                 return rememberAndRespond(
                     {
-                        reply: 'Perfecto 👍 Cambiemos la fecha. Elige una opción sugerida o selecciónala en el calendario 👇',
+                        reply: 'Perfecto 👍 Cambiemos la fecha. Elige una sugerencia o escríbeme la nueva fecha 👇',
                         intent: 'AGENDAR',
                         actions: dateSuggestions.actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la fecha de mi cita.\n\nMensaje: ${message}`),
@@ -962,8 +1455,8 @@ Mensaje: ${message}`),
                     {
                         reply:
                             timeActions.length > 0
-                                ? 'Perfecto 👍 Cambiemos la hora. Selecciona una nueva hora disponible 👇'
-                                : 'Para cambiar la hora, primero elige una fecha disponible 👇',
+                                ? 'Perfecto 👍 Cambiemos la hora. Elige una opción o escríbeme el nuevo horario 👇'
+                                : 'Para cambiar la hora, primero ajusta una fecha disponible 👇',
                         intent: 'AGENDAR',
                         actions: timeActions.length > 0 ? timeActions : (await buildDateSuggestions(mergedDraft?.service)).actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la hora de mi cita.\n\nMensaje: ${message}`),
@@ -971,6 +1464,82 @@ Mensaje: ${message}`),
                     },
                     { bookingDraft: mergedDraft, pendingConfirmation: false }
                 );
+            }
+
+            if (requestedEditField === 'servicio') {
+                return rememberAndRespond(
+                    {
+                        reply: 'Perfecto 👍 Ahora vamos con tu servicio. ¿Tienes uno en mente o prefieres que te recomiende según lo que buscas?',
+                        intent: 'AGENDAR',
+                        whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar el servicio de mi cita.\n\nMensaje: ${message}`),
+                        appointmentCreated: false,
+                    },
+                    { bookingDraft: mergedDraft, pendingConfirmation: false }
+                );
+            }
+
+            // If the user already gave service/date/time, validate availability early
+            // before asking for name/email/phone so we can offer a new slot immediately.
+            if (
+                mergedDraft?.service &&
+                mergedDraft?.preferredDate &&
+                mergedDraft?.preferredTime &&
+                effectiveMissingFields.length > 0
+            ) {
+                const normalizedDate = normalizeDateForStorage(mergedDraft.preferredDate);
+                const normalizedTime = normalizeTimeForStorage(mergedDraft.preferredTime);
+
+                if (normalizedDate && normalizedTime) {
+                    const holiday = await getHolidayForDate(normalizedDate);
+                    if (holiday) {
+                        const dateSuggestions = await buildDateSuggestions(mergedDraft.service);
+                        return rememberAndRespond(
+                            {
+                                reply: `Perdón 🙏 ese día es festivo (${holiday.name}) y no lo tengo disponible. ¿Te parece elegir otra fecha? 👇`,
+                                intent: 'AGENDAR',
+                                actions: dateSuggestions.actions,
+                                whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero continuar por WhatsApp para agendar.\n\nMensaje: ${message}`),
+                                appointmentCreated: false,
+                            },
+                            { bookingDraft: mergedDraft, pendingConfirmation: false }
+                        );
+                    }
+
+                    const [totalSlotLoad, serviceSlotLoad] = await Promise.all([
+                        countTotalAppointmentsForSlot(normalizedDate, normalizedTime),
+                        countServiceAppointmentsForSlot(normalizedDate, normalizedTime, mergedDraft.service),
+                    ]);
+
+                    if (totalSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
+                        const timeActions = await buildTimeActionsByService(normalizedDate, mergedDraft.service);
+                        const fallbackDates = await buildDateSuggestions(mergedDraft.service);
+                        return rememberAndRespond(
+                            {
+                                reply: `Perdón 🙏 ese horario ya está lleno. ¿Me compartes otra hora para ${mergedDraft.preferredDate}?`,
+                                intent: 'AGENDAR',
+                                actions: timeActions.length > 0 ? timeActions : fallbackDates.actions,
+                                whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${mergedDraft.service}.\n\nMensaje: ${message}`),
+                                appointmentCreated: false,
+                            },
+                            { bookingDraft: mergedDraft, pendingConfirmation: false }
+                        );
+                    }
+
+                    if (serviceSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
+                        const timeActions = await buildTimeActionsByService(normalizedDate, mergedDraft.service);
+                        const fallbackDates = await buildDateSuggestions(mergedDraft.service);
+                        return rememberAndRespond(
+                            {
+                                reply: `Perdón 🙏 para ${mergedDraft.service} ese horario ya está lleno. ¿Me compartes otra hora?`,
+                                intent: 'AGENDAR',
+                                actions: timeActions.length > 0 ? timeActions : fallbackDates.actions,
+                                whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${mergedDraft.service}.\n\nMensaje: ${message}`),
+                                appointmentCreated: false,
+                            },
+                            { bookingDraft: mergedDraft, pendingConfirmation: false }
+                        );
+                    }
+                }
             }
 
             const isReadyWithMergedDraft = effectiveMissingFields.length === 0;
@@ -996,7 +1565,7 @@ Mensaje: ${message}`),
                 }
 
                 if (!isConfirmMessage(message)) {
-                    const previewMessage = `Perfecto, te resumo tu cita 👇\n\nNombre: ${data.name}\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\nEmail: ${data.email}\nTel: ${data.phone}\n\nSi todo está bien, toca el botón “Confirmar cita” ✅`;
+                    const previewMessage = `Perfecto, te resumo tu cita 👇\n\nNombre: ${data.name}\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\nEmail: ${data.email}\nTel: ${data.phone}\n\nSi todo está bien, responde “confirmar cita” y la registro ✅`;
 
                     return rememberAndRespond(
                         {
@@ -1057,11 +1626,26 @@ Mensaje: ${message}`),
                     });
                 }
 
-                const serviceSlotLoad = await countServiceAppointmentsForSlot(normalizedDate, normalizedTime, data.service || undefined);
-                if (serviceSlotLoad >= MAX_APPOINTMENTS_PER_SERVICE_SLOT) {
+                const [totalSlotLoad, serviceSlotLoad] = await Promise.all([
+                    countTotalAppointmentsForSlot(normalizedDate, normalizedTime),
+                    countServiceAppointmentsForSlot(normalizedDate, normalizedTime, data.service || undefined),
+                ]);
+
+                if (totalSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
                     const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
                     return rememberAndRespond({
-                        reply: `Ese horario ya llenó cupo para ${data.service}. Elige otra hora disponible 👇`,
+                        reply: 'Perdón 🙏 ese horario ya está lleno. ¿Me compartes otra hora? 👇',
+                        intent: 'AGENDAR',
+                        actions: timeActions,
+                        whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
+                        appointmentCreated: false,
+                    });
+                }
+
+                if (serviceSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
+                    const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
+                    return rememberAndRespond({
+                        reply: `Perdón 🙏 para ${data.service} ese horario ya está lleno. ¿Me compartes otra hora? 👇`,
                         intent: 'AGENDAR',
                         actions: timeActions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
@@ -1153,12 +1737,38 @@ Mensaje: ${message}`),
             let guidedPrompt = baseGuidedPrompt;
             let actions: Array<{ id: string; label: string; value: string; userText: string }> | undefined;
 
+            if (effectiveMissingFields.length >= 3) {
+                guidedPrompt = isFirstGuidedTurn
+                    ? `Listo, te ayudo a agendar rápido ✨\n\n${formatMissingFieldsPrompt(effectiveMissingFields)}`
+                    : formatMissingFieldsPrompt(effectiveMissingFields);
+            }
+
+            if (hasInvalidEmailInMessage && !mergedDraft?.email) {
+                guidedPrompt = 'Tu correo parece incompleto 🙏 ¿Me lo compartes de nuevo? Ejemplo: nombre@correo.com';
+            }
+
+            if (!isFirstGuidedTurn && hasAnyBookingData(bookingDecision.data)) {
+                guidedPrompt = `Perfecto, ya anoté ese dato ✅\n\n${guidedPrompt}`;
+            }
+
+            if (
+                hasAnyBookingData(bookingDecision.data) &&
+                mergedDraft?.service &&
+                mergedDraft?.preferredDate &&
+                mergedDraft?.preferredTime &&
+                effectiveMissingFields.length > 0
+            ) {
+                guidedPrompt = `Perfecto, intento ${mergedDraft.service} para ${mergedDraft.preferredDate} a las ${mergedDraft.preferredTime} 👌\n\n${guidedPrompt}`;
+            }
+
             if (nextField === 'fecha') {
                 const dateSuggestions = await buildDateSuggestions(mergedDraft?.service);
                 actions = dateSuggestions.actions;
                 if (dateSuggestions.fullDays.length > 0) {
                     guidedPrompt = `${baseGuidedPrompt}\n\n⚠️ Días llenos recientes: ${dateSuggestions.fullDays.join(', ')}.`;
                 }
+            } else if (nextField === 'servicio') {
+                guidedPrompt = '¿Cuál servicio te interesa? Puedo recomendarte uno o prefieres elegir de nuestra lista 💆';
             } else if (nextField === 'hora') {
                 const timeActions = await buildTimeActionsByService(mergedDraft?.preferredDate, mergedDraft?.service);
                 if (timeActions.length === 0) {
@@ -1189,57 +1799,9 @@ Mensaje: ${message}`),
 
         let reply = localResult.reply;
         const intent = localResult.intent;
-        const userTurns = history.filter((item) => item.role === 'user').length;
-        const isGreetingTurn = isSimpleGreetingMessage(message) && userTurns <= 2;
-        const configuredMode = (fileSettings?.mode || process.env.CHATBOT_MODE || DEFAULT_CHATBOT_MODE).toLowerCase();
-        const chatbotMode = ALLOWED_CHATBOT_MODES.includes(configuredMode) ? configuredMode : DEFAULT_CHATBOT_MODE;
 
-        if (!isGreetingTurn && !localResult.isOffTopic && chatbotMode !== 'local') {
-            const aiInput = {
-                message,
-                history,
-                services: services.map((service) => service.title),
-                serviceCatalog: services,
-                contactAddress: dbContact?.address,
-                contactHoursWeekdays: parsedHours?.weekdays,
-                contactHoursSaturday: parsedHours?.saturday,
-            };
-
-            let modelReply: string | null = null;
-
-            const runProvider = async (provider: AutoProvider): Promise<string | null> => {
-                if (provider === 'team') {
-                    return generateTeamReviewedChatbotReply(aiInput);
-                }
-                if (provider === 'public') {
-                    return generatePublicHostedChatbotReply(aiInput);
-                }
-                return null;
-            };
-
-            if (chatbotMode === 'team') {
-                modelReply = await generateTeamReviewedChatbotReply(aiInput);
-                if (!modelReply) {
-                    modelReply = await generatePublicHostedChatbotReply(aiInput);
-                }
-            } else if (chatbotMode === 'public') {
-                modelReply = await generatePublicHostedChatbotReply(aiInput);
-            } else if (chatbotMode === 'auto') {
-                const providerOrder = parseAutoProviderOrder(process.env.CHATBOT_AUTO_PROVIDER_ORDER);
-                for (const provider of providerOrder) {
-                    if (provider === 'local') {
-                        break;
-                    }
-                    modelReply = await runProvider(provider);
-                    if (modelReply) {
-                        break;
-                    }
-                }
-            }
-
-            if (modelReply) {
-                reply = modelReply;
-            }
+        if (!localResult.isOffTopic) {
+            reply = await getSmartReply(message, history);
         }
 
         const whatsappMessage = `Hola, quiero continuar por WhatsApp.\n\nMensaje: ${message}`;

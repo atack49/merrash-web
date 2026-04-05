@@ -16,6 +16,7 @@ export interface OpenAIChatbotInput {
 }
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 const DEFAULT_OPENROUTER_MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
 const DEFAULT_HUGGINGFACE_MODEL = 'Qwen/Qwen2.5-7B-Instruct';
 const DEFAULT_SELF_HOSTED_MODEL = 'Qwen/Qwen2.5-7B-Instruct';
@@ -28,8 +29,8 @@ const buildSystemPrompt = (input: OpenAIChatbotInput) => {
         ? input.services.join(', ')
         : 'Acupuntura, Homeopatía, Rehabilitación, Tratamientos Faciales, Tratamientos Corporales, Masajes, Reiki, Healy';
 
-    const weekdays = input.contactHoursWeekdays || '10:00 AM - 4:00 PM';
-    const saturday = input.contactHoursSaturday || '10:00 AM - 4:00 PM';
+    const weekdays = input.contactHoursWeekdays || '8:00 AM - 6:00 PM';
+    const saturday = input.contactHoursSaturday || '9:00 AM - 4:00 PM';
     const address = input.contactAddress || 'Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.';
     const serviceCatalog = (input.serviceCatalog || [])
         .map((item) => {
@@ -46,6 +47,10 @@ const buildSystemPrompt = (input: OpenAIChatbotInput) => {
         'Mantén continuidad con el contexto de la conversación.',
         'SOLO puedes responder temas de Merrash: servicios, horarios, ubicación, citas y seguimiento para agendar.',
         'Si preguntan algo fuera de Merrash, responde de forma amable que solo atiendes temas de Merrash y redirige a servicios/citas.',
+        'Si preguntan para qué sirve un servicio, cómo ayuda, beneficios, cuidados o si conviene para cierto malestar, responde usando conocimiento general confiable del área de salud y bienestar, sin diagnosticar ni prometer curas.',
+        'Si un servicio existe en el catálogo pero su descripción es corta o incompleta, puedes complementar con una explicación general útil y prudente para que el cliente entienda de qué trata.',
+        'No digas que necesitas entrenarte ni que no sabes solo porque el texto del servicio en la base esté corto; usa el nombre del servicio, el contexto del negocio y tu conocimiento general.',
+        'Aclara que la valoración final depende del especialista cuando el usuario pregunte si algo es adecuado para su caso particular.',
         'Interpreta lenguaje informal, abreviaciones, errores ortográficos y frases incompletas del usuario.',
         'Si falta un dato para agendar, pide solo el dato faltante (no repitas toda la lista).',
         'Interpreta sinónimos de agendar: agenda, cita, reservar, apartar, programar, turno, sesión, "hazme una agenda", "me anotas".',
@@ -54,14 +59,34 @@ const buildSystemPrompt = (input: OpenAIChatbotInput) => {
         'Cuando te pidan recomendación, sugiere 1-2 servicios concretos y explica brevemente por qué.',
         'Si es útil, organiza recomendación por Cuerpo, Mente y/o Espíritu según la intención del cliente.',
         'Si el usuario está indeciso, haz una pregunta corta para afinar recomendación.',
+        'Cuando te pregunten por horarios, responde en formato de lista de líneas separadas (no en párrafo).',
+        'Formato sugerido de horarios: "Nuestros horarios son:" y luego "- Lunes a Viernes: ...", "- Sábado: ...", "- Domingo: Cerrado".',
+        'Cuando te pregunten qué servicios hay o cuáles son los servicios disponibles, SIEMPRE lista cada servicio en una línea separada con viñeta (- Nombre), agrupados por categoría (Cuerpo, Mente, Espíritu). NUNCA los pongas todos en un solo párrafo o separados por comas.',
+        'Formato de servicios: una categoría por sección con emoji, y debajo cada servicio en "- Nombre".',
         `Servicios disponibles: ${services}.`,
         serviceCatalog ? `Catálogo detallado:\n${serviceCatalog}` : '',
         `Horario: Lunes a Viernes ${weekdays}; Sábado ${saturday}; Domingo cerrado.`,
         `Ubicación: ${address}.`,
         'Si el usuario quiere agendar, pide: nombre, servicio, día y hora preferida.',
-        'Nunca confirmes una cita en domingo ni fuera de horario.',
-        'Si el usuario pide domingo o fuera de horario, explica que está cerrado y propone una alternativa válida.',
+        'Nunca confirmes una cita en domingo ni fuera del rango agendable.',
+        'Regla de agenda: solo reservar desde apertura hasta una hora antes del cierre (L-V 8:00 a 17:00, Sáb 9:00 a 15:00).',
+        'Si el usuario pide domingo o fuera del rango agendable, explica la regla y propone una alternativa válida.',
     ].join(' ');
+};
+
+export const generateGroqChatbotReply = async (input: OpenAIChatbotInput): Promise<string | null> => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+        return null;
+    }
+
+    const model = process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL;
+
+    return generateOpenAICompatibleReply(input, {
+        endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+        apiKey,
+        model,
+    });
 };
 
 export const generateOpenAIChatbotReply = async (input: OpenAIChatbotInput): Promise<string | null> => {

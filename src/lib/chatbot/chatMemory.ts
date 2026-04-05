@@ -16,7 +16,7 @@ type ChatMemoryStore = Record<string, ChatMemoryState>;
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const MEMORY_FILE = path.join(DATA_DIR, 'chatbot-memory.json');
-const MAX_HISTORY_ITEMS = 400;
+const MAX_HISTORY_ITEMS = Number(process.env.CHATBOT_HISTORY_LIMIT || '120');
 const MAX_DAYS_TO_KEEP = 7;
 
 const getTodayKey = () =>
@@ -87,12 +87,15 @@ export async function saveChatMemory(
     const key = buildKey(safeConversationId, todayKey);
 
     const previous = store[key];
+    const hasBookingDraftPatch = Object.prototype.hasOwnProperty.call(patch, 'bookingDraft');
+    const hasPendingConfirmationPatch = Object.prototype.hasOwnProperty.call(patch, 'pendingConfirmation');
+
     const merged: ChatMemoryState = {
         conversationId: safeConversationId,
         dateKey: todayKey,
         history: (patch.history || previous?.history || []).slice(-MAX_HISTORY_ITEMS),
-        bookingDraft: patch.bookingDraft ?? previous?.bookingDraft,
-        pendingConfirmation: patch.pendingConfirmation ?? previous?.pendingConfirmation ?? false,
+        bookingDraft: hasBookingDraftPatch ? patch.bookingDraft : previous?.bookingDraft,
+        pendingConfirmation: hasPendingConfirmationPatch ? patch.pendingConfirmation : previous?.pendingConfirmation ?? false,
         updatedAt: new Date().toISOString(),
     };
 

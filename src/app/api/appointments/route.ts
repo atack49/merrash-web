@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { appointmentSchema } from '@/lib/validators';
+import { getSlotCapacity } from '@/lib/appointments/capacity';
 import { NextResponse, NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -8,6 +9,28 @@ export async function POST(request: NextRequest) {
 
         // Validate input
         const validatedData = appointmentSchema.parse(body);
+
+        if (validatedData.preferredDate && validatedData.preferredTime) {
+            const capacity = await getSlotCapacity({
+                preferredDate: validatedData.preferredDate,
+                preferredTime: validatedData.preferredTime,
+                service: validatedData.service,
+            });
+
+            if (capacity.totalFull) {
+                return NextResponse.json(
+                    { error: 'Ese horario ya alcanzó el límite total de 5 citas por hora.' },
+                    { status: 409 }
+                );
+            }
+
+            if (capacity.serviceFull) {
+                return NextResponse.json(
+                    { error: 'Ese horario ya alcanzó el límite de 2 citas para ese servicio por hora.' },
+                    { status: 409 }
+                );
+            }
+        }
 
         // Create appointment
         const appointment = await prisma.appointment.create({

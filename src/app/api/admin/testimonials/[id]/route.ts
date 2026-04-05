@@ -7,15 +7,26 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const adminCheck = await requireAdmin();
+        if (!adminCheck.isAuthorized) {
+            return adminCheck.response;
+        }
+
         const { id } = await params;
-        const testimonial = await prisma.testimonial.findUnique({
+        const testimonialModel = (prisma as any).testimonial;
+        const testimonial = await testimonialModel.findUnique({
             where: { id },
             select: {
                 id: true,
                 name: true,
+                email: true,
+                phone: true,
                 service: true,
                 text: true,
                 rating: true,
+                source: true,
+                approved: true,
+                approvedAt: true,
                 active: true,
                 order: true,
                 updatedAt: true,
@@ -50,8 +61,40 @@ export async function PATCH(
         }
 
         const { id } = await params;
-        const body = await request.json();
-        const { name, service, text, rating, order, active } = body;
+        const contentType = request.headers.get('content-type') || '';
+        let name: string | undefined;
+        let email: string | undefined;
+        let phone: string | undefined;
+        let service: string | undefined;
+        let text: string | undefined;
+        let rating: number | undefined;
+        let order: number | undefined;
+        let active: boolean | undefined;
+        let approved: boolean | undefined;
+
+        if (contentType.includes('multipart/form-data')) {
+            const form = await request.formData();
+            name = String(form.get('name') || '').trim() || undefined;
+            email = String(form.get('email') || '').trim() || undefined;
+            phone = String(form.get('phone') || '').trim() || undefined;
+            service = String(form.get('service') || '').trim() || undefined;
+            text = String(form.get('text') || '');
+            rating = Number(form.get('rating'));
+            order = Number(form.get('order'));
+            active = String(form.get('active')) === 'true';
+            approved = String(form.get('approved')) === 'true';
+        } else {
+            const body = await request.json();
+            name = body.name;
+            email = body.email;
+            phone = body.phone;
+            service = body.service;
+            text = body.text;
+            rating = body.rating;
+            order = body.order;
+            active = body.active;
+            approved = body.approved;
+        }
 
         if (rating && (rating < 1 || rating > 5)) {
             return NextResponse.json(
@@ -60,15 +103,23 @@ export async function PATCH(
             );
         }
 
-        const testimonial = await prisma.testimonial.update({
+        const testimonialModel = (prisma as any).testimonial;
+        const testimonial = await testimonialModel.update({
             where: { id },
             data: {
                 ...(name && { name }),
+                ...(email !== undefined && { email: email || null }),
+                ...(phone !== undefined && { phone: phone || null }),
                 ...(service && { service }),
-                ...(text && { text }),
-                ...(rating && { rating: parseInt(rating) }),
-                ...(order !== undefined && { order }),
+                ...(text !== undefined && { text }),
+                ...(rating !== undefined && Number.isFinite(rating) && { rating: Math.round(rating) }),
+                ...(order !== undefined && Number.isFinite(order) && { order }),
                 ...(active !== undefined && { active }),
+                ...(approved !== undefined && {
+                    approved,
+                    approvedAt: approved ? new Date() : null,
+                    active: approved ? (active ?? true) : false,
+                }),
             },
         });
 
@@ -100,7 +151,8 @@ export async function DELETE(
 
         const { id } = await params;
 
-        await prisma.testimonial.delete({
+        const testimonialModel = (prisma as any).testimonial;
+        await testimonialModel.delete({
             where: { id },
         });
 

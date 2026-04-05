@@ -7,12 +7,12 @@ const WEEKDAY_LABELS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'v
 
 const BASE_SCHEDULE: Record<number, DaySchedule | null> = {
     0: null,
-    1: { open: 10 * 60, close: 16 * 60 },
-    2: { open: 10 * 60, close: 16 * 60 },
-    3: { open: 10 * 60, close: 16 * 60 },
-    4: { open: 10 * 60, close: 16 * 60 },
-    5: { open: 10 * 60, close: 16 * 60 },
-    6: { open: 10 * 60, close: 16 * 60 },
+    1: { open: 8 * 60, close: 18 * 60 },
+    2: { open: 8 * 60, close: 18 * 60 },
+    3: { open: 8 * 60, close: 18 * 60 },
+    4: { open: 8 * 60, close: 18 * 60 },
+    5: { open: 8 * 60, close: 18 * 60 },
+    6: { open: 9 * 60, close: 16 * 60 },
 };
 
 const WEEKDAY_MAP: Record<string, number> = {
@@ -136,16 +136,20 @@ export const validateBusinessSlot = (preferredDate: string, preferredTime: strin
     if (!daySchedule) {
         const nextOpen = nextOpenDate(parsedDate);
         const nextLabel = WEEKDAY_LABELS[nextOpen.getDay()];
+        const nextOpenSchedule = BASE_SCHEDULE[nextOpen.getDay()];
+        const nextOpenTime = nextOpenSchedule ? formatTime(nextOpenSchedule.open) : '08:00';
         return {
             ok: false,
-            message: `Ese día estamos cerrados (domingo). Te puedo agendar para ${nextLabel} desde las 10:00.`,
+            message: `No puedo agendar en domingo porque está cerrado. Te puedo agendar para ${nextLabel} desde las ${nextOpenTime}.`,
         };
     }
 
-    if (parsedTime < daySchedule.open || parsedTime >= daySchedule.close) {
+    const lastBookableStart = daySchedule.close - 60;
+
+    if (parsedTime < daySchedule.open || parsedTime > lastBookableStart) {
         return {
             ok: false,
-            message: `Ese horario está fuera de atención para ese día. Horario disponible: ${formatTime(daySchedule.open)} a ${formatTime(daySchedule.close)}.`,
+            message: `No puedo agendar a las ${formatTime(parsedTime)} porque a esa hora ya no se agenda. Para ese día solo puedo agendar de ${formatTime(daySchedule.open)} a ${formatTime(lastBookableStart)} (cerramos a las ${formatTime(daySchedule.close)}).`,
         };
     }
 
@@ -169,7 +173,7 @@ export const validateBusinessDay = (preferredDate: string) => {
     if (!daySchedule) {
         return {
             ok: false,
-            message: 'Ese día estamos cerrados (domingo). Atendemos de lunes a sábado.',
+            message: 'Domingo está cerrado. Atendemos de lunes a sábado.',
         };
     }
 

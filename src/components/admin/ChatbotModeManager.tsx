@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 
-type ChatbotMode = 'auto' | 'local' | 'public' | 'team';
+type ChatbotMode = 'auto' | 'local' | 'public' | 'team' | 'groq';
 
 type MessageState = {
     type: 'success' | 'error';
@@ -93,7 +93,7 @@ export function ChatbotModeManager() {
             )}
 
             <div className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
                     <button
                         type="button"
                         onClick={() => setMode('auto')}
@@ -109,6 +109,14 @@ export function ChatbotModeManager() {
                         className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'local' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-slate-200'}`}
                     >
                         IA local
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setMode('groq')}
+                        disabled={isLoading || isSaving}
+                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${mode === 'groq' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-slate-200'}`}
+                    >
+                        Groq gratis
                     </button>
                     <button
                         type="button"
@@ -129,7 +137,7 @@ export function ChatbotModeManager() {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                    Auto: intenta Team IA y si falla usa IA pública y luego local. Team IA: borrador → auditoría → respuesta final. IA pública gratis: una sola pasada. IA local: motor interno del proyecto.
+                    Auto: intenta Groq, luego Team IA, luego IA pública y al final local. Groq gratis: modelo más capaz para explicar servicios nuevos usando el contexto del sitio. Team IA: borrador → auditoría → respuesta final. IA pública gratis: una sola pasada. IA local: motor interno del proyecto.
                 </p>
 
                 <div className="pt-2">

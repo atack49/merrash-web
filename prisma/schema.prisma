@@ -85,6 +85,9 @@ model Appointment {
   @@index([surveyId])
   @@index([email])
   @@index([status])
+  @@index([preferredDate, service, status])
+  @@index([preferredDate, preferredTime, service, status])
+  @@index([email, preferredDate, preferredTime, service])
 }
 
 model Service {
@@ -107,15 +110,22 @@ model Service {
 model Testimonial {
   id        String   @id @default(cuid())
   name      String
+  email     String?
+  phone     String?
   service   String
   text      String
   rating    Int      // 1-5 stars
+  source    String   @default("admin") // 'admin' | 'client'
+  approved  Boolean  @default(true)
+  approvedAt DateTime?
   active    Boolean  @default(true)
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([active])
+  @@index([approved])
+  @@index([source])
   @@index([order])
 }
 model ContactInfo {
@@ -126,4 +136,73 @@ model ContactInfo {
   hours     String   // JSON object with schedule info
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Section {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses     Course[]
+
+  @@index([active])
+  @@index([order])
+}
+
+enum CourseContentType {
+  TASK
+  MATERIAL
+  PDF
+  TOOL
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  sectionId   String
+  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contents    CourseContent[]
+  assignments CourseAssignment[]
+
+  @@index([sectionId])
+  @@index([active])
+  @@index([order])
+}
+
+model CourseContent {
+  id          String            @id @default(cuid())
+  courseId    String
+  course      Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  resourceUrl String?
+  type        CourseContentType @default(TASK)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([courseId])
+  @@index([type])
+}
+
+model CourseAssignment {
+  id           String   @id @default(cuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentName  String
+  studentEmail String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([courseId])
+  @@index([studentEmail])
 }

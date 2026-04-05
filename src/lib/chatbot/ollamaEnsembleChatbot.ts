@@ -27,8 +27,8 @@ const buildContextPrompt = (input: OllamaChatbotInput) => {
         })
         .join('\n');
 
-    const weekdays = input.contactHoursWeekdays || '10:00 AM - 4:00 PM';
-    const saturday = input.contactHoursSaturday || '10:00 AM - 4:00 PM';
+    const weekdays = input.contactHoursWeekdays || '8:00 AM - 6:00 PM';
+    const saturday = input.contactHoursSaturday || '9:00 AM - 4:00 PM';
     const address = input.contactAddress || 'Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.';
 
     const historyText = (input.history || [])

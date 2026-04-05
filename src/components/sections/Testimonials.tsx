@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Star, ChevronLeft, ChevronRight, User } from "lucide-react";
 
 interface Testimonial {
-  id: number;
+  id: string;
   name: string;
   service: string;
   text: string;
@@ -26,7 +26,7 @@ const normalizeTestimonials = (payload: unknown): Testimonial[] => {
     .map((item, index) => {
       const row = item as Record<string, unknown>;
       return {
-        id: Number(row.id) || index + 1,
+        id: String(row.id || `t-${index}`),
         name: String(row.name || 'Cliente'),
         service: String(row.service || 'Servicio'),
         text: String(row.text || ''),
@@ -179,9 +179,11 @@ export function Testimonials() {
             </div>
 
             {/* Text */}
-            <p className="text-xl md:text-2xl leading-relaxed italic text-foreground mb-10">
-              “{testimonial.text}”
-            </p>
+            {testimonial.text && (
+              <p className="text-xl md:text-2xl leading-relaxed italic text-foreground mb-10">
+                “{testimonial.text}”
+              </p>
+            )}
 
             {/* Author */}
             <div className="flex items-center gap-4 pt-6 border-t border-primary/20">
@@ -190,9 +192,7 @@ export function Testimonials() {
               </div>
               <div>
                 <p className="font-semibold text-lg">{testimonial.name}</p>
-                <p className="text-sm text-primary font-medium">
-                  {testimonial.service}
-                </p>
+                <p className="text-sm text-primary font-medium">{testimonial.service}</p>
               </div>
             </div>
 

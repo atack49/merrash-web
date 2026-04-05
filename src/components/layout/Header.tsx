@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Phone, CalendarDays, HeartPulse, PhoneCall, Star, ClipboardList, ShieldCheck } from "lucide-react";
+import { Menu, X, Phone, CalendarDays, HeartPulse, PhoneCall, Star, ClipboardList, ShieldCheck, BookOpen } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -13,6 +13,7 @@ const NAVIGATION = [
   { name: "Inicio", href: "/#inicio" },
   { name: "Servicios", href: "/#servicios" },
   { name: "Nosotros", href: "/#nosotros" },
+  { name: "Cursos", href: "/cursos" },
   { name: "Contacto", href: "/#contacto" },
   { name: "Testimonios", href: "/testimonios" },
   { name: "Encuestas", href: "/encuestas" },
@@ -24,6 +25,7 @@ const ADMIN_TABS = [
   { name: "Contactanos", shortName: "Contacto", href: "contacto", icon: PhoneCall },
   { name: "Testimonios", shortName: "Testimonios", href: "testimonios", icon: Star },
   { name: "Encuestas", shortName: "Encuestas", href: "encuestas", icon: ClipboardList },
+  { name: "Cursos", shortName: "Cursos", href: "cursos", icon: BookOpen },
 ];
 
 interface HeaderProps {

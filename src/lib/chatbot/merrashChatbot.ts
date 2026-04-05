@@ -61,7 +61,7 @@ const SERVICES_BY_CATEGORY = {
     espiritu: ['Tarot Terapéutico', 'Arborología', 'Reiki'],
 };
 
-const SCHEDULE_HINT = 'Lunes a Sábado de 10:00 AM a 4:00 PM y Domingo cerrado.';
+const SCHEDULE_HINT = 'Lunes a Viernes de 8:00 AM a 6:00 PM, Sábado de 9:00 AM a 4:00 PM y Domingo cerrado. Para citas: hasta 1 hora antes del cierre.';
 
 const MERRASH_TOPIC_KEYWORDS = [
     'merrash',
@@ -284,9 +284,14 @@ const buildTalkResponse = (message: string, history: ChatHistoryItem[] = [], opt
         return [
             `En ${BUSINESS_NAME} trabajamos por áreas:`,
             '',
-            `🧍 Cuerpo: ${groupedServices.cuerpo.join(', ')}.`,
-            `🧠 Mente: ${groupedServices.mente.join(', ')}.`,
-            `✨ Espíritu: ${groupedServices.espiritu.join(', ')}.`,
+            '🧍 Cuerpo:',
+            ...groupedServices.cuerpo.map((s) => `- ${s}`),
+            '',
+            '🧠 Mente:',
+            ...groupedServices.mente.map((s) => `- ${s}`),
+            '',
+            '✨ Espíritu:',
+            ...groupedServices.espiritu.map((s) => `- ${s}`),
             '',
             'Si me dices tu objetivo (por ejemplo estrés, dolor o energía), te recomiendo el más adecuado 🙌',
         ].join('\n');
@@ -297,7 +302,16 @@ const buildTalkResponse = (message: string, history: ChatHistoryItem[] = [], opt
     }
 
     if (/(horario|abren|atienden|hora)/.test(text)) {
-        return `Nuestro horario es: ${SCHEDULE_HINT}\n\nSi quieres, también te ayudo a agendar aquí mismo.`;
+        return [
+            'Nuestros horarios son:',
+            '',
+            '- Lunes a Viernes: 8:00 AM - 6:00 PM',
+            '- Sábado: 9:00 AM - 4:00 PM',
+            '- Domingo: Cerrado',
+            '',
+            'Para agendar, solo puedo reservar hasta 1 hora antes del cierre (L-V hasta 5:00 PM, sábado hasta 3:00 PM).',
+            'Si quieres, también te ayudo a agendar aquí mismo.',
+        ].join('\n');
     }
 
     if (/(ubicacion|direccion|donde estan|donde se ubican)/.test(text)) {
@@ -319,11 +333,11 @@ const buildScheduleResponse = (message: string) => {
     const text = normalize(message);
 
     if (/domingo/.test(text)) {
-        return 'El domingo estamos cerrados 🙏 Te puedo agendar de lunes a sábado entre 10:00 y 16:00. Dime qué día y hora te acomoda.';
+        return 'El domingo estamos cerrados 🙏 Te puedo agendar de lunes a viernes entre 08:00 y 17:00, o sábado entre 09:00 y 15:00.';
     }
 
-    if (/(20|21|22|23|24):\d{2}/.test(text) || /(8|9)\s*(am)/.test(text) || /(7|8|9|10|11)\s*(pm)/.test(text)) {
-        return 'Ese horario está fuera de atención. Horarios disponibles: lunes a sábado 10:00-16:00, domingo cerrado.';
+    if (/\b(18|19|20|21|22|23|24):\d{2}\b/.test(text) || /\b(6|7|8|9|10|11)\s*(pm)\b/.test(text)) {
+        return 'Ese horario está fuera de agenda. Te puedo agendar de lunes a viernes 08:00-17:00 y sábado 09:00-15:00 (domingo cerrado).';
     }
 
     if (/(hoy|manana|mañana|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado)/.test(text)) {

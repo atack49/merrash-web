@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth-utils';
 import { NextResponse, NextRequest } from 'next/server';
+import { deleteCloudinaryAssetByUrl } from '@/lib/images/cloudinaryAdmin';
 
 export async function GET(
     request: NextRequest,
@@ -53,6 +54,18 @@ export async function PATCH(
         const body = await request.json();
         const { title, description, icon, category, order, active } = body;
 
+        const previousService = await prisma.service.findUnique({
+            where: { id },
+            select: { icon: true },
+        });
+
+        if (!previousService) {
+            return NextResponse.json(
+                { error: 'Service not found' },
+                { status: 404 }
+            );
+        }
+
         const normalizedIcon =
             icon === undefined
                 ? undefined
@@ -93,6 +106,21 @@ export async function PATCH(
             },
         });
 
+        const previousIcon = previousService.icon;
+        const nextIcon = service.icon;
+        const shouldDeletePreviousIcon =
+            Boolean(previousIcon) &&
+            normalizedIcon !== undefined &&
+            previousIcon !== nextIcon;
+
+        if (shouldDeletePreviousIcon) {
+            try {
+                await deleteCloudinaryAssetByUrl(previousIcon);
+            } catch (cleanupError) {
+                console.error('Error deleting old Cloudinary image:', cleanupError);
+            }
+        }
+
         return NextResponse.json(service);
     } catch (error: any) {
         console.error('Error updating service:', error);
@@ -121,9 +149,29 @@ export async function DELETE(
 
         const { id } = await params;
 
+        const service = await prisma.service.findUnique({
+            where: { id },
+            select: { icon: true },
+        });
+
+        if (!service) {
+            return NextResponse.json(
+                { error: 'Service not found' },
+                { status: 404 }
+            );
+        }
+
         await prisma.service.delete({
             where: { id },
         });
+
+        if (service.icon) {
+            try {
+                await deleteCloudinaryAssetByUrl(service.icon);
+            } catch (cleanupError) {
+                console.error('Error deleting Cloudinary image after service delete:', cleanupError);
+            }
+        }
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

@@ -43,6 +43,10 @@ export type CreateSurveyInput = z.infer<typeof createSurveySchema>;
 // Admin Appointment Update
 export const updateAppointmentSchema = z.object({
     status: z.enum(['pending', 'confirmed', 'cancelled']).optional(),
+    customerName: z.string().optional(),
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+    service: z.string().optional(),
     preferredDate: z.string().optional(),
     preferredTime: z.string().optional(),
     notes: z.string().optional(),

@@ -1,52 +1,219 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Merrash Web - Sistema de Citas y Cursos
 
-## Getting Started
+Una aplicación web completa para gestión de citas médicas, cursos y administración, construida con Next.js 16, TypeScript, Prisma y PostgreSQL.
 
-First, run the development server:
+## 🚀 Características
+
+### 📅 Sistema de Citas
+- **Capacidad por hora**: Máximo 5 citas totales por hora, 2 por servicio
+- **Horarios de negocio**: Lunes-Viernes 8AM-6PM, Sábados 9AM-4PM, Domingos cerrado
+- **Chatbot inteligente**: Reserva automática con validación de reglas
+- **Calendario administrativo**: Vista completa con gestión de citas
+- **Sincronización opcional**: Integración con Google Calendar
+
+### 🎓 Sistema de Cursos
+- **Gestión de cursos**: Crear, activar/desactivar y eliminar cursos
+- **Asignación de estudiantes**: Matricular estudiantes con validación de email
+- **Panel administrativo**: Interfaz intuitiva para gestión completa
+- **Validaciones robustas**: Email, campos obligatorios, confirmaciones
+
+### 🤖 Chatbot IA
+- **Modo híbrido**: IA local + OpenAI opcional
+- **Reserva automática**: Procesa solicitudes naturales de citas
+- **Validación inteligente**: Respeta reglas de capacidad y horarios
+- **WhatsApp opcional**: Integración con mensajería
+
+### 👨‍💼 Panel Administrativo
+- **Dashboard completo**: Citas, cursos, servicios, encuestas, testimonios
+- **Gestión de servicios**: CRUD completo de servicios médicos
+- **Análisis de encuestas**: Métricas y resultados detallados
+- **Testimonios**: Moderación y publicación
+- **Configuración**: Google Calendar, chatbot settings
+
+## 🛠️ Tecnologías
+
+- **Frontend**: Next.js 16, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Base de datos**: PostgreSQL
+- **Autenticación**: NextAuth.js
+- **UI**: Radix UI, Lucide Icons
+- **IA**: OpenAI API (opcional) + reglas locales
+
+## 📋 Requisitos
+
+- Node.js 18+
+- PostgreSQL
+- npm/yarn/pnpm
+
+## 🚀 Instalación
+
+1. **Clona el repositorio**
+   ```bash
+   git clone <repository-url>
+   cd merrash-web
+   ```
+
+2. **Instala dependencias**
+   ```bash
+   npm install
+   ```
+
+3. **Configura la base de datos**
+   ```bash
+   # Crea una base de datos PostgreSQL
+   createdb merrash_db
+   ```
+
+4. **Configura variables de entorno**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Edita `.env.local`:
+   ```env
+   DATABASE_URL="postgresql://user:password@localhost:5432/merrash_db"
+   NEXTAUTH_SECRET="tu-secret-aqui"
+   NEXTAUTH_URL="http://localhost:3000"
+
+   # Opcional - OpenAI
+   OPENAI_API_KEY=tu_api_key
+   OPENAI_MODEL=gpt-4o-mini
+
+   # Opcional - WhatsApp
+   WHATSAPP_CHATBOT_NUMBER=521234567890
+   ```
+
+5. **Ejecuta migraciones**
+   ```bash
+   npx prisma migrate dev
+   npx prisma db seed
+   ```
+
+6. **Inicia el servidor**
+   ```bash
+   npm run dev
+   ```
+
+   Abre [http://localhost:3000](http://localhost:3000)
+
+## 📊 Estructura del Proyecto
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── admin/             # Panel administrativo
+│   ├── api/               # API Routes
+│   │   ├── admin/         # APIs administrativas
+│   │   │   ├── courses/   # Gestión de cursos
+│   │   │   ├── appointments/ # Gestión de citas
+│   │   │   └── ...
+│   │   └── chatbot/       # API del chatbot
+│   ├── login/             # Página de login
+│   └── ...
+├── components/            # Componentes React
+│   ├── admin/            # Componentes admin
+│   ├── layout/           # Layout components
+│   └── sections/         # Secciones de página
+├── lib/                  # Utilidades
+│   ├── appointments/     # Lógica de citas
+│   ├── chatbot/         # Lógica del chatbot
+│   ├── calendarSettings.ts # Config Google Calendar
+│   └── ...
+└── ...
+```
+
+## 🎯 Uso
+
+### Para Administradores
+1. Ve a `/admin` e inicia sesión
+2. Gestiona citas en el calendario
+3. Administra cursos y estudiantes
+4. Configura servicios y chatbot
+
+### Para Pacientes
+1. Usa el chatbot para reservar citas
+2. Completa encuestas de satisfacción
+3. Deja testimonios
+
+## 🔧 Configuración Avanzada
+
+### Reglas de Capacidad de Citas
+```typescript
+// En src/lib/appointments/capacityRules.ts
+export const MAX_APPOINTMENTS_PER_HOUR_TOTAL = 5;
+export const MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE = 2;
+```
+
+### Horarios de Negocio
+```typescript
+// En src/lib/appointments/reschedule.ts
+const BUSINESS_SCHEDULE = {
+  0: null, // Domingo
+  1: { open: 8 * 60, close: 18 * 60 }, // Lunes
+  // ...
+  6: { open: 9 * 60, close: 16 * 60 }, // Sábado
+};
+```
+
+### Google Calendar (Opcional)
+1. Crea credenciales en Google Cloud Console
+2. Configura OAuth 2.0
+3. Agrega URLs en el panel admin
+4. Las citas se sincronizan automáticamente
+
+## 🧪 Testing
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Ejecutar tests
+npm test
+
+# Build de producción
+npm run build
+
+# Verificar linting
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📚 API Reference
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Cursos
+- `GET /api/admin/courses` - Listar cursos
+- `POST /api/admin/courses` - Crear curso
+- `PATCH /api/admin/courses/[id]` - Actualizar curso
+- `DELETE /api/admin/courses/[id]` - Eliminar curso
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Asignaciones
+- `GET /api/admin/course-assignments` - Listar asignaciones
+- `POST /api/admin/course-assignments` - Crear asignación
+- `DELETE /api/admin/course-assignments/[id]` - Eliminar asignación
 
-## Learn More
+### Citas
+- `GET /api/admin/appointments` - Listar citas
+- `POST /api/admin/appointments` - Crear cita
+- `PATCH /api/admin/appointments/[id]` - Actualizar cita
+- `DELETE /api/admin/appointments/[id]` - Eliminar cita
 
-To learn more about Next.js, take a look at the following resources:
+## 🤝 Contribución
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📝 Licencia
 
-## Deploy on Vercel
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📞 Soporte
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Para soporte técnico o preguntas:
+- Email: soporte@merrash.com
+- WhatsApp: Configurable en admin panel
 
-## Chatbot IA (OpenAI opcional)
+---
 
-El chatbot funciona siempre con IA local (reglas internas). Si configuras OpenAI, usará OpenAI automáticamente y si falla volverá al modo local.
-
-Variables opcionales en `.env.local`:
-
-```env
-OPENAI_API_KEY=tu_api_key
-OPENAI_MODEL=gpt-4o-mini
-CHATBOT_MODE=auto
-WHATSAPP_CHATBOT_NUMBER=521234567890
-```
+Desarrollado con ❤️ para la comunidad médica
 
 Sin `OPENAI_API_KEY`, el chatbot sigue funcionando con la IA local actual.
 
@@ -67,6 +234,10 @@ Agrega en `.env.local`:
 ```env
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=tu_cloud_name
 NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=tu_unsigned_upload_preset
+# Opcional recomendado para borrar tambien en Cloudinary desde el backend
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
 ```
 
 Comportamiento actual:
@@ -74,5 +245,6 @@ Comportamiento actual:
 - PNG/JPG/WebP se optimizan en el navegador antes de subir (resize + compresion).
 - SVG se sube sin rasterizar.
 - En DB solo se guarda URL (se bloquea base64 en APIs de admin).
+- Si configuras `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`, al borrar/reemplazar imagen en servicios tambien se elimina el asset en Cloudinary.
 
 Nota: Cloudinary plan gratuito tiene limite mensual. Revisa tu panel para ver creditos, almacenamiento y ancho de banda disponibles.

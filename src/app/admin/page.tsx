@@ -19,7 +19,7 @@ export default async function AdminPage() {
     // Fetch surveys, services, testimonials, and contact info
     let surveys: { id: string; title: string; type: string; active: boolean; createdAt: Date; _count: { questions: number; responses: number; appointments: number; }; }[] = [];
     let services: { id: string; title: string; description: string; icon: string | null; category: string; active: boolean; order: number; }[] = [];
-    let testimonials: { id: string; name: string; service: string; text: string; rating: number; active: boolean; order: number; }[] = [];
+    let testimonials: any[] = [];
     let contactInfo: { id: string; address: string; phones: string[]; email: string; hours: { weekdays: string; saturday: string; }; } | null = null;
 
     try {
@@ -54,18 +54,48 @@ export default async function AdminPage() {
             orderBy: { order: 'asc' },
         });
 
-        testimonials = await prisma.testimonial.findMany({
-            select: {
-                id: true,
-                name: true,
-                service: true,
-                text: true,
-                rating: true,
-                active: true,
-                order: true,
-            },
-            orderBy: { order: 'asc' },
-        });
+        const testimonialModel = (prisma as any).testimonial;
+        try {
+            testimonials = await testimonialModel.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                    service: true,
+                    text: true,
+                    rating: true,
+                    source: true,
+                    approved: true,
+                    approvedAt: true,
+                    active: true,
+                    order: true,
+                },
+                orderBy: [{ approved: 'asc' }, { active: 'asc' }, { createdAt: 'desc' }],
+            });
+        } catch {
+            const legacy = await testimonialModel.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    service: true,
+                    text: true,
+                    rating: true,
+                    active: true,
+                    order: true,
+                },
+                orderBy: { order: 'asc' },
+            });
+
+            testimonials = legacy.map((item: any) => ({
+                ...item,
+                email: null,
+                phone: null,
+                source: 'admin',
+                approved: true,
+                approvedAt: null,
+            }));
+        }
 
         const dbContact = await prisma.contactInfo.findUnique({
             where: { id: 'default' },
@@ -85,7 +115,7 @@ export default async function AdminPage() {
                 address: 'Av. Estado de México 433, Santiaguito, 52140 Metepec, Méx.',
                 phones: ['222 238 6181', '722 495 8550', '729 165 4769'],
                 email: 'dramalumolina@gmail.com',
-                hours: { weekdays: '10:00 AM - 4:00 PM', saturday: '10:00 AM - 4:00 PM' },
+                hours: { weekdays: '8:00 AM - 6:00 PM', saturday: '9:00 AM - 4:00 PM' },
             };
         }
     } catch (error) {

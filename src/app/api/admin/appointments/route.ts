@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { parsePreferredDate, parsePreferredTime } from '@/lib/chatbot/businessSchedule';
 import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
 import { sendAppointmentToGoogleCalendar } from '@/lib/calendarWebhook';
+import { getSlotCapacity } from '@/lib/appointments/capacity';
 
 export async function GET() {
     try {
@@ -17,6 +18,7 @@ export async function GET() {
             appointments = await prisma.appointment.findMany({
                 select: {
                     id: true,
+                    customerName: true,
                     source: true,
                     email: true,
                     phone: true,
@@ -42,6 +44,7 @@ export async function GET() {
             appointments = await prisma.appointment.findMany({
                 select: {
                     id: true,
+                    customerName: true,
                     email: true,
                     phone: true,
                     preferredDate: true,
@@ -113,17 +116,18 @@ export async function POST(request: Request) {
         const normalizedDate = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
         const normalizedTime = `${String(Math.floor(parsedTime / 60)).padStart(2, '0')}:${String(parsedTime % 60).padStart(2, '0')}`;
 
-        const conflict = await prisma.appointment.findFirst({
-            where: {
-                preferredDate: normalizedDate,
-                preferredTime: normalizedTime,
-                status: { in: ['pending', 'confirmed'] },
-            },
-            select: { id: true },
+        const capacity = await getSlotCapacity({
+            preferredDate: normalizedDate,
+            preferredTime: normalizedTime,
+            service,
         });
 
-        if (conflict) {
-            return NextResponse.json({ error: 'Ya existe una cita en ese horario.' }, { status: 409 });
+        if (capacity.totalFull) {
+            return NextResponse.json({ error: 'Ese horario ya alcanzó el límite total de 5 citas por hora.' }, { status: 409 });
+        }
+
+        if (capacity.serviceFull) {
+            return NextResponse.json({ error: `Ese horario ya alcanzó el límite de 2 citas para ${service} por hora.` }, { status: 409 });
         }
 
         const notesParts = [
@@ -136,6 +140,7 @@ export async function POST(request: Request) {
         try {
             created = await prisma.appointment.create({
                 data: {
+                    customerName: customerName || undefined,
                     source: 'global',
                     email,
                     phone: phone || undefined,
@@ -147,6 +152,7 @@ export async function POST(request: Request) {
                 },
                 select: {
                     id: true,
+                    customerName: true,
                     source: true,
                     email: true,
                     phone: true,
@@ -162,6 +168,7 @@ export async function POST(request: Request) {
         } catch {
             created = await prisma.appointment.create({
                 data: {
+                    customerName: customerName || undefined,
                     email,
                     phone: phone || undefined,
                     preferredDate: normalizedDate,
@@ -172,6 +179,7 @@ export async function POST(request: Request) {
                 },
                 select: {
                     id: true,
+                    customerName: true,
                     email: true,
                     phone: true,
                     preferredDate: true,
@@ -215,6 +223,7 @@ export async function POST(request: Request) {
                                 where: { id: created.id },
                                 select: {
                                     id: true,
+                                    customerName: true,
                                     source: true,
                                     email: true,
                                     phone: true,

@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { auth } from '@/auth';
 
 export async function GET(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -17,7 +17,7 @@ export async function GET(
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        const surveyId = (await params).id;
+        const { id: surveyId } = await params;
 
         const survey = await prisma.survey.findUnique({
             where: { id: surveyId },

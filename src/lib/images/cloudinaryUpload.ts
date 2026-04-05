@@ -62,6 +62,10 @@ const buildOptimizedCloudinaryUrl = (secureUrl: string) => {
     return secureUrl.replace('/upload/', '/upload/f_auto,q_auto,w_1600/');
 };
 
+const buildCloudinaryUrl = (secureUrl: string, file: File) => {
+    return file.type.startsWith('image/') ? buildOptimizedCloudinaryUrl(secureUrl) : secureUrl;
+};
+
 export async function uploadServiceImageToCloudinary(file: File): Promise<string> {
     ensureCloudinaryConfig();
 
@@ -83,4 +87,29 @@ export async function uploadServiceImageToCloudinary(file: File): Promise<string
     }
 
     return buildOptimizedCloudinaryUrl(String(payload.secure_url));
+}
+
+export async function uploadFileToCloudinary(file: File, folder = 'merrash/course-materials'): Promise<string> {
+    ensureCloudinaryConfig();
+
+    const preparedFile = file.type.startsWith('image/') && !isSvgFile(file)
+        ? await prepareRasterFile(file)
+        : file;
+
+    const formData = new FormData();
+    formData.append('file', preparedFile);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET as string);
+    formData.append('folder', folder);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+        method: 'POST',
+        body: formData,
+    });
+
+    const payload = await response.json();
+    if (!response.ok || !payload?.secure_url) {
+        throw new Error(payload?.error?.message || 'No se pudo subir el archivo a Cloudinary.');
+    }
+
+    return buildCloudinaryUrl(String(payload.secure_url), preparedFile);
 }

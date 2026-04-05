@@ -99,7 +99,11 @@ const cleanNameCandidate = (candidate: string, services: string[]) => {
         .filter((word) => word.length >= 4);
 
     const withoutServiceWords = filtered.filter((token) => !serviceWords.includes(normalize(token)));
-    const picked = (withoutServiceWords.length > 0 ? withoutServiceWords : filtered).slice(0, 2);
+    if (withoutServiceWords.length === 0 && filtered.length > 0) {
+        return undefined;
+    }
+
+    const picked = withoutServiceWords.slice(0, 2);
 
     if (picked.length === 0) return undefined;
 
@@ -147,6 +151,14 @@ const extractName = (text: string, services: string[]) => {
         return cleanNameCandidate(cleaned, services);
     }
 
+    // Handle mixed payloads like "axel axel@gmailcom" where email is malformed but name is usable.
+    if (text.includes('@')) {
+        const firstToken = text.trim().split(/\s+/)[0] || '';
+        if (/^[a-záéíóúñ]{2,30}$/i.test(firstToken)) {
+            return cleanNameCandidate(firstToken, services);
+        }
+    }
+
     return undefined;
 };
 
@@ -156,6 +168,18 @@ const extractEmail = (text: string) => {
 };
 
 const normalizePhoneCandidate = (candidate: string) => {
+    const compact = candidate.replace(/\s+/g, ' ').trim();
+
+    // Prevent accidental phone capture from date-like values.
+    if (/^\d{4}[/-]\d{1,2}[/-]\d{1,2}$/.test(compact) || /^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}$/.test(compact)) {
+        return undefined;
+    }
+
+    // Date + time strings can produce 10-12 digits and be misdetected as phone.
+    if (/\d{1,2}:\d{2}/.test(compact)) {
+        return undefined;
+    }
+
     const cleaned = candidate.replace(/[^\d+]/g, '');
     const normalized = cleaned.startsWith('+')
         ? `+${cleaned.slice(1).replace(/\D/g, '')}`
@@ -179,13 +203,9 @@ const extractPhone = (text: string) => {
     const candidates = text.match(/\+?\d[\d\s\-().]{8,}\d/g) || [];
     for (const candidate of candidates) {
         if (candidate.includes('/')) continue;
+        if (/\d{4}-\d{1,2}-\d{1,2}/.test(candidate)) continue;
         const normalized = normalizePhoneCandidate(candidate);
         if (normalized) return normalized;
-    }
-
-    const onlyDigits = text.replace(/\D/g, '');
-    if (onlyDigits.length >= 10 && onlyDigits.length <= 15) {
-        return onlyDigits;
     }
 
     return undefined;
@@ -224,6 +244,12 @@ const extractTime = (text: string) => {
 
     const natural = text.match(/\b(?:a las|como a las|sobre las)?\s*(1[0-2]|0?[1-9])\s*(?:de la)?\s*(mañana|manana|tarde|noche)\b/i);
     if (natural) return `${natural[1]} ${/mañana|manana/i.test(natural[2]) ? 'AM' : 'PM'}`;
+
+    const atHour = text.match(/\ba las\s*(1[0-2]|0?[1-9]|1\d|2[0-3])\b/i);
+    if (atHour) {
+        const hour = Number(atHour[1]);
+        return `${String(hour).padStart(2, '0')}:00`;
+    }
 
     const hourOnly = text.match(/\b(?:a las\s*)?([01]?\d|2[0-3])\s*(?:hrs?|horas?)\b/i);
     if (hourOnly) return `${hourOnly[1].padStart(2, '0')}:00`;

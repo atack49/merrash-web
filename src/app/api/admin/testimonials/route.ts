@@ -7,19 +7,57 @@ export const revalidate = 0;
 
 export async function GET() {
     try {
-        const testimonials = await prisma.testimonial.findMany({
-            where: { active: true },
-            select: {
-                id: true,
-                name: true,
-                service: true,
-                text: true,
-                rating: true,
-                active: true,
-                order: true,
-            },
-            orderBy: { order: 'asc' },
-        });
+        const adminCheck = await requireAdmin();
+        if (!adminCheck.isAuthorized) {
+            return adminCheck.response;
+        }
+
+        const testimonialModel = (prisma as any).testimonial;
+        let testimonials: any[] = [];
+
+        try {
+            testimonials = await testimonialModel.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                    service: true,
+                    text: true,
+                    rating: true,
+                    source: true,
+                    approved: true,
+                    approvedAt: true,
+                    active: true,
+                    order: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                orderBy: [{ approved: 'asc' }, { active: 'asc' }, { createdAt: 'desc' }],
+            });
+        } catch {
+            const legacy = await testimonialModel.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    service: true,
+                    text: true,
+                    rating: true,
+                    active: true,
+                    order: true,
+                },
+                orderBy: { order: 'asc' },
+            });
+
+            testimonials = legacy.map((item: any) => ({
+                ...item,
+                email: null,
+                phone: null,
+                source: 'admin',
+                approved: true,
+                approvedAt: null,
+            }));
+        }
         
         const response = NextResponse.json(testimonials);
         response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -42,12 +80,45 @@ export async function POST(request: NextRequest) {
             return adminCheck.response;
         }
 
-        const body = await request.json();
-        const { name, service, text, rating, order } = body;
+        const contentType = request.headers.get('content-type') || '';
+        let name = '';
+        let service = '';
+        let text = '';
+        let rating = 5;
+        let order = 0;
+        let active: boolean | undefined = true;
+        let approved: boolean | undefined = true;
 
-        if (!name || !service || !text || !rating) {
+        if (contentType.includes('multipart/form-data')) {
+            const form = await request.formData();
+            name = String(form.get('name') || '').trim();
+            service = String(form.get('service') || '').trim();
+            text = String(form.get('text') || '').trim();
+            rating = Number(form.get('rating') || 5);
+            order = Number(form.get('order') || 0);
+            active = String(form.get('active') || 'true') === 'true';
+            approved = String(form.get('approved') || 'true') === 'true';
+        } else {
+            const body = await request.json();
+            name = String(body.name || '').trim();
+            service = String(body.service || '').trim();
+            text = String(body.text || '').trim();
+            rating = Number(body.rating || 5);
+            order = Number(body.order || 0);
+            active = body.active ?? true;
+            approved = body.approved ?? true;
+        }
+
+        if (!name || !service) {
             return NextResponse.json(
-                { error: 'name, service, text, and rating are required' },
+                { error: 'name and service are required' },
+                { status: 400 }
+            );
+        }
+
+        if (!text) {
+            return NextResponse.json(
+                { error: 'Provide testimonial text' },
                 { status: 400 }
             );
         }
@@ -59,14 +130,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const testimonial = await prisma.testimonial.create({
+        const safeRating = Number.isFinite(rating) ? Math.round(rating) : 5;
+
+        const testimonialModel = (prisma as any).testimonial;
+        const testimonial = await testimonialModel.create({
             data: {
                 name,
                 service,
                 text,
-                rating: parseInt(rating),
+                rating: safeRating,
                 order: order || 0,
-                active: true,
+                source: 'admin',
+                approved: approved ?? true,
+                approvedAt: approved === false ? null : new Date(),
+                active: active ?? true,
             },
         });
 

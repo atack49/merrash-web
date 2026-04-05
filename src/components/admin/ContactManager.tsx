@@ -366,7 +366,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                                 },
                                             })
                                         }
-                                        placeholder="10:00 AM - 4:00 PM"
+                                        placeholder="8:00 AM - 6:00 PM"
                                         className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
@@ -384,7 +384,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                                                 },
                                             })
                                         }
-                                        placeholder="10:00 AM - 4:00 PM"
+                                        placeholder="9:00 AM - 4:00 PM"
                                         className="w-full px-4 py-3 bg-card border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                                     />
                                 </div>
