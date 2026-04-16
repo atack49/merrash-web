@@ -21,16 +21,26 @@ export function About() {
 
                         <div className="bg-card p-6 rounded-xl shadow-sm border border-border/50">
                             <p className="italic text-foreground/80 mb-4">"{ABOUT_TEXT.mission}"</p>
-                            <div className="space-y-2">
-                                <p className="font-semibold text-primary">{ABOUT_TEXT.doctor}</p>
-                                <ul className="space-y-1 text-sm text-muted-foreground">
-                                    {ABOUT_TEXT.credentials.map((cred, i) => (
-                                        <li key={i} className="flex items-center gap-2">
-                                            <Check className="w-4 h-4 text-accent" />
-                                            {cred}
-                                        </li>
-                                    ))}
-                                </ul>
+                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                <div className="relative w-28 h-32 shrink-0 overflow-hidden rounded-tl-2xl rounded-br-2xl rounded-tr-[3rem] rounded-bl-[3rem] border-2 border-primary/20 shadow-md group bg-muted/30">
+                                    <Image
+                                        src="/drl.png"
+                                        alt="Dra. María de Lourdes Molina Olivares"
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="font-semibold text-primary">{ABOUT_TEXT.doctor}</p>
+                                    <ul className="space-y-1 text-sm text-muted-foreground">
+                                        {ABOUT_TEXT.credentials.map((cred, i) => (
+                                            <li key={i} className="flex items-center gap-2">
+                                                <Check className="w-4 h-4 text-accent shrink-0" />
+                                                <span className="leading-tight">{cred}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
