@@ -234,7 +234,7 @@ export function Services() {
                                     }
                                 }}
                                 className={cn(
-                                    "group relative min-h-[220px] md:min-h-[260px] overflow-hidden rounded-3xl border border-slate-200/60 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50",
+                                    "group relative min-h-[220px] md:min-h-[260px] overflow-hidden rounded-3xl border border-border/50 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50",
                                     !isDesktop && isClosing
                                         ? "animate-[fadeDown_0.35s_ease-in_forwards]"
                                         : "animate-[fadeUp_0.45s_ease-out_forwards]"
@@ -260,20 +260,20 @@ export function Services() {
                                             className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
                                             style={{ backgroundImage: `url(${service.icon})` }}
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/80 to-transparent" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/80 to-transparent" />
                                     </>
                                 )}
 
                                 <div className="absolute inset-0 service-card-highlight" />
 
-                                <div className="relative z-10 flex h-full flex-col justify-start p-4 md:p-5">
+                                <div className="relative z-10 flex h-full flex-col justify-between p-4 md:p-5">
                                     <div
-                                        className="h-10 w-10 text-primary rounded-full bg-card/70 shadow-sm backdrop-blur-md flex items-center justify-center mb-4 md:mb-5 border border-border/50"
+                                        className="h-10 w-10 text-primary rounded-full bg-card/70 shadow-sm backdrop-blur-md flex items-center justify-center border border-border/50"
                                     >
                                         <ServiceIcon className="w-5 h-5 text-primary" />
                                     </div>
 
-                                    <div className="mt-1 md:mt-2">
+                                    <div className="mt-auto">
                                         <h3
                                             className="text-base md:text-xl font-bold text-foreground leading-tight mb-2 line-clamp-2"
                                         >
@@ -281,10 +281,15 @@ export function Services() {
                                         </h3>
 
                                         <p
-                                            className="text-[11px] md:text-sm font-medium text-muted-foreground line-clamp-3 max-w-[90%] [word-break:break-word]"
+                                            className="text-[11px] md:text-sm font-medium text-muted-foreground line-clamp-3 max-w-[90%] [word-break:break-word] mb-3"
                                         >
                                             {service.description}
                                         </p>
+                                        <div className="flex flex-wrap gap-1">
+                                            <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-border shadow-sm font-medium transition-colors">
+                                                {service.category}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </article>

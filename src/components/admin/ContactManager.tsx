@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus, X, CheckCircle, AlertCircle, Save, Loader } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Modal } from '@/components/ui/Modal';
 
 interface ContactInfo {
     id: string;
@@ -125,10 +126,10 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
             {message && (
                 <div
                     className={cn(
-                        'flex items-center gap-3 p-4 rounded-xl backdrop-blur-sm border',
+                        'flex items-center gap-3 p-4 rounded-xl backdrop-blur-sm border shadow-sm font-medium',
                         message.type === 'success'
-                            ? 'bg-green-50/80 text-green-700 border-green-200'
-                            : 'bg-red-50/80 text-red-700 border-red-200'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                     )}
                 >
                     {message.type === 'success' ? (
@@ -140,21 +141,16 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                 </div>
             )}
 
-            {!isEditing && (
-                <div className="flex items-center justify-start">
-                    <button
-                        onClick={startEditing}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-full transition-all hover:bg-primary/90 hover:shadow-sm disabled:opacity-50"
-                        disabled={isLoading}
-                    >
-                        <Edit2 className="w-4 h-4" />
-                        Editar Informacion
-                    </button>
-                </div>
-            )}
-
-            {!isEditing ? (
-                // VIEW MODE - Professional Card Design
+            <div className="flex items-center justify-start">
+                <button
+                    onClick={startEditing}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-full transition-all hover:bg-primary/90 hover:shadow-sm disabled:opacity-50"
+                    disabled={isLoading}
+                >
+                    <Edit2 className="w-4 h-4" />
+                    Editar Informacion
+                </button>
+            </div>
                 <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-border/50 shadow-sm p-6 md:p-8 flex flex-col gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Address Card */}
@@ -241,15 +237,16 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
 
                     </div>
                 </div>
-            ) : (
-                // EDIT MODE - Professional Form Design
-                <div className="bg-gradient-to-br from-primary/5 to-white ring-2 ring-primary/30 rounded-2xl border border-primary/50 shadow-lg p-6 md:p-8 flex flex-col gap-6">
+
+            <Modal
+                isOpen={isEditing}
+                onClose={cancelEditing}
+                title="Editar Información de Contacto"
+                description="Actualiza los datos para que aparezcan en tu sitio web"
+                maxWidthClassName="max-w-4xl"
+            >
+                <div className="flex flex-col gap-6">
                     <div className="space-y-6">
-                        {/* Form Header */}
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-foreground">Editar Información de Contacto</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Actualiza los datos para que aparezcan en tu sitio web</p>
-                        </div>
 
                         {/* Address Field */}
                         <div className="bg-card rounded-2xl p-6 border border-border">
@@ -421,7 +418,7 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
                         </div>
                     </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

@@ -17,6 +17,7 @@ const NAVIGATION = [
   { name: "Contacto", href: "/#contacto" },
   { name: "Testimonios", href: "/testimonios" },
   { name: "Encuestas", href: "/encuestas" },
+  { name: "Admin", href: "/admin" },
 ];
 
 const ADMIN_TABS = [
@@ -64,19 +65,19 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/#inicio" className="flex items-center gap-3">
+        <Link href="/#inicio" className="flex items-center gap-2 lg:gap-3 shrink-0">
           <Image
             src={useWhiteStyle ? "/Logob.svg" : "/Logo.svg"}
             alt="Merrash"
             width={70}
             height={34}
             priority
-            className="transition-all duration-300"
+            className="transition-all duration-300 shrink-0"
           />
 
           <span
             className={cn(
-              "text-2xl font-cormorant font-semibold transition-colors duration-300",
+              "text-2xl font-cormorant font-semibold transition-colors duration-300 shrink-0",
               useWhiteStyle ? "text-white drop-shadow-sm" : "text-[#068E89]"
             )}
           >
@@ -84,9 +85,11 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
           </span>
 
           {isAdmin && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] font-semibold uppercase tracking-wide">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Panel de Administracion
+            <span className="hidden md:inline-flex shrink-0 items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[10px] lg:text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap">
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden 2xl:inline">Panel de Administración</span>
+              <span className="hidden xl:inline 2xl:hidden">Panel Admin</span>
+              <span className="inline xl:hidden">Admin</span>
             </span>
           )}
         </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,22 +22,35 @@ export function AnimatedThemeToggler() {
   const currentTheme = theme === "system" ? systemTheme : theme;
   const isDark = currentTheme === "dark";
 
+  const handleToggle = () => {
+    if (theme === 'system') {
+        setTheme(isDark ? 'light' : 'dark');
+    } else if (theme === 'dark') {
+        setTheme('light');
+    } else {
+        setTheme('system'); // Regresa al control del sistema operativo
+    }
+  };
+
   return (
     <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={handleToggle}
       className="relative flex items-center justify-center w-10 h-10 rounded-full bg-secondary/50 hover:bg-secondary text-secondary-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-hidden"
       aria-label="Alternar tema"
+      title={`Tema: ${theme === 'system' ? 'Automático (Sistema)' : theme === 'dark' ? 'Oscuro' : 'Claro'}`}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={isDark ? "dark" : "light"}
+          key={theme}
           initial={{ y: -20, opacity: 0, rotate: 90 }}
           animate={{ y: 0, opacity: 1, rotate: 0 }}
           exit={{ y: 20, opacity: 0, rotate: -90 }}
           transition={{ duration: 0.25, type: "spring", stiffness: 200, damping: 15 }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          {isDark ? (
+          {theme === "system" ? (
+            <Monitor className="w-5 h-5 text-primary" />
+          ) : isDark ? (
             <Moon className="w-5 h-5 text-primary" />
           ) : (
             <Sun className="w-5 h-5 text-primary" />

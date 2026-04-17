@@ -82,23 +82,23 @@ export function AdminPageClientWrapper({
 
             {isLogoutModalOpen && (
                 <div
-                    className="fixed inset-0 z-[80] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[80] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
                     onClick={() => setIsLogoutModalOpen(false)}
                 >
                     <div
-                        className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
+                        className="w-full max-w-sm rounded-2xl border border-border/70 bg-card p-5 shadow-2xl"
                         onClick={(event) => event.stopPropagation()}
                     >
-                        <h3 className="text-lg font-semibold text-foreground">Confirmar cierre de sesion</h3>
+                        <h3 className="text-lg font-semibold text-foreground">Confirmar cierre de sesión</h3>
                         <p className="mt-2 text-sm text-muted-foreground">
-                            Estas a punto de cerrar tu sesion del panel de administracion.
+                            Estás a punto de cerrar tu sesión del panel de administración.
                         </p>
 
                         <div className="mt-5 flex flex-col sm:flex-row gap-2">
                             <button
                                 type="button"
                                 onClick={() => setIsLogoutModalOpen(false)}
-                                className="flex-1 px-4 py-2.5 rounded-full bg-muted text-muted-foreground font-medium hover:bg-slate-200 transition-colors"
+                                className="flex-1 px-4 py-2.5 rounded-full bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition shadow-sm border border-secondary-foreground/10"
                             >
                                 Cancelar
                             </button>
@@ -106,9 +106,9 @@ export function AdminPageClientWrapper({
                             <form action={signOutAction} className="flex-1">
                                 <button
                                     type="submit"
-                                    className="w-full px-4 py-2.5 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 font-semibold transition-colors"
+                                    className="w-full px-4 py-2.5 rounded-full bg-destructive text-destructive-foreground font-medium hover:bg-destructive/90 transition shadow-sm border-none"
                                 >
-                                    Si, cerrar sesion
+                                    Sí, cerrar sesión
                                 </button>
                             </form>
                         </div>

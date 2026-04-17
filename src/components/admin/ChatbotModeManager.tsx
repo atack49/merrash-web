@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type ChatbotMode = 'auto' | 'local' | 'public' | 'team' | 'groq';
 
@@ -86,8 +87,8 @@ export function ChatbotModeManager() {
             </div>
 
             {message && (
-                <div className={`rounded-xl border p-4 flex items-center gap-2 ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                    {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                <div className={cn("rounded-xl border p-4 flex items-center gap-2 shadow-sm font-medium", message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400')}>
+                    {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
                     <p className="text-sm font-medium">{message.text}</p>
                 </div>
             )}

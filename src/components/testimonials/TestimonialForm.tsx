@@ -52,8 +52,8 @@ type TestimonialFormProps = {
     className?: string;
 };
 
-const inputClassName = 'w-full rounded-2xl border border-border bg-white/80 px-4 py-3 text-sm shadow-[0_10px_30px_-24px_rgba(15,23,42,0.45)] outline-none transition focus:border-primary/50 focus:bg-white focus:ring-4 focus:ring-primary/10';
-const sectionClassName = 'rounded-[28px] border border-border/70 bg-gradient-to-br from-white via-white to-secondary/40 p-4 md:p-5 shadow-[0_22px_60px_-40px_rgba(15,23,42,0.28)]';
+const inputClassName = 'w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm shadow-[0_10px_30px_-24px_rgba(15,23,42,0.45)] outline-none transition focus:border-primary/50 focus:bg-background focus:ring-4 focus:ring-primary/10';
+const sectionClassName = 'rounded-[28px] border border-border/70 bg-gradient-to-br from-card via-card to-secondary/10 p-4 md:p-5 shadow-[0_22px_60px_-40px_rgba(15,23,42,0.28)]';
 
 const ratingLabels: Record<number, string> = {
     1: 'Muy mala',
@@ -101,7 +101,7 @@ export function TestimonialForm({
     return (
         <div className={cn('space-y-5', className)}>
             {(title || description) && (
-                <div className="rounded-[28px] border border-primary/15 bg-[radial-gradient(circle_at_top_left,_rgba(45,181,170,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,252,250,0.96))] p-5 md:p-6 shadow-[0_28px_70px_-48px_rgba(45,181,170,0.55)]">
+                <div className="rounded-[28px] border border-primary/15 bg-card/80 bg-gradient-to-br from-primary/5 to-transparent p-5 md:p-6 shadow-[0_28px_70px_-48px_rgba(45,181,170,0.55)]">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
                             <Sparkles className="h-5 w-5" />
@@ -176,7 +176,7 @@ export function TestimonialForm({
                                             'rounded-2xl border px-4 py-3 text-left transition',
                                             active
                                                 ? 'border-primary bg-primary/8 shadow-[0_18px_40px_-28px_rgba(45,181,170,0.8)]'
-                                                : 'border-border bg-white hover:border-primary/35 hover:bg-secondary/35'
+                                                : 'border-border bg-background hover:border-primary/35 hover:bg-secondary/35'
                                         )}
                                     >
                                         <div className="flex items-center justify-between gap-3">
@@ -217,7 +217,7 @@ export function TestimonialForm({
                             value={values.text}
                             onChange={(e) => onChange({ text: e.target.value })}
                             placeholder="Cuenta que cambio, como te sentiste o que resultado viste"
-                            className="min-h-[150px] w-full rounded-[24px] border border-border bg-white/80 px-4 py-4 text-sm leading-6 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.45)] outline-none transition focus:border-primary/50 focus:bg-white focus:ring-4 focus:ring-primary/10"
+                            className="min-h-[150px] w-full rounded-[24px] border border-border bg-background/80 px-4 py-4 text-sm leading-6 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.45)] outline-none transition focus:border-primary/50 focus:bg-background focus:ring-4 focus:ring-primary/10"
                         />
                         <p className="text-xs text-muted-foreground">El texto es obligatorio para enviar el testimonio.</p>
                     </div>
@@ -232,7 +232,7 @@ export function TestimonialForm({
                 />
 
                 <div className="mt-5 space-y-5">
-                    <div className="rounded-[24px] border border-border bg-white/80 p-4">
+                    <div className="rounded-[24px] border border-border bg-background/80 p-4">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <p className="text-sm font-medium text-foreground">Calificacion general</p>
@@ -249,7 +249,7 @@ export function TestimonialForm({
                                             className={cn(
                                                 'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition',
                                                 active
-                                                    ? 'border-amber-300 bg-amber-50 text-amber-700'
+                                                    ? 'border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-500'
                                                     : 'border-border bg-background text-muted-foreground hover:border-amber-300 hover:text-amber-600'
                                             )}
                                         >
@@ -263,7 +263,7 @@ export function TestimonialForm({
                     </div>
 
                     {showApprovalControls && (
-                        <div className="flex flex-wrap gap-3 rounded-[24px] border border-border bg-white/80 p-4">
+                        <div className="flex flex-wrap gap-3 rounded-[24px] border border-border bg-background/80 p-4">
                             <label className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground">
                                 <input
                                     type="checkbox"

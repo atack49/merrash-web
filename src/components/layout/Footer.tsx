@@ -94,7 +94,7 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-border/20 pt-8 text-center bg-green-900 border-none">
+                <div className="border-t border-border/20 pt-8 text-center">
                     <p className="text-xs opacity-60">
                         &copy; {new Date().getFullYear()} Merrash Medicina Alternativa y Spa. Todos los derechos reservados.
                     </p>

@@ -526,10 +526,10 @@ export function CoursesManager() {
     <div className="space-y-6">
       {message && (
         <div className={cn(
-          'rounded-2xl border p-4 flex items-center gap-3 shadow-sm',
+          'rounded-2xl border p-4 flex items-center gap-3 shadow-sm font-medium',
           message.type === 'success'
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-            : 'border-rose-200 bg-rose-50 text-rose-800'
+            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+            : 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400'
         )}>
           {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <p className="text-sm">{message.text}</p>
@@ -834,7 +834,7 @@ export function CoursesManager() {
                 onClick={() => {
                   if (selectedCourse && editContentId) deleteContent(editContentId);
                 }}
-                className="inline-flex items-center justify-center rounded-full bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-200"
+                className="inline-flex items-center justify-center rounded-full bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition shadow-sm border-none"
               >
                 Eliminar material
               </button>
@@ -904,14 +904,14 @@ export function CoursesManager() {
                       <button
                         type="button"
                         onClick={(event) => { event.stopPropagation(); enterEditSection(section); setShowSectionForm(true); }}
-                        className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground hover:bg-muted/80"
+                        className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition shadow-sm border-none"
                       >
                         <Pencil className="w-3 h-3" /> Editar
                       </button>
                       <button
                         type="button"
                         onClick={(event) => { event.stopPropagation(); deleteSection(section.id); }}
-                        className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-700 hover:bg-rose-200"
+                        className="inline-flex items-center gap-1 rounded-full bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 transition shadow-sm border-none"
                       >
                         <Trash2 className="w-3 h-3" /> Eliminar
                       </button>

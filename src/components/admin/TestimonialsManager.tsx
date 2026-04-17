@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { Edit2, Trash2, Eye, EyeOff, Plus, Star, CheckCircle2, Clock3 } from 'lucide-react';
@@ -227,19 +227,19 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
     return (
         <div className="space-y-6">
             {pendingSubmissions.length > 0 && (
-                <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
-                    <h3 className="font-semibold text-amber-900">Pendientes locales</h3>
-                    <p className="text-sm text-amber-800">Estos envios quedan guardados localmente hasta que los apruebes.</p>
+                <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-400">Pendientes locales</h3>
+                    <p className="text-sm text-amber-800 dark:text-amber-500">Estos envios quedan guardados localmente hasta que los apruebes.</p>
 
                     <div className="grid grid-cols-1 gap-3">
                         {pendingSubmissions.map((pending) => (
-                            <div key={pending.id} className="rounded-xl border border-amber-200 bg-white p-4">
+                            <div key={pending.id} className="rounded-xl border border-amber-200 bg-white p-4 dark:border-amber-900/50 dark:bg-card">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
                                         <p className="font-semibold text-foreground">{pending.name}</p>
                                         <p className="text-sm text-muted-foreground">{pending.service}</p>
                                     </div>
-                                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">Pendiente local</span>
+                                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-400">Pendiente local</span>
                                 </div>
 
                                 {pending.text && <p className="mt-2 text-sm text-muted-foreground">{pending.text}</p>}
@@ -306,57 +306,21 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
 
             <div className="grid grid-cols-1 gap-5">
                 {paginatedTestimonials.map((testimonial) => (
-                    <div key={testimonial.id} className={cn('p-6 rounded-2xl transition-all shadow-sm border border-border/50 bg-gradient-to-br', editingId === testimonial.id ? 'border-primary/50 from-primary/5 to-white ring-2 ring-primary/30 shadow-md' : testimonial.active ? 'from-secondary/5 to-secondary/10' : 'from-gray-50 to-gray-100')}>
-                        {editingId === testimonial.id ? (
-                            <TestimonialForm
-                                values={{
-                                    name: String(editData.name ?? testimonial.name),
-                                    service: String(editData.service ?? testimonial.service),
-                                    text: String(editData.text ?? testimonial.text),
-                                    rating: Number(editData.rating ?? testimonial.rating),
-                                    approved: Boolean(editData.approved ?? testimonial.approved),
-                                    active: Boolean(editData.active ?? testimonial.active),
-                                }}
-                                serviceCategory={editServiceCategory}
-                                onChange={(patch) => setEditData((prev) => ({ ...prev, ...patch }))}
-                                onServiceCategoryChange={(category) => {
-                                    setEditServiceCategory(category);
-                                    setEditData((prev) => {
-                                        const currentService = String(prev.service ?? testimonial.service);
-                                        const matchingServices = getServicesForCategory(category);
-                                        return {
-                                            ...prev,
-                                            service: matchingServices.some((service) => service.title === currentService)
-                                                ? currentService
-                                                : matchingServices[0]?.title || currentService,
-                                        };
-                                    });
-                                }}
-                                onSubmit={() => saveEdit(testimonial.id)}
-                                submitLabel="Guardar"
-                                onCancel={() => {
-                                    setEditingId(null);
-                                    setEditData({});
-                                }}
-                                submitting={isLoading}
-                                showApprovalControls
-                            />
-                        ) : (
-                            <>
-                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div key={testimonial.id} className={cn('p-6 rounded-2xl transition-all shadow-sm border border-border/50 bg-gradient-to-br', testimonial.active ? 'from-secondary/5 to-secondary/10' : 'from-muted/30 to-muted/10 opacity-75')}>
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                                     <div>
                                         <h3 className="font-bold text-lg text-foreground">{testimonial.name}</h3>
                                         <p className="text-sm font-medium text-primary">{testimonial.service}</p>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        <span className={cn('text-xs px-3 py-1.5 rounded-full font-medium border', testimonial.approved ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200')}>
+                                        <span className={cn('text-xs px-3 py-1.5 rounded-full font-medium border transition-colors', testimonial.approved ? 'bg-green-50 text-green-700 border-green-300 dark:bg-green-950/50 dark:text-green-400 dark:border-green-500' : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-500')}>
                                             {testimonial.approved ? <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" /> : <Clock3 className="w-3.5 h-3.5 inline mr-1" />}
                                             {testimonial.approved ? 'Aprobado' : 'Pendiente'}
                                         </span>
-                                        <span className={cn('text-xs px-3 py-1.5 rounded-full font-medium border', testimonial.active ? 'bg-card text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200')}>
+                                        <span className={cn('text-xs px-3 py-1.5 rounded-full font-medium border transition-colors', testimonial.active ? 'bg-green-50 text-green-700 border-green-300 dark:bg-green-950/50 dark:text-green-400 dark:border-green-500' : 'bg-red-50 text-red-700 border-red-300 dark:bg-red-950/50 dark:text-red-400 dark:border-red-500')}>
                                             {testimonial.active ? 'Visible' : 'Oculto'}
                                         </span>
-                                        <span className="text-xs px-3 py-1.5 rounded-full font-medium border bg-slate-50 text-slate-700 border-slate-200">Origen: {testimonial.source || 'admin'}</span>
+                                        <span className="text-xs px-3 py-1.5 rounded-full font-medium border transition-colors bg-muted/80 text-muted-foreground border-border/50">Origen: {testimonial.source || 'admin'}</span>
                                     </div>
                                 </div>
 
@@ -368,23 +332,69 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2 w-full">
-                                    <button onClick={() => { setEditingId(testimonial.id); setEditData(testimonial); setEditServiceCategory(getCategoryForService(testimonial.service)); }} className="flex items-center justify-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90"><Edit2 className="w-3.5 h-3.5" />Editar</button>
-                                    <button onClick={() => updateItem(testimonial.id, { approved: !testimonial.approved })} className="flex items-center justify-center gap-1.5 px-5 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80">{testimonial.approved ? 'Marcar pendiente' : 'Aprobar'}</button>
-                                    <button onClick={() => updateItem(testimonial.id, { active: !testimonial.active })} className="flex items-center justify-center gap-1.5 px-5 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80">{testimonial.active ? <><Eye className="w-3.5 h-3.5" />Ocultar</> : <><EyeOff className="w-3.5 h-3.5" />Mostrar</>}</button>
-                                    <button onClick={() => deleteTestimonial(testimonial.id)} className="flex items-center justify-center gap-1.5 px-5 py-2 bg-destructive text-destructive-foreground rounded-full text-xs font-medium hover:bg-destructive/90"><Trash2 className="w-3.5 h-3.5" />Eliminar</button>
+                                <div className="flex flex-wrap gap-2 w-full mt-2">
+                                    <button onClick={() => { setEditingId(testimonial.id); setEditData(testimonial); setEditServiceCategory(getCategoryForService(testimonial.service)); }} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 transition shadow-sm border-none"><Edit2 className="w-3.5 h-3.5" />Editar</button>
+                                    <button onClick={() => updateItem(testimonial.id, { approved: !testimonial.approved })} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80 transition shadow-sm border border-secondary-foreground/10">{testimonial.approved ? 'Marcar pendiente' : 'Aprobar'}</button>
+                                    <button onClick={() => updateItem(testimonial.id, { active: !testimonial.active })} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80 transition shadow-sm border border-secondary-foreground/10">{testimonial.active ? <><Eye className="w-3.5 h-3.5" />Ocultar</> : <><EyeOff className="w-3.5 h-3.5" />Mostrar</>}</button>
+                                    <button onClick={() => deleteTestimonial(testimonial.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-destructive text-destructive-foreground rounded-full text-xs font-medium hover:bg-destructive/90 transition shadow-sm border-none"><Trash2 className="w-3.5 h-3.5" />Eliminar</button>
                                 </div>
-                            </>
-                        )}
                     </div>
                 ))}
             </div>
 
+            <Modal
+                isOpen={!!editingId}
+                onClose={() => {
+                    setEditingId(null);
+                    setEditData({});
+                }}
+                title="Editar testimonio"
+                description="Modifica los detalles del testimonio."
+                maxWidthClassName="max-w-6xl"
+            >
+                {editingId && (
+                    <TestimonialForm
+                        values={{
+                            name: String(editData.name ?? testimonials.find(t=>t.id === editingId)?.name),
+                            service: String(editData.service ?? testimonials.find(t=>t.id === editingId)?.service),
+                            text: String(editData.text ?? testimonials.find(t=>t.id === editingId)?.text),
+                            rating: Number(editData.rating ?? testimonials.find(t=>t.id === editingId)?.rating),
+                            approved: Boolean(editData.approved ?? testimonials.find(t=>t.id === editingId)?.approved),
+                            active: Boolean(editData.active ?? testimonials.find(t=>t.id === editingId)?.active),
+                        }}
+                        serviceCategory={editServiceCategory}
+                        onChange={(patch) => setEditData((prev) => ({ ...prev, ...patch }))}
+                        onServiceCategoryChange={(category) => {
+                            setEditServiceCategory(category);
+                            setEditData((prev) => {
+                                const testimonial = testimonials.find(t=>t.id === editingId);
+                                const currentService = String(prev.service ?? testimonial?.service);
+                                const matchingServices = getServicesForCategory(category);
+                                return {
+                                    ...prev,
+                                    service: matchingServices.some((service) => service.title === currentService)
+                                        ? currentService
+                                        : matchingServices[0]?.title || currentService,
+                                };
+                            });
+                        }}
+                        onSubmit={() => saveEdit(editingId)}
+                        submitLabel="Guardar"
+                        onCancel={() => {
+                            setEditingId(null);
+                            setEditData({});
+                        }}
+                        submitting={isLoading}
+                        showApprovalControls
+                    />
+                )}
+            </Modal>
+
             {totalPages > 1 && (
                 <div className="flex justify-center gap-2 pt-4 border-t border-border mt-4">
-                    <button onClick={() => setCurrentPage(Math.max(1, currentSafePage - 1))} disabled={currentSafePage === 1} className="px-4 py-2 bg-slate-200 text-muted-foreground rounded-full hover:bg-slate-300 disabled:opacity-50">Anterior</button>
+                    <button onClick={() => setCurrentPage(Math.max(1, currentSafePage - 1))} disabled={currentSafePage === 1} className="px-4 py-2 bg-secondary/20 text-foreground rounded-full hover:bg-secondary/40 disabled:opacity-50">Anterior</button>
                     <span className="px-4 py-2 text-muted-foreground font-semibold">Pagina {currentSafePage} de {totalPages}</span>
-                    <button onClick={() => setCurrentPage(Math.min(totalPages, currentSafePage + 1))} disabled={currentSafePage === totalPages} className="px-4 py-2 bg-slate-200 text-muted-foreground rounded-full hover:bg-slate-300 disabled:opacity-50">Siguiente</button>
+                    <button onClick={() => setCurrentPage(Math.min(totalPages, currentSafePage + 1))} disabled={currentSafePage === totalPages} className="px-4 py-2 bg-secondary/20 text-foreground rounded-full hover:bg-secondary/40 disabled:opacity-50">Siguiente</button>
                 </div>
             )}
         </div>

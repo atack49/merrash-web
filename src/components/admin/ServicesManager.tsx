@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Edit2, Trash2, Eye, EyeOff, Plus, X, CheckCircle, AlertCircle, Brain, HeartPulse, Sparkles, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Modal } from '@/components/ui/Modal';
 import { uploadServiceImageToCloudinary } from '@/lib/images/cloudinaryUpload';
 
 interface Service {
@@ -218,10 +219,10 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
             {/* Notification Messages */}
             {message && (
                 <div className={cn(
-                    "fixed top-4 right-4 z-50 p-4 rounded-lg flex items-center gap-3 shadow-lg animate-in slide-in-from-top-4",
+                    "fixed top-4 right-4 z-50 p-4 rounded-lg flex items-center gap-3 shadow-lg animate-in slide-in-from-top-4 font-medium border",
                     message.type === 'success'
-                        ? 'bg-green-100 border border-green-300 text-green-800'
-                        : 'bg-red-100 border border-red-300 text-red-800'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                 )}>
                     {message.type === 'success' ? (
                         <CheckCircle className="w-5 h-5" />
@@ -242,96 +243,88 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
             </button>
 
             {/* Add Form Modal */}
-            {showAddForm && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-card rounded-2xl border border-border max-w-md w-full p-6 md:p-7 shadow-2xl space-y-5">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-foreground">Nuevo Servicio</h3>
-                            <button
-                                onClick={() => setShowAddForm(false)}
-                                className="p-2 hover:bg-muted rounded-full transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-muted-foreground">Título</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ej. Acupuntura terapéutica"
-                                    value={newService.title}
-                                    onChange={(e) => setNewService({ ...newService, title: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-muted-foreground">Descripción</label>
-                                <textarea
-                                    placeholder="Describe brevemente el servicio"
-                                    value={newService.description}
-                                    onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-border rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-muted-foreground">Imagen del servicio</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-                                        await handleImageSelection(file, 'new');
-                                    }}
-                                    className="w-full px-3 py-2 border border-border rounded-xl text-sm file:mr-3 file:px-3 file:py-1.5 file:border-0 file:rounded-lg file:bg-primary/10 file:text-primary"
-                                />
-                                {isImageSource(newService.icon) && (
-                                    <div
-                                        className="h-24 rounded-xl border border-border bg-cover bg-center"
-                                        style={{ backgroundImage: `url(${newService.icon})` }}
-                                    />
-                                )}
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-muted-foreground">Categoría</label>
-                                <div className="flex flex-wrap justify-center gap-2 pt-1">
-                                    {categories.map((category) => (
-                                        <button
-                                            key={category}
-                                            type="button"
-                                            onClick={() => setNewService({ ...newService, category })}
-                                            className={cn(
-                                                "px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
-                                                newService.category === category
-                                                    ? "bg-primary text-white"
-                                                    : "text-foreground hover:bg-muted"
-                                            )}
-                                        >
-                                            {category}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 pt-1">
-                            <button
-                                onClick={addService}
-                                disabled={isLoading}
-                                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-50 font-medium transition"
-                            >
-                                Guardar
-                            </button>
-                            <button
-                                onClick={() => setShowAddForm(false)}
-                                className="flex-1 px-4 py-2.5 bg-slate-200 text-foreground rounded-full hover:bg-slate-300 font-medium transition"
-                            >
-                                Cancelar
-                            </button>
+            <Modal
+                isOpen={showAddForm}
+                onClose={() => setShowAddForm(false)}
+                title="Nuevo Servicio"
+                maxWidthClassName="max-w-md"
+            >
+                <div className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-muted-foreground">Título</label>
+                        <input
+                            type="text"
+                            placeholder="Ej. Acupuntura terapéutica"
+                            value={newService.title}
+                            onChange={(e) => setNewService({ ...newService, title: e.target.value })}
+                            className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-muted-foreground">Descripción</label>
+                        <textarea
+                            placeholder="Describe brevemente el servicio"
+                            value={newService.description}
+                            onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                            className="w-full px-4 py-2.5 border border-border rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-muted-foreground">Imagen del servicio</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                await handleImageSelection(file, 'new');
+                            }}
+                            className="w-full px-3 py-2 border border-border rounded-xl text-sm file:mr-3 file:px-3 file:py-1.5 file:border-0 file:rounded-lg file:bg-primary/10 file:text-primary"
+                        />
+                        {isImageSource(newService.icon) && (
+                            <div
+                                className="h-24 rounded-xl border border-border bg-cover bg-center"
+                                style={{ backgroundImage: `url(${newService.icon})` }}
+                            />
+                        )}
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-muted-foreground">Categoría</label>
+                        <div className="flex flex-wrap justify-center gap-2 pt-1">
+                            {categories.map((category) => (
+                                <button
+                                    key={category}
+                                    type="button"
+                                    onClick={() => setNewService({ ...newService, category })}
+                                    className={cn(
+                                        "px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                                        newService.category === category
+                                            ? "bg-primary text-white"
+                                            : "text-foreground hover:bg-muted"
+                                    )}
+                                >
+                                    {category}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
-            )}
+                <div className="flex gap-2 pt-4 border-t border-border mt-4">
+                    <button
+                        onClick={addService}
+                        disabled={isLoading}
+                        className="flex-1 px-4 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-50 font-medium transition"
+                    >
+                        Guardar
+                    </button>
+                    <button
+                        onClick={() => setShowAddForm(false)}
+                        className="flex-1 px-4 py-2.5 bg-secondary text-secondary-foreground font-medium rounded-full transition-all hover:bg-secondary/80 border border-secondary-foreground/10"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </Modal>
 
             {/* Categoria Buttons */}
             <div className="flex justify-center flex-wrap gap-2 md:gap-3 mb-6 md:mb-8">
@@ -366,136 +359,11 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                             key={service.id}
                             className={cn(
                                 "p-4 rounded-2xl border border-border/50 transition-all bg-gradient-to-br",
-                                editingId === service.id
-                                    ? 'border-primary/50 from-primary/5 to-white ring-2 ring-primary/30 shadow-lg'
-                                    : service.active
-                                        ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
-                                        : 'from-gray-50 to-gray-100 opacity-70'
+                                service.active
+                                    ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
+                                    : 'from-gray-50 to-gray-100 opacity-70'
                             )}
                         >
-                            {editingId === service.id ? (
-                                // Edit Mode
-                                <div className="space-y-3">
-                                    <div className="bg-muted border border-border rounded-xl p-2.5 mb-3">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <p className="text-xs font-semibold text-muted-foreground">✏️ Editando servicio</p>
-                                            <span className="text-sm">🛠️</span>
-                                        </div>
-                                    </div>
-
-                                    <input
-                                        type="text"
-                                        placeholder="Título"
-                                        value={editData.title !== undefined ? editData.title : service.title}
-                                        onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                                        className="w-full px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                    />
-                                    <textarea
-                                        placeholder="Descripción"
-                                        value={editData.description !== undefined ? editData.description : service.description}
-                                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                                        className="w-full px-3 py-2 border border-border rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                                    />
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-muted-foreground">Imagen</label>
-                                        <input
-                                            id={`edit-image-${service.id}`}
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
-                                                await handleImageSelection(file, 'edit');
-                                            }}
-                                            className="hidden"
-                                        />
-
-                                        <div className="flex gap-2 items-center">
-                                            <div className="flex-1">
-                                                {(() => {
-                                                    const hasEditedIcon = Object.prototype.hasOwnProperty.call(editData, 'icon');
-                                                    const currentImage = hasEditedIcon
-                                                        ? (editData.icon as string | null | undefined)
-                                                        : service.icon;
-                                                    return isImageSource(currentImage) ? (
-                                                    <div
-                                                        className="h-16 rounded-xl border border-border bg-cover bg-center"
-                                                        style={{ backgroundImage: `url(${currentImage})` }}
-                                                    />
-                                                    ) : (
-                                                    <div className="h-16 rounded-xl border border-dashed border-border bg-card flex items-center justify-center text-[11px] text-muted-foreground">
-                                                        Sin imagen
-                                                    </div>
-                                                    );
-                                                })()}
-                                            </div>
-
-                                            <div className="flex flex-col gap-2">
-                                                <label
-                                                    htmlFor={`edit-image-${service.id}`}
-                                                    className="h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 flex items-center justify-center cursor-pointer transition"
-                                                    title="Cambiar imagen"
-                                                >
-                                                    <Pencil className="w-4 h-4" />
-                                                </label>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const shouldDelete = window.confirm('¿Seguro que deseas borrar la imagen de este servicio?');
-                                                        if (!shouldDelete) return;
-                                                        setEditData({ ...editData, icon: null });
-                                                    }}
-                                                    className="h-9 w-9 rounded-full bg-red-100 text-red-700 hover:bg-red-200 border border-red-200 flex items-center justify-center transition"
-                                                    title="Borrar imagen"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-medium text-muted-foreground">Categoría</label>
-                                        <div className="flex flex-wrap justify-center gap-2 pt-1">
-                                            {categories.map((category) => {
-                                                const selected = (editData.category !== undefined ? editData.category : service.category) === category;
-                                                return (
-                                                    <button
-                                                        key={category}
-                                                        type="button"
-                                                        onClick={() => setEditData({ ...editData, category })}
-                                                        className={cn(
-                                                            "px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
-                                                            selected
-                                                                ? "bg-primary text-white"
-                                                                : "text-foreground hover:bg-muted"
-                                                        )}
-                                                    >
-                                                        {category}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-2 pt-3 mt-2 border-t border-primary/20">
-                                        <button
-                                            onClick={() => saveEdit(service.id)}
-                                            disabled={isLoading}
-                                            className="flex-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition shadow-sm"
-                                        >
-                                            ✓ Guardar
-                                        </button>
-                                        <button
-                                            onClick={() => { setEditingId(null); setEditData({}); }}
-                                            className="flex-1 px-3 py-1.5 bg-slate-200 text-foreground rounded-full text-xs font-medium hover:bg-slate-300 transition shadow-sm"
-                                        >
-                                            ✕ Cancelar
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                // View Mode
-                                <>
                                     <div className="relative -m-4 mb-3 min-h-[190px] rounded-2xl overflow-hidden border border-border/70">
                                         {(() => {
                                             const visual = categoryVisuals[service.category] || categoryVisuals.Cuerpo;
@@ -522,7 +390,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                                     className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
                                                     style={{ backgroundImage: `url(${service.icon})` }}
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/80 to-transparent" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/80 to-transparent" />
                                             </>
                                         )}
 
@@ -547,10 +415,10 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                                     {service.description}
                                                 </p>
                                                 <div className="flex flex-wrap gap-1">
-                                                    <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-primary/20 shadow-sm font-medium">
+                                                    <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-border shadow-sm font-medium">
                                                         {service.category}
                                                     </span>
-                                                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium border shadow-sm ${service.active ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+                                                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium border shadow-sm ${service.active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'}`}>
                                                         {service.active ? 'Visible' : 'Oculto'}
                                                     </span>
                                                 </div>
@@ -593,8 +461,6 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                             Eliminar
                                         </button>
                                     </div>
-                                </>
-                            )}
                         </div>
                     ))}
                 </div>
@@ -603,6 +469,135 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                     <p className="text-muted-foreground text-sm">No hay servicios en la categoría {selectedCategory}</p>
                 </div>
             )}
+
+            <Modal
+                isOpen={!!editingId}
+                onClose={() => { setEditingId(null); setEditData({}); }}
+                title="Editar servicio"
+                description="Modifica los detalles del servicio seleccionado."
+                maxWidthClassName="max-w-md"
+            >
+                {editingId && (() => {
+                    const service = services.find(s => s.id === editingId);
+                    if (!service) return null;
+                    return (
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-muted-foreground">Título</label>
+                                <input
+                                    type="text"
+                                    placeholder="Título"
+                                    value={editData.title !== undefined ? editData.title : service.title}
+                                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                                    className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-muted-foreground">Descripción</label>
+                                <textarea
+                                    placeholder="Descripción"
+                                    value={editData.description !== undefined ? editData.description : service.description}
+                                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                                    className="w-full px-4 py-2.5 border border-border rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-muted-foreground">Imagen</label>
+                                <input
+                                    id={`edit-image-${service.id}`}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        await handleImageSelection(file, 'edit');
+                                    }}
+                                    className="hidden"
+                                />
+                                <div className="flex gap-2 items-center">
+                                    <div className="flex-1">
+                                        {(() => {
+                                            const hasEditedIcon = Object.prototype.hasOwnProperty.call(editData, 'icon');
+                                            const currentImage = hasEditedIcon
+                                                ? (editData.icon as string | null | undefined)
+                                                : service.icon;
+                                            return isImageSource(currentImage) ? (
+                                            <div
+                                                className="h-24 rounded-xl border border-border bg-cover bg-center"
+                                                style={{ backgroundImage: `url(${currentImage})` }}
+                                            />
+                                            ) : (
+                                            <div className="h-24 rounded-xl border border-dashed border-border bg-card flex items-center justify-center text-[11px] text-muted-foreground">
+                                                Sin imagen
+                                            </div>
+                                            );
+                                        })()}
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label
+                                            htmlFor={`edit-image-${service.id}`}
+                                            className="h-10 w-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 flex items-center justify-center cursor-pointer transition"
+                                            title="Cambiar imagen"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const shouldDelete = window.confirm('¿Seguro que deseas borrar la imagen de este servicio?');
+                                                if (!shouldDelete) return;
+                                                setEditData({ ...editData, icon: null });
+                                            }}
+                                            className="h-10 w-10 rounded-full bg-red-100 text-red-700 hover:bg-red-200 border border-red-200 flex items-center justify-center transition"
+                                            title="Borrar imagen"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-muted-foreground">Categoría</label>
+                                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                                    {categories.map((category) => {
+                                        const selected = (editData.category !== undefined ? editData.category : service.category) === category;
+                                        return (
+                                            <button
+                                                key={category}
+                                                type="button"
+                                                onClick={() => setEditData({ ...editData, category })}
+                                                className={cn(
+                                                    "px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                                                    selected
+                                                        ? "bg-primary text-white"
+                                                        : "text-foreground hover:bg-muted"
+                                                )}
+                                            >
+                                                {category}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div className="flex gap-2 pt-4 border-t border-border mt-4">
+                                <button
+                                    onClick={() => saveEdit(service.id)}
+                                    disabled={isLoading}
+                                    className="flex-1 px-4 py-2.5 bg-primary text-white rounded-full font-medium hover:bg-primary/90 disabled:opacity-50 transition shadow-sm"
+                                >
+                                    Guardar Cambios
+                                </button>
+                                <button
+                                    onClick={() => { setEditingId(null); setEditData({}); }}
+                                    className="flex-1 px-4 py-2.5 bg-secondary text-secondary-foreground font-medium rounded-full transition-all hover:bg-secondary/80 border border-secondary-foreground/10"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })()}
+            </Modal>
         </div>
     );
 }
