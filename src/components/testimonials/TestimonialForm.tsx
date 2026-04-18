@@ -53,7 +53,7 @@ type TestimonialFormProps = {
 };
 
 const inputClassName = 'w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm shadow-[0_10px_30px_-24px_rgba(15,23,42,0.45)] outline-none transition focus:border-primary/50 focus:bg-background focus:ring-4 focus:ring-primary/10';
-const sectionClassName = 'rounded-[28px] border border-border/70 bg-gradient-to-br from-card via-card to-secondary/10 p-4 md:p-5 shadow-[0_22px_60px_-40px_rgba(15,23,42,0.28)]';
+const sectionClassName = 'rounded-[28px] border border-border/70 bg-linear-to-br from-card via-card to-secondary/10 p-4 md:p-5 shadow-[0_22px_60px_-40px_rgba(15,23,42,0.28)]';
 
 const ratingLabels: Record<number, string> = {
     1: 'Muy mala',
@@ -101,7 +101,7 @@ export function TestimonialForm({
     return (
         <div className={cn('space-y-5', className)}>
             {(title || description) && (
-                <div className="rounded-[28px] border border-primary/15 bg-card/80 bg-gradient-to-br from-primary/5 to-transparent p-5 md:p-6 shadow-[0_28px_70px_-48px_rgba(45,181,170,0.55)]">
+                <div className="rounded-[28px] border border-primary/15 bg-card/80 bg-linear-to-br from-primary/5 to-transparent p-5 md:p-6 shadow-[0_28px_70px_-48px_rgba(45,181,170,0.55)]">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
                             <Sparkles className="h-5 w-5" />

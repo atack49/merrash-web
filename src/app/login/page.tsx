@@ -15,12 +15,12 @@ export default function LoginPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="mt-20 flex-grow flex items-center justify-center bg-background py-12 sm:px-6 lg:px-8">
+            <main className="mt-20 grow flex items-center justify-center bg-background py-12 sm:px-6 lg:px-8">
                 <div className="w-full max-w-md">
                     {/* Card Container */}
                     <div className="bg-card rounded-2xl shadow-xl overflow-hidden border border-border">
                         {/* Header Section */}
-                        <div className="bg-gradient-to-r from-primary to-primary/80 px-8 py-12 text-center">
+                        <div className="bg-linear-to-r from-primary to-primary/80 px-8 py-12 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4">
                                 <Lock className="w-8 h-8 text-white" />
                             </div>
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
                             {errorMessage && (
                                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                                    <div className="flex-shrink-0 text-red-600 mt-0.5">
+                                    <div className="shrink-0 text-red-600 mt-0.5">
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                         </svg>
@@ -75,7 +75,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isPending}
-                                className="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary/80 text-white font-semibold rounded-lg hover:shadow-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                className="w-full py-3 px-4 bg-linear-to-r from-primary to-primary/80 text-white font-semibold rounded-lg hover:shadow-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                             >
                                 {isPending ? (
                                     <span className="flex items-center justify-center gap-2">
@@ -91,7 +91,7 @@ export default function LoginPage() {
 
                     {/* Footer Info */}
                     <p className="text-center text-sm text-muted-foreground mt-8">
-                        ¿Problemas al iniciar sesión? <br/>
+                        ¿Problemas al iniciar sesión? <br />
                         <span className="text-muted-foreground/80">Contacta al administrador</span>
                     </p>
                 </div>

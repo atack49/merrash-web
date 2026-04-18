@@ -358,7 +358,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                         <div
                             key={service.id}
                             className={cn(
-                                "p-4 rounded-2xl border border-border/50 transition-all bg-gradient-to-br",
+                                "p-4 rounded-2xl border border-border/50 transition-all bg-linear-to-br",
                                 service.active
                                     ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
                                     : 'from-gray-50 to-gray-100 opacity-70'
@@ -387,10 +387,10 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         {isImageSource(service.icon) && (
                                             <>
                                                 <div
-                                                    className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
+                                                    className="absolute inset-0 bg-cover bg-no-repeat bg-bottom-right scale-[1.04]"
                                                     style={{ backgroundImage: `url(${service.icon})` }}
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/80 to-transparent" />
+                                                <div className="absolute inset-0 bg-linear-to-t from-card/95 via-card/80 to-transparent" />
                                             </>
                                         )}
 

@@ -56,7 +56,7 @@ export function AdminPageClientWrapper({
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Header activeAdminTab={activeTab} onAdminTabChange={handleAdminTabChange} />
-            <main className="flex-grow mt-16 md:mt-20 container mx-auto px-3 md:px-6 py-6 md:py-8 lg:py-12">
+            <main className="grow mt-16 md:mt-20 container mx-auto px-3 md:px-6 py-6 md:py-8 lg:py-12">
                 {/* Tabs Section */}
                 <AdminTabs 
                     activeTab={activeTab}

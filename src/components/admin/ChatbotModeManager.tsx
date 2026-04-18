@@ -74,7 +74,7 @@ export function ChatbotModeManager() {
         <div className="space-y-6">
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                 <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                         <Sparkles className="w-5 h-5" />
                     </div>
                     <div className="space-y-2">
@@ -88,7 +88,7 @@ export function ChatbotModeManager() {
 
             {message && (
                 <div className={cn("rounded-xl border p-4 flex items-center gap-2 shadow-sm font-medium", message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400')}>
-                    {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                    {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
                     <p className="text-sm font-medium">{message.text}</p>
                 </div>
             )}

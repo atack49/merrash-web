@@ -8,7 +8,7 @@ type ModalProps = {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
-    description?: string;
+    description?: string | ReactNode;
     children: ReactNode;
     maxWidthClassName?: string;
 };

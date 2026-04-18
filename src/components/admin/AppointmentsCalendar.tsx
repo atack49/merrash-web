@@ -1153,7 +1153,7 @@ export function AppointmentsCalendar() {
                                 ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
                                 : "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400"
                         )}>
-                            {managementMessage.includes('✅') ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                            {managementMessage.includes('✅') ? <CheckCircle className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
                             <p className="text-sm md:text-base">{managementMessage.replace(' ✅', '')}</p>
                         </div>
                     )}

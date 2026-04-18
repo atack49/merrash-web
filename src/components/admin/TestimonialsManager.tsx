@@ -306,7 +306,7 @@ export function TestimonialsManager({ initialTestimonials }: TestimonialsManager
 
             <div className="grid grid-cols-1 gap-5">
                 {paginatedTestimonials.map((testimonial) => (
-                    <div key={testimonial.id} className={cn('p-6 rounded-2xl transition-all shadow-sm border border-border/50 bg-gradient-to-br', testimonial.active ? 'from-secondary/5 to-secondary/10' : 'from-muted/30 to-muted/10 opacity-75')}>
+                    <div key={testimonial.id} className={cn('p-6 rounded-2xl transition-all shadow-sm border border-border/50 bg-linear-to-br', testimonial.active ? 'from-secondary/5 to-secondary/10' : 'from-muted/30 to-muted/10 opacity-75')}>
                         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                                     <div>
                                         <h3 className="font-bold text-lg text-foreground">{testimonial.name}</h3>

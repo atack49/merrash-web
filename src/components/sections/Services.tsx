@@ -257,10 +257,10 @@ export function Services() {
                                 {isImageSource(service.icon) && (
                                     <>
                                         <div
-                                            className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
+                                            className="absolute inset-0 bg-cover bg-no-repeat bg-bottom-right scale-[1.04]"
                                             style={{ backgroundImage: `url(${service.icon})` }}
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/80 to-transparent" />
+                                        <div className="absolute inset-0 bg-linear-to-t from-card/95 via-card/80 to-transparent" />
                                     </>
                                 )}
 

@@ -128,7 +128,7 @@ export default function EncuestasPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="flex-grow mt-20">
+            <main className="grow mt-20">
                 <section className="py-16 bg-background min-h-screen">
                     <div className="container mx-auto px-4 md:px-6">
                         {/* Header Section */}
@@ -152,7 +152,7 @@ export default function EncuestasPage() {
                                     className={cn(
                                         "px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300",
                                         activeSurvey === "satisfaccion"
-                                            ? "bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg"
+                                            ? "bg-linear-to-r from-primary to-primary/80 text-white shadow-lg"
                                             : "text-muted-foreground hover:text-primary dark:hover:text-primary"
                                     )}
                                 >
@@ -163,7 +163,7 @@ export default function EncuestasPage() {
                                     className={cn(
                                         "px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300",
                                         activeSurvey === "enterado"
-                                            ? "bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg"
+                                            ? "bg-linear-to-r from-primary to-primary/80 text-white shadow-lg"
                                             : "text-muted-foreground hover:text-primary dark:hover:text-primary"
                                     )}
                                 >
@@ -178,10 +178,10 @@ export default function EncuestasPage() {
                                 {questions.map((question, index) => (
                                     <div key={question.id} className="space-y-4 pb-8 border-b border-border last:pb-0 last:border-b-0">
                                         <div className="flex items-start gap-4">
-                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                                 <span className="text-sm font-semibold text-primary">{index + 1}</span>
                                             </div>
-                                            <label className="block flex-1 text-base font-semibold text-foreground leading-relaxed">
+                                            <label className="flex-1 text-base font-semibold text-foreground leading-relaxed">
                                                 {question.label}
                                             </label>
                                         </div>
@@ -195,7 +195,7 @@ export default function EncuestasPage() {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-primary/80 text-white font-semibold rounded-full hover:shadow-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                        className="inline-flex items-center gap-2 px-10 py-4 bg-linear-to-r from-primary to-primary/80 text-white font-semibold rounded-full hover:shadow-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                     >
                                         {isSubmitting ? (
                                             <>

@@ -145,7 +145,7 @@ export default function TestimoniosPage() {
         <div className="flex flex-col min-h-screen">
             <Header />
 
-            <main className="flex-grow">
+            <main className="grow">
                 <section className="py-20 bg-background">
                     <div className="container mx-auto px-4 md:px-6">
                         <div className="text-center max-w-3xl mx-auto mb-10 space-y-4">
