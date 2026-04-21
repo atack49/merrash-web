@@ -738,7 +738,7 @@ export async function processChatbotMessage(input: ProcessChatbotInput): Promise
         }
 
         const rememberAndRespond = async (
-            payload: Record<string, unknown>,
+            payload: ProcessChatbotOutput,
             options?: { bookingDraft?: BookingData; pendingConfirmation?: boolean }
         ) => {
             if (conversationId) {
@@ -870,7 +870,7 @@ export async function processChatbotMessage(input: ProcessChatbotInput): Promise
                     const dayValidation = validateBusinessDay(date);
                     if (!dayValidation.ok) {
                         return rememberAndRespond({
-                            reply: dayValidation.message,
+                            reply: dayValidation.message || 'Lo siento, esa fecha no es válida para agendar.',
                             intent: 'CONSULTAR_DISPONIBILIDAD',
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
                         });
