@@ -34,7 +34,7 @@ const CHATBOT_HISTORY_PAYLOAD_LIMIT = 120;
 const INITIAL_BOT_MESSAGE: Message = {
     id: 'welcome',
     role: 'bot',
-    text: 'Hola 👋 Soy el asistente de Merrash. ¿En qué te puedo ayudar hoy?',
+    text: 'Hola  Soy el asistente de Merrash. ¿En qué te puedo ayudar hoy?',
 };
 
 const createConversationId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -348,7 +348,7 @@ export function ChatbotWidget() {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="font-semibold text-foreground">Asistente Merrash</p>
-                                <p className="text-xs text-muted-foreground">Aquí puedo ayudarte 😊</p>
+                                <p className="text-xs text-muted-foreground">Aquí puedo ayudarte </p>
                             </div>
                             <button
                                 type="button"
@@ -439,7 +439,7 @@ export function ChatbotWidget() {
                                 rel="noopener noreferrer"
                                 className="block w-full text-center px-4 py-2 rounded-full bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors"
                             >
-                                Continuar por WhatsApp 💬
+                                Continuar por WhatsApp 
                             </a>
                         )}
                     </div>

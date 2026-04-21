@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Pencil, Phone, RefreshCw, Save, Trash2, User, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Pencil, Phone, RefreshCw, Trash2, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE, MAX_APPOINTMENTS_PER_HOUR_TOTAL } from '@/lib/appointments/capacityRules';
 
@@ -280,7 +280,6 @@ export function AppointmentsCalendar() {
     const [selectedDayKey, setSelectedDayKey] = useState(() => toDayKey(new Date()));
     const [settings, setSettings] = useState<GoogleCalendarSettings>({ embedUrl: '', webhookUrl: '' });
     const [settingsLoading, setSettingsLoading] = useState(true);
-    const [settingsSaving, setSettingsSaving] = useState(false);
     const [syncingGoogle, setSyncingGoogle] = useState(false);
     const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -376,33 +375,6 @@ export function AppointmentsCalendar() {
         loadGoogleSettings();
     }, []);
 
-    const saveGoogleSettings = async () => {
-        setSettingsSaving(true);
-        setSettingsMessage(null);
-        try {
-            const response = await fetch('/api/admin/google-calendar-settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings),
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data?.error || 'No se pudo guardar configuración');
-            }
-
-            setSettings({
-                embedUrl: data?.embedUrl || '',
-                webhookUrl: data?.webhookUrl || '',
-            });
-            setSettingsMessage('Configuración de Google Calendar guardada ✅');
-        } catch (err) {
-            setSettingsMessage(err instanceof Error ? err.message : 'Error guardando configuración');
-        } finally {
-            setSettingsSaving(false);
-        }
-    };
-
     const syncGoogleCalendar = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
         setSyncingGoogle(true);
         if (!silent) {
@@ -416,7 +388,11 @@ export function AppointmentsCalendar() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data?.error || 'No se pudo sincronizar con Google Calendar');
+                const detail =
+                    typeof data?.details?.error === 'string' && data.details.error.trim().length > 0
+                        ? ` Detalle: ${data.details.error}`
+                        : '';
+                throw new Error((data?.error || 'No se pudo sincronizar con Google Calendar') + detail);
             }
 
             const stats = data?.stats;
@@ -441,6 +417,11 @@ export function AppointmentsCalendar() {
             setSyncingGoogle(false);
         }
     }, []);
+
+    const triggerBackgroundSync = useCallback(() => {
+        if (!settings.webhookUrl) return;
+        void syncGoogleCalendar({ silent: true });
+    }, [settings.webhookUrl, syncGoogleCalendar]);
 
     useEffect(() => {
         if (!settings.webhookUrl) return;
@@ -647,10 +628,12 @@ export function AppointmentsCalendar() {
 
             upsertAppointment(data as Appointment);
             if (data?.googleSync?.attempted && !data?.googleSync?.ok) {
-                setManagementMessage('Cita actualizada en Global ✅, pero Google falló. Revisa webhook/script de Apps Script.');
+                setManagementMessage('Cita actualizada en Global , pero Google falló. Revisa webhook/script de Apps Script.');
             } else {
-                setManagementMessage('Cita actualizada correctamente ✅');
+                setManagementMessage('Cita actualizada correctamente ');
             }
+
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error actualizando cita');
         } finally {
@@ -684,7 +667,8 @@ export function AppointmentsCalendar() {
                 notes: '',
             });
             setIsManualModalOpen(false);
-            setManagementMessage('Cita creada manualmente ✅');
+            setManagementMessage('Cita creada manualmente ');
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error creando cita manual');
         } finally {
@@ -732,10 +716,12 @@ export function AppointmentsCalendar() {
             closeEditModal();
 
             if (data?.googleSync?.attempted && !data?.googleSync?.ok) {
-                setManagementMessage('Cita editada en Global ✅, pero Google falló. Revisa webhook/script.');
+                setManagementMessage('Cita editada en Global , pero Google falló. Revisa webhook/script.');
             } else {
-                setManagementMessage('Cita editada correctamente ✅');
+                setManagementMessage('Cita editada correctamente ');
             }
+
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error editando cita');
         } finally {
@@ -763,10 +749,12 @@ export function AppointmentsCalendar() {
             setAppointments((prev) => prev.filter((item) => item.id !== appointment.id));
 
             if (data?.googleSync?.attempted && !data?.googleSync?.ok) {
-                setManagementMessage('Cita eliminada en Global ✅, pero Google falló al borrar evento.');
+                setManagementMessage('Cita eliminada en Global , pero Google falló al borrar evento.');
             } else {
-                setManagementMessage('Cita eliminada correctamente ✅');
+                setManagementMessage('Cita eliminada correctamente ');
             }
+
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error eliminando cita');
         } finally {
@@ -1050,65 +1038,39 @@ export function AppointmentsCalendar() {
                     <div className="space-y-4">
                         <div className="bg-card border border-border rounded-2xl p-4 md:p-6 space-y-4">
                             <div className="flex items-center justify-between gap-3">
-                                <h4 className="text-base md:text-lg font-semibold text-foreground">Ajustes de Google Calendar</h4>
+                                <h4 className="text-base md:text-lg font-semibold text-foreground">Sincronización de Google Calendar</h4>
                                 <div className="flex flex-wrap justify-end gap-2">
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">
                                         <RefreshCw className={cn('w-3.5 h-3.5', syncingGoogle && 'animate-spin')} />
                                         Sincronización activa
                                     </span>
-                                    <button
-                                        type="button"
-                                        onClick={loadGoogleSettings}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-muted hover:bg-slate-200 text-muted-foreground"
-                                    >
-                                        <RefreshCw className="w-3.5 h-3.5" />
-                                        Recargar ajustes
-                                    </button>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">URL embebida de tu calendario</label>
-                                    <input
-                                        type="text"
-                                        value={settings.embedUrl}
-                                        onChange={(e) => setSettings((prev) => ({ ...prev, embedUrl: e.target.value }))}
-                                        placeholder="https://calendar.google.com/calendar/embed?..."
-                                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                        disabled={settingsLoading || settingsSaving}
-                                    />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="rounded-xl border border-border bg-muted/20 p-3">
+                                    <p className="text-xs text-muted-foreground">Estado de conexión</p>
+                                    <p className="text-sm font-semibold text-foreground">
+                                        {settingsLoading
+                                            ? 'Verificando...'
+                                            : settings.embedUrl && settings.webhookUrl
+                                              ? 'Conectado y protegido '
+                                              : 'Configuración incompleta'}
+                                    </p>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">URL webhook para sincronizar eventos (opcional)</label>
-                                    <input
-                                        type="text"
-                                        value={settings.webhookUrl}
-                                        onChange={(e) => setSettings((prev) => ({ ...prev, webhookUrl: e.target.value }))}
-                                        placeholder="https://script.google.com/macros/s/.../exec"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                        disabled={settingsLoading || settingsSaving}
-                                    />
+                                <div className="rounded-xl border border-border bg-muted/20 p-3">
+                                    <p className="text-xs text-muted-foreground">Modo de sincronización</p>
+                                    <p className="text-sm font-semibold text-foreground">Automática cada minuto + al crear, editar o eliminar</p>
                                 </div>
                             </div>
 
                             <p className="text-xs text-muted-foreground">
-                                Guarda las URLs aquí para enlazar tu Google Calendar con la app. El calendario principal usa la agenda interna; esta sección solo mantiene configuración de sincronización.
+                                Las URLs de integración quedaron ocultas para evitar cambios accidentales. La app mantiene la sincronización en segundo plano.
                             </p>
 
                             {settingsMessage && (
                                 <p className="text-sm text-muted-foreground">{settingsMessage}</p>
                             )}
-
-                            <button
-                                type="button"
-                                onClick={saveGoogleSettings}
-                                disabled={settingsLoading || settingsSaving}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-60"
-                            >
-                                <Save className="w-4 h-4" />
-                                Guardar ajustes
-                            </button>
                         </div>
                     </div>
                 </div>

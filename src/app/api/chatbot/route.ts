@@ -3,7 +3,7 @@ import { buildChatbotReply, getWhatsappUrl, ChatHistoryItem } from '@/lib/chatbo
 import { generateGroqChatbotReply, generatePublicHostedChatbotReply, generateTeamReviewedChatbotReply } from '@/lib/chatbot/openaiChatbot';
 import { getChatbotSettings } from '@/lib/chatbotSettings';
 import { BookingData, decideBookingFlow } from '@/lib/chatbot/bookingAssistant';
-import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
+import { getCalendarIdFromEmbedUrl, getGoogleCalendarSettings } from '@/lib/calendarSettings';
 import { sendAppointmentToGoogleCalendar } from '@/lib/calendarWebhook';
 import { parsePreferredDate, parsePreferredTime, validateBusinessDay, validateBusinessSlot } from '@/lib/chatbot/businessSchedule';
 import { getChatMemory, saveChatMemory } from '@/lib/chatbot/chatMemory';
@@ -144,15 +144,15 @@ const isEditMessage = (text: string) => {
 };
 
 const getSingleFieldPrompt = (field: string, withIntro = false) => {
-    const intro = withIntro ? 'Listo, te ayudo a agendar rápido ✨' : '';
+    const intro = withIntro ? 'Listo, te ayudo a agendar rápido ' : '';
 
     const promptByField: Record<string, string> = {
         nombre: '¿Con qué nombre registramos la cita?',
         email: '¿Qué correo usamos para tu cita?',
         'teléfono': '¿Me compartes tu número de teléfono?',
         servicio: '¿Qué servicio deseas reservar?',
-        fecha: '¿Qué fecha te acomoda? Puedes elegirla en el calendario 👇',
-        hora: '¿Qué horario prefieres? Te muestro opciones disponibles 👇',
+        fecha: '¿Qué fecha te acomoda? Puedes elegirla en el calendario ',
+        hora: '¿Qué horario prefieres? Te muestro opciones disponibles ',
     };
 
     const question = promptByField[field] || 'Compárteme ese dato para continuar.';
@@ -520,7 +520,7 @@ const buildDateSuggestions = async (service?: string) => {
             id: `date-${day.iso}`,
             label: day.label,
             value: day.iso,
-            userText: `📅 ${day.label}`,
+            userText: ` ${day.label}`,
         });
 
         if (actions.length >= 6) {
@@ -537,7 +537,7 @@ const buildTimeActionsByService = async (dateInput?: string, service?: string) =
         id: `time-${slot}`,
         label: slot,
         value: slot,
-        userText: `🕒 ${slot}`,
+        userText: ` ${slot}`,
     }));
 };
 
@@ -546,7 +546,7 @@ const buildServiceActions = (services: Array<{ title: string }>) => {
         id: `service-${index}`,
         label: service.title,
         value: service.title,
-        userText: `💆 ${service.title}`,
+        userText: ` ${service.title}`,
     }));
 };
 
@@ -685,7 +685,7 @@ const getConfirmationErrorMessage = (error: unknown) => {
         return 'No pude confirmar la cita porque falta sincronizar la base de datos del chatbot. Ejecuta npx prisma db push y vuelve a intentar.';
     }
 
-    return 'No pude confirmar tu cita automáticamente en este momento. Ya guardé tu solicitud y te ayudo a terminarla por WhatsApp ahora mismo 🙏';
+    return 'No pude confirmar tu cita automáticamente en este momento. Ya guardé tu solicitud y te ayudo a terminarla por WhatsApp ahora mismo ';
 };
 
 const normalizeDateForStorage = (value?: string) => {
@@ -743,6 +743,7 @@ export async function POST(req: NextRequest) {
         const { services } = await getCachedChatbotBaseData(req.nextUrl.origin);
         const fileSettings = await getChatbotSettings();
         const googleSettings = await getGoogleCalendarSettings();
+        const googleCalendarId = getCalendarIdFromEmbedUrl(googleSettings.embedUrl);
         const serviceTitles = services.map((service) => service.title);
         const whatsappNumber = process.env.WHATSAPP_CHATBOT_NUMBER || DEFAULT_WHATSAPP_NUMBER;
         const localResult = buildChatbotReply(message, history, { services: serviceTitles, serviceCatalog: services });
@@ -837,7 +838,7 @@ export async function POST(req: NextRequest) {
                             ? `\n\nDías llenos recientes: ${dateSuggestions.fullDays.join(', ')}.`
                             : '';
                     return rememberAndRespond({
-                        reply: `Claro ✅ Te puedo mostrar horarios disponibles. Elige una fecha sugerida o escríbela (ejemplo 22/04).${fullDaysNote}`,
+                        reply: `Claro  Te puedo mostrar horarios disponibles. Elige una fecha sugerida o escríbela (ejemplo 22/04).${fullDaysNote}`,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
                         actions: dateSuggestions.actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
@@ -874,7 +875,7 @@ export async function POST(req: NextRequest) {
                                 ? `\n\nDías llenos recientes: ${dateSuggestions.fullDays.join(', ')}.`
                                 : '';
                         return rememberAndRespond({
-                            reply: `Ese día ya está lleno y no tiene horarios disponibles 😕. Elige otra fecha de la lista.${extra}`,
+                            reply: `Ese día ya está lleno y no tiene horarios disponibles . Elige otra fecha de la lista.${extra}`,
                             intent: 'CONSULTAR_DISPONIBILIDAD',
                             actions: dateSuggestions.actions,
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
@@ -885,12 +886,12 @@ export async function POST(req: NextRequest) {
                         id: `time-${slot}`,
                         label: slot,
                         value: slot,
-                        userText: `🕒 ${slot}`,
+                        userText: ` ${slot}`,
                     }));
                     const preview = dayAvailability.slots.slice(0, 6).join(', ');
 
                     return rememberAndRespond({
-                        reply: `Para ${normalizedDate}, estos horarios están disponibles ✅\n${preview}`,
+                        reply: `Para ${normalizedDate}, estos horarios están disponibles \n${preview}`,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
                         actions: timeActions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
@@ -901,14 +902,14 @@ export async function POST(req: NextRequest) {
                     const totalLoad = await countTotalAppointmentsForSlot(normalizedDate, normalizedTime);
                     if (totalLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
                         return rememberAndRespond({
-                            reply: `Perdón 🙏 ese horario (${normalizedDate || date} ${normalizedTime || time || ''}) ya está lleno. ¿Me compartes otra hora y te ayudo enseguida?`,
+                            reply: `Perdón  ese horario (${normalizedDate || date} ${normalizedTime || time || ''}) ya está lleno. ¿Me compartes otra hora y te ayudo enseguida?`,
                             intent: 'CONSULTAR_DISPONIBILIDAD',
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
                         });
                     }
 
                     return rememberAndRespond({
-                        reply: `Sí, ese horario se ve disponible ✅ (${normalizedDate || date} ${normalizedTime || time || ''}). Si me dices el servicio, te confirmo cupo exacto.`,
+                        reply: `Sí, ese horario se ve disponible  (${normalizedDate || date} ${normalizedTime || time || ''}). Si me dices el servicio, te confirmo cupo exacto.`,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
                     });
@@ -923,7 +924,7 @@ export async function POST(req: NextRequest) {
                     const alternatives = normalizedDate ? await buildTimeActionsByService(normalizedDate, requestedService) : [];
                     if (alternatives.length > 0) {
                         return rememberAndRespond({
-                            reply: `Perdón 🙏 ese horario ya está lleno. En ${normalizedDate} todavía tengo estos horarios: ${alternatives
+                            reply: `Perdón  ese horario ya está lleno. En ${normalizedDate} todavía tengo estos horarios: ${alternatives
                                 .slice(0, 6)
                                 .map((item) => item.value)
                                 .join(', ')}`,
@@ -935,7 +936,7 @@ export async function POST(req: NextRequest) {
 
                     const dateSuggestions = await buildDateSuggestions(requestedService);
                     return rememberAndRespond({
-                        reply: `Perdón 🙏 ese horario ya está lleno. Te propongo otras fechas disponibles 👇`,
+                        reply: `Perdón  ese horario ya está lleno. Te propongo otras fechas disponibles `,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
                         actions: dateSuggestions.actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
@@ -944,7 +945,7 @@ export async function POST(req: NextRequest) {
 
                 if (serviceLoad < MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
                     return rememberAndRespond({
-                        reply: `Sí, ese horario se ve disponible para ${requestedService} ✅ (${normalizedDate || date} ${normalizedTime || time || ''})`,
+                        reply: `Sí, ese horario se ve disponible para ${requestedService}  (${normalizedDate || date} ${normalizedTime || time || ''})`,
                         intent: 'CONSULTAR_DISPONIBILIDAD',
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
                     });
@@ -953,7 +954,7 @@ export async function POST(req: NextRequest) {
                 const alternatives = normalizedDate ? await buildTimeActionsByService(normalizedDate, requestedService) : [];
                 if (alternatives.length > 0) {
                     return rememberAndRespond({
-                        reply: `Perdón 🙏 para ${requestedService}, ese horario ya está lleno. En ${normalizedDate} todavía tengo estos espacios: ${alternatives
+                        reply: `Perdón  para ${requestedService}, ese horario ya está lleno. En ${normalizedDate} todavía tengo estos espacios: ${alternatives
                             .slice(0, 6)
                             .map((item) => item.value)
                             .join(', ')}`,
@@ -965,7 +966,7 @@ export async function POST(req: NextRequest) {
 
                 const dateSuggestions = await buildDateSuggestions(requestedService);
                 return rememberAndRespond({
-                    reply: `Perdón 🙏 para ${requestedService}, ese horario ya está lleno. Te propongo otras fechas disponibles 👇`,
+                    reply: `Perdón  para ${requestedService}, ese horario ya está lleno. Te propongo otras fechas disponibles `,
                     intent: 'CONSULTAR_DISPONIBILIDAD',
                     actions: dateSuggestions.actions,
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero revisar disponibilidad.\n\nMensaje: ${message}`),
@@ -974,7 +975,7 @@ export async function POST(req: NextRequest) {
 
             if (!email) {
                 return rememberAndRespond({
-                    reply: 'Para ayudarte con esa gestión necesito tu correo de la cita ✉️ (ejemplo: nombre@correo.com).',
+                    reply: 'Para ayudarte con esa gestión necesito tu correo de la cita  (ejemplo: nombre@correo.com).',
                     intent: manageIntent === 'cancel' ? 'CANCELAR_CITA' : 'REAGENDAR_CITA',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero gestionar mi cita.\n\nMensaje: ${message}`),
                 });
@@ -1006,7 +1007,7 @@ export async function POST(req: NextRequest) {
                 });
 
                 return rememberAndRespond({
-                    reply: `Listo, tu cita quedó cancelada ✅\n\nServicio: ${appointment.service || 'Sin especificar'}\nFecha: ${appointment.preferredDate || 'Sin fecha'}\nHora: ${appointment.preferredTime || 'Sin hora'}`,
+                    reply: `Listo, tu cita quedó cancelada \n\nServicio: ${appointment.service || 'Sin especificar'}\nFecha: ${appointment.preferredDate || 'Sin fecha'}\nHora: ${appointment.preferredTime || 'Sin hora'}`,
                     intent: 'CANCELAR_CITA',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, cancelé mi cita ${appointment.id} y quiero confirmar.`),
                 });
@@ -1060,7 +1061,7 @@ export async function POST(req: NextRequest) {
 
             if (totalConflictCount >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
                 return rememberAndRespond({
-                    reply: `Perdón 🙏 ese horario (${newDate} ${newTime}) ya está lleno. Dime otra fecha u hora y la actualizo.`,
+                    reply: `Perdón  ese horario (${newDate} ${newTime}) ya está lleno. Dime otra fecha u hora y la actualizo.`,
                     intent: 'REAGENDAR_CITA',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero reagendar mi cita y ese horario estaba ocupado.`),
                 });
@@ -1068,7 +1069,7 @@ export async function POST(req: NextRequest) {
 
             if (conflictCount >= MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
                 return rememberAndRespond({
-                    reply: `Perdón 🙏 para ${appointment.service || 'ese servicio'} ese horario ya está lleno. Dime otra fecha u hora y la actualizo.`,
+                    reply: `Perdón  para ${appointment.service || 'ese servicio'} ese horario ya está lleno. Dime otra fecha u hora y la actualizo.`,
                     intent: 'REAGENDAR_CITA',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero reagendar mi cita y ese horario estaba ocupado.`),
                 });
@@ -1085,7 +1086,7 @@ export async function POST(req: NextRequest) {
             });
 
             return rememberAndRespond({
-                reply: `Perfecto, tu cita fue reagendada ✅\n\nNueva fecha: ${newDate}\nNueva hora: ${newTime}`,
+                reply: `Perfecto, tu cita fue reagendada \n\nNueva fecha: ${newDate}\nNueva hora: ${newTime}`,
                 intent: 'REAGENDAR_CITA',
                 whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, reagendé mi cita ${updated.id} al ${newDate} ${newTime}.`),
             });
@@ -1137,7 +1138,7 @@ export async function POST(req: NextRequest) {
                 });
 
                 if (existing) {
-                    const dedupeMessage = `Ya tengo registrada una cita muy similar para ti ✅\n\nServicio: ${existing.service || 'Sin especificar'}\nFecha: ${existing.preferredDate || 'Sin fecha'}\nHora: ${existing.preferredTime || 'Sin hora'}\n\nSi quieres cambiarla, te ayudo ahora.`;
+                    const dedupeMessage = `Ya tengo registrada una cita muy similar para ti \n\nServicio: ${existing.service || 'Sin especificar'}\nFecha: ${existing.preferredDate || 'Sin fecha'}\nHora: ${existing.preferredTime || 'Sin hora'}\n\nSi quieres cambiarla, te ayudo ahora.`;
                     const whatsappMessage = `Hola, quiero continuar por WhatsApp para revisar mi cita.\n\nMensaje: ${message}`;
 
                     return rememberAndRespond(
@@ -1160,7 +1161,7 @@ export async function POST(req: NextRequest) {
                     const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
                     return rememberAndRespond(
                         {
-                            reply: 'Perdón 🙏 ese horario ya está lleno. ¿Me compartes otra hora? 👇',
+                            reply: 'Perdón  ese horario ya está lleno. ¿Me compartes otra hora? ',
                             intent: 'AGENDAR',
                             actions: timeActions,
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
@@ -1174,7 +1175,7 @@ export async function POST(req: NextRequest) {
                     const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
                     return rememberAndRespond(
                         {
-                            reply: `Perdón 🙏 para ${data.service} ese horario ya está lleno. ¿Me compartes otra hora? 👇`,
+                            reply: `Perdón  para ${data.service} ese horario ya está lleno. ¿Me compartes otra hora? `,
                             intent: 'AGENDAR',
                             actions: timeActions,
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
@@ -1224,6 +1225,7 @@ export async function POST(req: NextRequest) {
 
                 const webhookResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                     action: 'create',
+                    calendarId: googleCalendarId || undefined,
                     name: data.name || 'Cliente',
                     email: data.email!,
                     phone: data.phone,
@@ -1245,7 +1247,7 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                const confirmationMessage = `¡Listo! Ya registré tu cita 🎉\n\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\n\nTe contactaremos para confirmar.`;
+                const confirmationMessage = `¡Listo! Ya registré tu cita \n\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\n\nTe contactaremos para confirmar.`;
                 const whatsappMessage = `Hola, ya registré mi cita en la web.\n\nID: ${created.id}\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}`;
 
                 return rememberAndRespond(
@@ -1277,7 +1279,7 @@ export async function POST(req: NextRequest) {
 
         if (!memory?.pendingConfirmation && isStrongConfirmMessage(message)) {
             return rememberAndRespond({
-                reply: '¡Claro! Para confirmar una cita necesito primero los datos de reserva (servicio, fecha, hora, nombre, correo y teléfono). Si quieres, la armamos aquí mismo en un minuto ✅',
+                reply: '¡Claro! Para confirmar una cita necesito primero los datos de reserva (servicio, fecha, hora, nombre, correo y teléfono). Si quieres, la armamos aquí mismo en un minuto ',
                 intent: 'CONFIRMAR',
                 whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero confirmar una cita.
 
@@ -1297,7 +1299,7 @@ Mensaje: ${message}`),
                 const dateSuggestions = await buildDateSuggestions(memory.bookingDraft.service);
                 return rememberAndRespond(
                     {
-                        reply: 'Perfecto 👍 Cambiemos la fecha. Elige una sugerencia o escríbeme la nueva fecha 👇',
+                        reply: 'Perfecto  Cambiemos la fecha. Elige una sugerencia o escríbeme la nueva fecha ',
                         intent: 'AGENDAR',
                         actions: dateSuggestions.actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la fecha de mi cita.\n\nMensaje: ${message}`),
@@ -1313,8 +1315,8 @@ Mensaje: ${message}`),
                     {
                         reply:
                             timeActions.length > 0
-                                ? 'Perfecto 👍 Cambiemos la hora. Elige una opción o escríbeme el nuevo horario 👇'
-                                : 'Para cambiar la hora primero necesito una fecha disponible. Dime otra fecha 👇',
+                                ? 'Perfecto  Cambiemos la hora. Elige una opción o escríbeme el nuevo horario '
+                                : 'Para cambiar la hora primero necesito una fecha disponible. Dime otra fecha ',
                         intent: 'AGENDAR',
                             actions: timeActions.length > 0 ? timeActions : (await buildDateSuggestions(memory.bookingDraft.service)).actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la hora de mi cita.\n\nMensaje: ${message}`),
@@ -1326,7 +1328,7 @@ Mensaje: ${message}`),
 
             return rememberAndRespond(
                 {
-                    reply: 'Perfecto 👍 ¿Qué te faltó editar (nombre, email, teléfono, servicio, fecha u hora)?',
+                    reply: 'Perfecto  ¿Qué te faltó editar (nombre, email, teléfono, servicio, fecha u hora)?',
                     intent: 'AGENDAR',
                     whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar datos de mi cita.\n\nMensaje: ${message}`),
                     appointmentCreated: false,
@@ -1364,7 +1366,7 @@ Mensaje: ${message}`),
                     const dateSuggestions = await buildDateSuggestions();
                     return rememberAndRespond(
                         {
-                            reply: `${dayValidation.message} Elige otra fecha y te sigo ayudando 👇`,
+                            reply: `${dayValidation.message} Elige otra fecha y te sigo ayudando `,
                             intent: 'AGENDAR',
                             actions: dateSuggestions.actions,
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero continuar por WhatsApp para agendar.
@@ -1393,7 +1395,7 @@ Mensaje: ${message}`),
                     : getLatestBotSuggestedServices(history, serviceTitles);
                 const recallPrefix =
                     isRecommendationRecallQuestion(message) && recallCandidates.length > 0
-                        ? `Claro 👌 Te había recomendado ${formatServiceList(recallCandidates)} para ese objetivo.`
+                        ? `Claro  Te había recomendado ${formatServiceList(recallCandidates)} para ese objetivo.`
                         : '';
                 const composedInfoReply = recallPrefix ? `${recallPrefix}\n\n${infoReply}` : infoReply;
                 const followUp = nextField ? `\n\nSi quieres, seguimos con tu cita. ${getSingleFieldPrompt(nextField, false)}` : '';
@@ -1422,7 +1424,7 @@ Mensaje: ${message}`),
                 const currentService = mergedDraft?.service ? ` para ${mergedDraft.service}` : '';
                 const reply = nextField
                     ? `Seguimos con tu cita${currentService}. ${getSingleFieldPrompt(nextField, false)}`
-                    : 'Seguimos con tu cita 👍';
+                    : 'Seguimos con tu cita ';
 
                 return rememberAndRespond(
                     {
@@ -1439,7 +1441,7 @@ Mensaje: ${message}`),
                 const dateSuggestions = await buildDateSuggestions(mergedDraft?.service);
                 return rememberAndRespond(
                     {
-                        reply: 'Perfecto 👍 Cambiemos la fecha. Elige una sugerencia o escríbeme la nueva fecha 👇',
+                        reply: 'Perfecto  Cambiemos la fecha. Elige una sugerencia o escríbeme la nueva fecha ',
                         intent: 'AGENDAR',
                         actions: dateSuggestions.actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la fecha de mi cita.\n\nMensaje: ${message}`),
@@ -1455,8 +1457,8 @@ Mensaje: ${message}`),
                     {
                         reply:
                             timeActions.length > 0
-                                ? 'Perfecto 👍 Cambiemos la hora. Elige una opción o escríbeme el nuevo horario 👇'
-                                : 'Para cambiar la hora, primero ajusta una fecha disponible 👇',
+                                ? 'Perfecto  Cambiemos la hora. Elige una opción o escríbeme el nuevo horario '
+                                : 'Para cambiar la hora, primero ajusta una fecha disponible ',
                         intent: 'AGENDAR',
                         actions: timeActions.length > 0 ? timeActions : (await buildDateSuggestions(mergedDraft?.service)).actions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar la hora de mi cita.\n\nMensaje: ${message}`),
@@ -1469,7 +1471,7 @@ Mensaje: ${message}`),
             if (requestedEditField === 'servicio') {
                 return rememberAndRespond(
                     {
-                        reply: 'Perfecto 👍 Ahora vamos con tu servicio. ¿Tienes uno en mente o prefieres que te recomiende según lo que buscas?',
+                        reply: 'Perfecto  Ahora vamos con tu servicio. ¿Tienes uno en mente o prefieres que te recomiende según lo que buscas?',
                         intent: 'AGENDAR',
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero editar el servicio de mi cita.\n\nMensaje: ${message}`),
                         appointmentCreated: false,
@@ -1495,7 +1497,7 @@ Mensaje: ${message}`),
                         const dateSuggestions = await buildDateSuggestions(mergedDraft.service);
                         return rememberAndRespond(
                             {
-                                reply: `Perdón 🙏 ese día es festivo (${holiday.name}) y no lo tengo disponible. ¿Te parece elegir otra fecha? 👇`,
+                                reply: `Perdón  ese día es festivo (${holiday.name}) y no lo tengo disponible. ¿Te parece elegir otra fecha? `,
                                 intent: 'AGENDAR',
                                 actions: dateSuggestions.actions,
                                 whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero continuar por WhatsApp para agendar.\n\nMensaje: ${message}`),
@@ -1515,7 +1517,7 @@ Mensaje: ${message}`),
                         const fallbackDates = await buildDateSuggestions(mergedDraft.service);
                         return rememberAndRespond(
                             {
-                                reply: `Perdón 🙏 ese horario ya está lleno. ¿Me compartes otra hora para ${mergedDraft.preferredDate}?`,
+                                reply: `Perdón  ese horario ya está lleno. ¿Me compartes otra hora para ${mergedDraft.preferredDate}?`,
                                 intent: 'AGENDAR',
                                 actions: timeActions.length > 0 ? timeActions : fallbackDates.actions,
                                 whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${mergedDraft.service}.\n\nMensaje: ${message}`),
@@ -1530,7 +1532,7 @@ Mensaje: ${message}`),
                         const fallbackDates = await buildDateSuggestions(mergedDraft.service);
                         return rememberAndRespond(
                             {
-                                reply: `Perdón 🙏 para ${mergedDraft.service} ese horario ya está lleno. ¿Me compartes otra hora?`,
+                                reply: `Perdón  para ${mergedDraft.service} ese horario ya está lleno. ¿Me compartes otra hora?`,
                                 intent: 'AGENDAR',
                                 actions: timeActions.length > 0 ? timeActions : fallbackDates.actions,
                                 whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${mergedDraft.service}.\n\nMensaje: ${message}`),
@@ -1554,7 +1556,7 @@ Mensaje: ${message}`),
                     if (holiday) {
                         return rememberAndRespond(
                             {
-                                reply: `Ese día es festivo (${holiday.name}) y no puedo agendarlo automático. Dame otra fecha y hora 🙌`,
+                                reply: `Ese día es festivo (${holiday.name}) y no puedo agendarlo automático. Dame otra fecha y hora `,
                                 intent: 'AGENDAR',
                                 whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero continuar por WhatsApp para agendar.\n\nMensaje: ${message}`),
                                 appointmentCreated: false,
@@ -1565,7 +1567,7 @@ Mensaje: ${message}`),
                 }
 
                 if (!isConfirmMessage(message)) {
-                    const previewMessage = `Perfecto, te resumo tu cita 👇\n\nNombre: ${data.name}\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\nEmail: ${data.email}\nTel: ${data.phone}\n\nSi todo está bien, responde “confirmar cita” y la registro ✅`;
+                    const previewMessage = `Perfecto, te resumo tu cita \n\nNombre: ${data.name}\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\nEmail: ${data.email}\nTel: ${data.phone}\n\nSi todo está bien, responde “confirmar cita” y la registro `;
 
                     return rememberAndRespond(
                         {
@@ -1576,13 +1578,13 @@ Mensaje: ${message}`),
                                     id: 'confirm-booking',
                                     label: 'Confirmar cita',
                                     value: CONFIRM_BOOKING_TOKEN,
-                                    userText: '✅ Confirmar cita',
+                                    userText: ' Confirmar cita',
                                 },
                                 {
                                     id: 'edit-booking',
                                     label: 'Editar datos',
                                     value: EDIT_BOOKING_TOKEN,
-                                    userText: '✏️ Editar datos',
+                                    userText: ' Editar datos',
                                 },
                             ],
                             whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero confirmar mi cita.\n\nMensaje: ${message}`),
@@ -1615,7 +1617,7 @@ Mensaje: ${message}`),
                 });
 
                 if (existing) {
-                    const dedupeMessage = `Ya tengo registrada una cita muy similar para ti ✅\n\nServicio: ${existing.service || 'Sin especificar'}\nFecha: ${existing.preferredDate || 'Sin fecha'}\nHora: ${existing.preferredTime || 'Sin hora'}\n\nSi quieres cambiarla, te ayudo ahora.`;
+                    const dedupeMessage = `Ya tengo registrada una cita muy similar para ti \n\nServicio: ${existing.service || 'Sin especificar'}\nFecha: ${existing.preferredDate || 'Sin fecha'}\nHora: ${existing.preferredTime || 'Sin hora'}\n\nSi quieres cambiarla, te ayudo ahora.`;
                     const whatsappMessage = `Hola, quiero continuar por WhatsApp para revisar mi cita.\n\nMensaje: ${message}`;
 
                     return rememberAndRespond({
@@ -1634,7 +1636,7 @@ Mensaje: ${message}`),
                 if (totalSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_TOTAL) {
                     const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
                     return rememberAndRespond({
-                        reply: 'Perdón 🙏 ese horario ya está lleno. ¿Me compartes otra hora? 👇',
+                        reply: 'Perdón  ese horario ya está lleno. ¿Me compartes otra hora? ',
                         intent: 'AGENDAR',
                         actions: timeActions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
@@ -1645,7 +1647,7 @@ Mensaje: ${message}`),
                 if (serviceSlotLoad >= MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE) {
                     const timeActions = await buildTimeActionsByService(normalizedDate || data.preferredDate, data.service);
                     return rememberAndRespond({
-                        reply: `Perdón 🙏 para ${data.service} ese horario ya está lleno. ¿Me compartes otra hora? 👇`,
+                        reply: `Perdón  para ${data.service} ese horario ya está lleno. ¿Me compartes otra hora? `,
                         intent: 'AGENDAR',
                         actions: timeActions,
                         whatsappUrl: getWhatsappUrl(whatsappNumber, `Hola, quiero otra hora para ${data.service}.\n\nMensaje: ${message}`),
@@ -1693,6 +1695,7 @@ Mensaje: ${message}`),
 
                 const webhookResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                     action: 'create',
+                    calendarId: googleCalendarId || undefined,
                     name: data.name || 'Cliente',
                     email: data.email!,
                     phone: data.phone,
@@ -1714,7 +1717,7 @@ Mensaje: ${message}`),
                     }
                 }
 
-                const confirmationMessage = `¡Listo! Ya registré tu cita 🎉\n\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\n\nTe contactaremos para confirmar.`;
+                const confirmationMessage = `¡Listo! Ya registré tu cita \n\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}\n\nTe contactaremos para confirmar.`;
                 const whatsappMessage = `Hola, ya registré mi cita en la web.\n\nID: ${created.id}\nServicio: ${data.service}\nFecha: ${data.preferredDate}\nHora: ${data.preferredTime}`;
 
                 return rememberAndRespond(
@@ -1739,16 +1742,16 @@ Mensaje: ${message}`),
 
             if (effectiveMissingFields.length >= 3) {
                 guidedPrompt = isFirstGuidedTurn
-                    ? `Listo, te ayudo a agendar rápido ✨\n\n${formatMissingFieldsPrompt(effectiveMissingFields)}`
+                    ? `Listo, te ayudo a agendar rápido \n\n${formatMissingFieldsPrompt(effectiveMissingFields)}`
                     : formatMissingFieldsPrompt(effectiveMissingFields);
             }
 
             if (hasInvalidEmailInMessage && !mergedDraft?.email) {
-                guidedPrompt = 'Tu correo parece incompleto 🙏 ¿Me lo compartes de nuevo? Ejemplo: nombre@correo.com';
+                guidedPrompt = 'Tu correo parece incompleto  ¿Me lo compartes de nuevo? Ejemplo: nombre@correo.com';
             }
 
             if (!isFirstGuidedTurn && hasAnyBookingData(bookingDecision.data)) {
-                guidedPrompt = `Perfecto, ya anoté ese dato ✅\n\n${guidedPrompt}`;
+                guidedPrompt = `Perfecto, ya anoté ese dato \n\n${guidedPrompt}`;
             }
 
             if (
@@ -1758,22 +1761,22 @@ Mensaje: ${message}`),
                 mergedDraft?.preferredTime &&
                 effectiveMissingFields.length > 0
             ) {
-                guidedPrompt = `Perfecto, intento ${mergedDraft.service} para ${mergedDraft.preferredDate} a las ${mergedDraft.preferredTime} 👌\n\n${guidedPrompt}`;
+                guidedPrompt = `Perfecto, intento ${mergedDraft.service} para ${mergedDraft.preferredDate} a las ${mergedDraft.preferredTime} \n\n${guidedPrompt}`;
             }
 
             if (nextField === 'fecha') {
                 const dateSuggestions = await buildDateSuggestions(mergedDraft?.service);
                 actions = dateSuggestions.actions;
                 if (dateSuggestions.fullDays.length > 0) {
-                    guidedPrompt = `${baseGuidedPrompt}\n\n⚠️ Días llenos recientes: ${dateSuggestions.fullDays.join(', ')}.`;
+                    guidedPrompt = `${baseGuidedPrompt}\n\n Días llenos recientes: ${dateSuggestions.fullDays.join(', ')}.`;
                 }
             } else if (nextField === 'servicio') {
-                guidedPrompt = '¿Cuál servicio te interesa? Puedo recomendarte uno o prefieres elegir de nuestra lista 💆';
+                guidedPrompt = '¿Cuál servicio te interesa? Puedo recomendarte uno o prefieres elegir de nuestra lista ';
             } else if (nextField === 'hora') {
                 const timeActions = await buildTimeActionsByService(mergedDraft?.preferredDate, mergedDraft?.service);
                 if (timeActions.length === 0) {
                     const dateSuggestions = await buildDateSuggestions(mergedDraft?.service);
-                    guidedPrompt = 'Ese día ya está lleno o fuera de horario. Elige otra fecha disponible 👇';
+                    guidedPrompt = 'Ese día ya está lleno o fuera de horario. Elige otra fecha disponible ';
                     actions = dateSuggestions.actions;
                 } else {
                     const slotsPreview = timeActions

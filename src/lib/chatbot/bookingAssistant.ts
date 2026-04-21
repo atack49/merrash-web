@@ -356,10 +356,10 @@ export const buildMissingDataPrompt = (missingFields: string[]) => {
     if (missingFields.length === 0) return '';
 
     if (missingFields.length === 1) {
-        return `Para continuar con tu cita, solo me falta tu ${missingFields[0]} 🙌`;
+        return `Para continuar con tu cita, solo me falta tu ${missingFields[0]} `;
     }
 
     const last = missingFields[missingFields.length - 1];
     const rest = missingFields.slice(0, -1).join(', ');
-    return `Para agendarte me faltan estos datos: ${rest} y ${last} 😊`;
+    return `Para agendarte me faltan estos datos: ${rest} y ${last} `;
 };

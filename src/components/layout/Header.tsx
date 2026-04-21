@@ -50,7 +50,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 👉 SOLO blanco si estás en HOME y NO has hecho scroll
+  //  SOLO blanco si estás en HOME y NO has hecho scroll
   const useWhiteStyle = isHome && !isScrolled;
 
   return (

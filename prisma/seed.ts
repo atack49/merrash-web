@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting seed...');
+    console.log(' Starting seed...');
 
     // Clean existing data
     await prisma.appointment.deleteMany();
@@ -25,7 +25,7 @@ async function main() {
             role: 'admin',
         },
     });
-    console.log('✅ Admin user created:', admin.email);
+    console.log(' Admin user created:', admin.email);
 
     // Create Satisfaction Survey
     const satisfactionSurvey = await prisma.survey.create({
@@ -36,7 +36,7 @@ async function main() {
             active: true,
         },
     });
-    console.log('✅ Satisfaction survey created:', satisfactionSurvey.id);
+    console.log(' Satisfaction survey created:', satisfactionSurvey.id);
 
     // Create questions for satisfaction survey
     const satisfactionQuestions = [
@@ -87,7 +87,7 @@ async function main() {
     for (const question of satisfactionQuestions) {
         await prisma.question.create({ data: question });
     }
-    console.log('✅ Satisfaction survey questions created');
+    console.log(' Satisfaction survey questions created');
 
     // Create "How did you hear about us?" Survey
     const enteradoSurvey = await prisma.survey.create({
@@ -98,7 +98,7 @@ async function main() {
             active: true,
         },
     });
-    console.log('✅ "How did you hear about us?" survey created:', enteradoSurvey.id);
+    console.log(' "How did you hear about us?" survey created:', enteradoSurvey.id);
 
     // Create questions for "enterado" survey
     const enteradoQuestions = [
@@ -144,7 +144,7 @@ async function main() {
     for (const question of enteradoQuestions) {
         await prisma.question.create({ data: question });
     }
-    console.log('✅ "How did you hear about us?" questions created');
+    console.log(' "How did you hear about us?" questions created');
 
     // Create Services
     const services = [
@@ -258,7 +258,7 @@ async function main() {
             },
         });
     }
-    console.log('✅ Services created (16 total)');
+    console.log(' Services created (16 total)');
 
     // Create Testimonials
     const testimonials = [
@@ -303,7 +303,7 @@ async function main() {
     for (const testimonial of testimonials) {
         await prisma.testimonial.create({ data: testimonial });
     }
-    console.log('✅ Testimonials created (6 total)');
+    console.log(' Testimonials created (6 total)');
 
     // Create or update ContactInfo
     await prisma.contactInfo.upsert({
@@ -328,14 +328,14 @@ async function main() {
             }),
         },
     });
-    console.log('✅ Contact info created/updated');
+    console.log(' Contact info created/updated');
 
-    console.log('🎉 Seed completed successfully!');
+    console.log(' Seed completed successfully!');
 }
 
 main()
     .catch((e) => {
-        console.error('❌ Seed error:', e);
+        console.error(' Seed error:', e);
         process.exit(1);
     })
     .finally(async () => {

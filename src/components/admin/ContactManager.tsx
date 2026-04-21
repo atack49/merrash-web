@@ -104,10 +104,10 @@ export function ContactManager({ initialContact }: ContactManagerProps) {
             setIsEditing(false);
             setEditData(updated);
             setNewPhone('');
-            showMessage('success', '✅ Cambios guardados exitosamente');
+            showMessage('success', ' Cambios guardados exitosamente');
         } catch (error) {
             console.error('Error saving contact:', error);
-            showMessage('error', '❌ ' + (error instanceof Error ? error.message : 'Error al guardar'));
+            showMessage('error', ' ' + (error instanceof Error ? error.message : 'Error al guardar'));
         } finally {
             setIsLoading(false);
         }

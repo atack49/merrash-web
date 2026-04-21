@@ -1,5 +1,6 @@
 export interface GoogleCalendarWebhookPayload {
     action?: 'create' | 'update' | 'delete' | 'list';
+    calendarId?: string;
     eventId?: string;
     name?: string;
     email?: string;

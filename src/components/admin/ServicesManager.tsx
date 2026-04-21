@@ -378,8 +378,8 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                 <div className="space-y-3">
                                     <div className="bg-muted border border-border rounded-xl p-2.5 mb-3">
                                         <div className="flex items-center justify-between gap-2">
-                                            <p className="text-xs font-semibold text-muted-foreground">✏️ Editando servicio</p>
-                                            <span className="text-sm">🛠️</span>
+                                            <p className="text-xs font-semibold text-muted-foreground"> Editando servicio</p>
+                                            <span className="text-sm"></span>
                                         </div>
                                     </div>
 
