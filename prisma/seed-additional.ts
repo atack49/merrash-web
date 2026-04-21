@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Seeding additional data...');
+    console.log(' Seeding additional data...');
 
     // Services from the existing SERVICES array in lib/data.ts
     const servicesData = [
@@ -103,7 +103,7 @@ async function main() {
                     active: true,
                 },
             });
-            console.log(`✅ Service created: ${service.title}`);
+            console.log(` Service created: ${service.title}`);
         }
     }
 
@@ -144,16 +144,16 @@ async function main() {
                     active: true,
                 },
             });
-            console.log(`✅ Testimonial created: ${testimonial.name}`);
+            console.log(` Testimonial created: ${testimonial.name}`);
         }
     }
 
-    console.log('🎉 Additional seed completed successfully!');
+    console.log(' Additional seed completed successfully!');
 }
 
 main()
     .catch((e) => {
-        console.error('❌ Seed error:', e);
+        console.error(' Seed error:', e);
         process.exit(1);
     })
     .finally(async () => {

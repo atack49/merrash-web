@@ -218,7 +218,7 @@ index e5dcda6..2ee5ed5 100644
                          >
                              {editingId === service.id ? (
 @@ -334,7 +334,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
-                                             <span className="text-lg">✏️</span>
+                                             <span className="text-lg"></span>
                                          </div>
                                      </div>
 -                                    

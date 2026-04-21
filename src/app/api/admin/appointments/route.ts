@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth-utils';
 import { NextResponse } from 'next/server';
 import { parsePreferredDate, parsePreferredTime } from '@/lib/chatbot/businessSchedule';
-import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
+import { getCalendarIdFromEmbedUrl, getGoogleCalendarSettings } from '@/lib/calendarSettings';
 import { sendAppointmentToGoogleCalendar } from '@/lib/calendarWebhook';
 import { getSlotCapacity } from '@/lib/appointments/capacity';
 
@@ -195,9 +195,11 @@ export async function POST(request: Request) {
 
         try {
             const googleSettings = await getGoogleCalendarSettings();
+            const calendarId = getCalendarIdFromEmbedUrl(googleSettings.embedUrl);
             if (googleSettings.webhookUrl && normalizedDate && normalizedTime) {
                 const createResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                     action: 'create',
+                    calendarId: calendarId || undefined,
                     name: customerName || 'Cliente',
                     email,
                     phone: phone || undefined,

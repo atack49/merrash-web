@@ -1,9 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Pencil, Phone, RefreshCw, Save, Trash2, User, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Pencil, Phone, RefreshCw, Trash2, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Modal } from '@/components/ui/Modal';
 import { MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE, MAX_APPOINTMENTS_PER_HOUR_TOTAL } from '@/lib/appointments/capacityRules';
 
 type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled';
@@ -281,7 +280,6 @@ export function AppointmentsCalendar() {
     const [selectedDayKey, setSelectedDayKey] = useState(() => toDayKey(new Date()));
     const [settings, setSettings] = useState<GoogleCalendarSettings>({ embedUrl: '', webhookUrl: '' });
     const [settingsLoading, setSettingsLoading] = useState(true);
-    const [settingsSaving, setSettingsSaving] = useState(false);
     const [syncingGoogle, setSyncingGoogle] = useState(false);
     const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -377,33 +375,6 @@ export function AppointmentsCalendar() {
         loadGoogleSettings();
     }, []);
 
-    const saveGoogleSettings = async () => {
-        setSettingsSaving(true);
-        setSettingsMessage(null);
-        try {
-            const response = await fetch('/api/admin/google-calendar-settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings),
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data?.error || 'No se pudo guardar configuración');
-            }
-
-            setSettings({
-                embedUrl: data?.embedUrl || '',
-                webhookUrl: data?.webhookUrl || '',
-            });
-            setSettingsMessage('Configuración de Google Calendar guardada ✅');
-        } catch (err) {
-            setSettingsMessage(err instanceof Error ? err.message : 'Error guardando configuración');
-        } finally {
-            setSettingsSaving(false);
-        }
-    };
-
     const syncGoogleCalendar = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
         setSyncingGoogle(true);
         if (!silent) {
@@ -417,7 +388,11 @@ export function AppointmentsCalendar() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data?.error || 'No se pudo sincronizar con Google Calendar');
+                const detail =
+                    typeof data?.details?.error === 'string' && data.details.error.trim().length > 0
+                        ? ` Detalle: ${data.details.error}`
+                        : '';
+                throw new Error((data?.error || 'No se pudo sincronizar con Google Calendar') + detail);
             }
 
             const stats = data?.stats;
@@ -442,6 +417,11 @@ export function AppointmentsCalendar() {
             setSyncingGoogle(false);
         }
     }, []);
+
+    const triggerBackgroundSync = useCallback(() => {
+        if (!settings.webhookUrl) return;
+        void syncGoogleCalendar({ silent: true });
+    }, [settings.webhookUrl, syncGoogleCalendar]);
 
     useEffect(() => {
         if (!settings.webhookUrl) return;
@@ -648,10 +628,12 @@ export function AppointmentsCalendar() {
 
             upsertAppointment(data as Appointment);
             if (data?.googleSync?.attempted && !data?.googleSync?.ok) {
-                setManagementMessage('Cita actualizada en Global ✅, pero Google falló. Revisa webhook/script de Apps Script.');
+                setManagementMessage('Cita actualizada en Global , pero Google falló. Revisa webhook/script de Apps Script.');
             } else {
-                setManagementMessage('Cita actualizada correctamente ✅');
+                setManagementMessage('Cita actualizada correctamente ');
             }
+
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error actualizando cita');
         } finally {
@@ -685,7 +667,8 @@ export function AppointmentsCalendar() {
                 notes: '',
             });
             setIsManualModalOpen(false);
-            setManagementMessage('Cita creada manualmente ✅');
+            setManagementMessage('Cita creada manualmente ');
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error creando cita manual');
         } finally {
@@ -733,10 +716,12 @@ export function AppointmentsCalendar() {
             closeEditModal();
 
             if (data?.googleSync?.attempted && !data?.googleSync?.ok) {
-                setManagementMessage('Cita editada en Global ✅, pero Google falló. Revisa webhook/script.');
+                setManagementMessage('Cita editada en Global , pero Google falló. Revisa webhook/script.');
             } else {
-                setManagementMessage('Cita editada correctamente ✅');
+                setManagementMessage('Cita editada correctamente ');
             }
+
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error editando cita');
         } finally {
@@ -764,10 +749,12 @@ export function AppointmentsCalendar() {
             setAppointments((prev) => prev.filter((item) => item.id !== appointment.id));
 
             if (data?.googleSync?.attempted && !data?.googleSync?.ok) {
-                setManagementMessage('Cita eliminada en Global ✅, pero Google falló al borrar evento.');
+                setManagementMessage('Cita eliminada en Global , pero Google falló al borrar evento.');
             } else {
-                setManagementMessage('Cita eliminada correctamente ✅');
+                setManagementMessage('Cita eliminada correctamente ');
             }
+
+            triggerBackgroundSync();
         } catch (err) {
             setManagementMessage(err instanceof Error ? err.message : 'Error eliminando cita');
         } finally {
@@ -1051,65 +1038,39 @@ export function AppointmentsCalendar() {
                     <div className="space-y-4">
                         <div className="bg-card border border-border rounded-2xl p-4 md:p-6 space-y-4">
                             <div className="flex items-center justify-between gap-3">
-                                <h4 className="text-base md:text-lg font-semibold text-foreground">Ajustes de Google Calendar</h4>
+                                <h4 className="text-base md:text-lg font-semibold text-foreground">Sincronización de Google Calendar</h4>
                                 <div className="flex flex-wrap justify-end gap-2">
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">
                                         <RefreshCw className={cn('w-3.5 h-3.5', syncingGoogle && 'animate-spin')} />
                                         Sincronización activa
                                     </span>
-                                    <button
-                                        type="button"
-                                        onClick={loadGoogleSettings}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-muted hover:bg-slate-200 text-muted-foreground"
-                                    >
-                                        <RefreshCw className="w-3.5 h-3.5" />
-                                        Recargar ajustes
-                                    </button>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">URL embebida de tu calendario</label>
-                                    <input
-                                        type="text"
-                                        value={settings.embedUrl}
-                                        onChange={(e) => setSettings((prev) => ({ ...prev, embedUrl: e.target.value }))}
-                                        placeholder="https://calendar.google.com/calendar/embed?..."
-                                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                        disabled={settingsLoading || settingsSaving}
-                                    />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="rounded-xl border border-border bg-muted/20 p-3">
+                                    <p className="text-xs text-muted-foreground">Estado de conexión</p>
+                                    <p className="text-sm font-semibold text-foreground">
+                                        {settingsLoading
+                                            ? 'Verificando...'
+                                            : settings.embedUrl && settings.webhookUrl
+                                              ? 'Conectado y protegido '
+                                              : 'Configuración incompleta'}
+                                    </p>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">URL webhook para sincronizar eventos (opcional)</label>
-                                    <input
-                                        type="text"
-                                        value={settings.webhookUrl}
-                                        onChange={(e) => setSettings((prev) => ({ ...prev, webhookUrl: e.target.value }))}
-                                        placeholder="https://script.google.com/macros/s/.../exec"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                        disabled={settingsLoading || settingsSaving}
-                                    />
+                                <div className="rounded-xl border border-border bg-muted/20 p-3">
+                                    <p className="text-xs text-muted-foreground">Modo de sincronización</p>
+                                    <p className="text-sm font-semibold text-foreground">Automática cada minuto + al crear, editar o eliminar</p>
                                 </div>
                             </div>
 
                             <p className="text-xs text-muted-foreground">
-                                Guarda las URLs aquí para enlazar tu Google Calendar con la app. El calendario principal usa la agenda interna; esta sección solo mantiene configuración de sincronización.
+                                Las URLs de integración quedaron ocultas para evitar cambios accidentales. La app mantiene la sincronización en segundo plano.
                             </p>
 
                             {settingsMessage && (
                                 <p className="text-sm text-muted-foreground">{settingsMessage}</p>
                             )}
-
-                            <button
-                                type="button"
-                                onClick={saveGoogleSettings}
-                                disabled={settingsLoading || settingsSaving}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-60"
-                            >
-                                <Save className="w-4 h-4" />
-                                Guardar ajustes
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1146,17 +1107,7 @@ export function AppointmentsCalendar() {
                         </div>
                     </div>
 
-                    {managementMessage && (
-                        <div className={cn(
-                            "rounded-2xl border p-4 flex items-center gap-3 shadow-sm font-medium",
-                            managementMessage.includes('✅') 
-                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
-                                : "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                        )}>
-                            {managementMessage.includes('✅') ? <CheckCircle className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
-                            <p className="text-sm md:text-base">{managementMessage.replace(' ✅', '')}</p>
-                        </div>
-                    )}
+                    {managementMessage && <p className="text-sm text-muted-foreground">{managementMessage}</p>}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {appointments.map((appointment) => (
@@ -1200,7 +1151,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'confirmed', 'Marcada como realizada por admin.')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-card text-primary font-medium border border-border shadow-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                                     >
                                         Ya se hizo
                                     </button>
@@ -1208,7 +1159,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'cancelled', 'Cancelada por admin.')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-card text-destructive font-medium border border-border shadow-sm hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
                                     >
                                         Cancelar
                                     </button>
@@ -1216,7 +1167,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => updateStatus(appointment, 'cancelled', 'No show (no llegó a tiempo).')}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-card text-muted-foreground font-medium border border-border shadow-sm hover:bg-muted transition-colors"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-muted text-muted-foreground border border-border hover:bg-slate-200 transition-colors"
                                     >
                                         No llegó a tiempo
                                     </button>
@@ -1224,7 +1175,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => openEditModal(appointment)}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-primary text-primary-foreground font-medium shadow-sm hover:bg-primary/90 transition-colors inline-flex items-center gap-1 border-none"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-accent/40 text-accent-foreground border border-border hover:bg-accent/60 transition-colors inline-flex items-center gap-1"
                                     >
                                         <Pencil className="w-3.5 h-3.5" />
                                         Editar
@@ -1233,7 +1184,7 @@ export function AppointmentsCalendar() {
                                         type="button"
                                         disabled={actionLoadingId === appointment.id}
                                         onClick={() => deleteAppointment(appointment)}
-                                        className="px-3 py-1.5 rounded-full text-xs bg-destructive text-destructive-foreground font-medium shadow-sm hover:bg-destructive/90 transition-colors inline-flex items-center gap-1 border-none"
+                                        className="px-3 py-1.5 rounded-full text-xs bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors inline-flex items-center gap-1"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
                                         Eliminar
@@ -1243,204 +1194,236 @@ export function AppointmentsCalendar() {
                         ))}
                     </div>
 
-                    <Modal
-                        isOpen={!!editingAppointmentId}
-                        onClose={closeEditModal}
-                        title="Editar cita"
-                        description={(
-                            <div className="mt-1 flex items-center gap-2">
-                                {editingAppointment && (
-                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border border-border bg-muted text-muted-foreground">
-                                        {getCreationOrigin(editingAppointment)}
-                                    </span>
-                                )}
+                    {editingAppointmentId && (
+                        <div
+                            className="fixed inset-0 z-[70] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                            onClick={closeEditModal}
+                        >
+                            <div
+                                className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-2xl p-4 md:p-6 space-y-4"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <h4 className="text-base md:text-lg font-semibold text-foreground">Editar cita</h4>
+                                        {editingAppointment && (
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border border-border bg-muted text-muted-foreground">
+                                                {getCreationOrigin(editingAppointment)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={closeEditModal}
+                                        className="h-9 w-9 rounded-full border border-border text-muted-foreground hover:bg-muted flex items-center justify-center"
+                                        aria-label="Cerrar modal"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        value={editForm.customerName}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, customerName: e.target.value }))}
+                                        placeholder="Nombre cliente"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <input
+                                        type="email"
+                                        value={editForm.email}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+                                        placeholder="Email"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editForm.phone}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                                        placeholder="Teléfono"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <select
+                                        value={editForm.service}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, service: e.target.value }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    >
+                                        <option value="">Selecciona servicio</option>
+                                        {serviceOptions.map((service) => (
+                                            <option key={service.id} value={service.title}>{service.title}</option>
+                                        ))}
+                                        {editForm.service && !serviceOptions.some((item) => item.title === editForm.service) && (
+                                            <option value={editForm.service}>{editForm.service}</option>
+                                        )}
+                                    </select>
+                                    <input
+                                        type="date"
+                                        value={editForm.preferredDate}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <input
+                                        type="time"
+                                        value={editForm.preferredTime}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    {editForm.preferredDate && editForm.preferredTime && (
+                                        <div className="md:col-span-2 rounded-xl border border-border bg-muted/20 px-3 py-2 text-xs space-y-1">
+                                            <p className="font-semibold text-foreground">Cupo del horario seleccionado</p>
+                                            <p className={cn(editSlotLoad.totalReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                                Total: {editSlotLoad.total}/{MAX_APPOINTMENTS_PER_HOUR_TOTAL}
+                                            </p>
+                                            <p className={cn(editSlotLoad.serviceReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                                Servicio: {editSlotLoad.service}/{MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <select
+                                        value={editForm.status}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value as AppointmentStatus }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    >
+                                        <option value="pending">Pendiente</option>
+                                        <option value="confirmed">Confirmada</option>
+                                        <option value="cancelled">Cancelada</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        value={editForm.notes}
+                                        onChange={(e) => setEditForm((prev) => ({ ...prev, notes: e.target.value }))}
+                                        placeholder="Notas"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={closeEditModal}
+                                        className="px-5 py-2.5 rounded-full bg-muted text-muted-foreground font-semibold hover:bg-slate-200 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={saveAppointmentEdit}
+                                        disabled={actionLoadingId === editingAppointmentId || (editForm.status !== 'cancelled' && (editSlotLoad.totalReached || editSlotLoad.serviceReached))}
+                                        className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60"
+                                    >
+                                        Guardar cambios
+                                    </button>
+                                </div>
                             </div>
-                        )}
-                        maxWidthClassName="max-w-3xl"
-                    >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                            <input
-                                type="text"
-                                value={editForm.customerName}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, customerName: e.target.value }))}
-                                placeholder="Nombre cliente"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <input
-                                type="email"
-                                value={editForm.email}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
-                                placeholder="Email"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <input
-                                type="text"
-                                value={editForm.phone}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
-                                placeholder="Teléfono"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <select
-                                value={editForm.service}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, service: e.target.value }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        </div>
+                    )}
+
+                    {isManualModalOpen && (
+                        <div
+                            className="fixed inset-0 z-[70] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                            onClick={() => setIsManualModalOpen(false)}
+                        >
+                            <div
+                                className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-2xl p-4 md:p-6 space-y-4"
+                                onClick={(event) => event.stopPropagation()}
                             >
-                                <option value="">Selecciona servicio</option>
-                                {serviceOptions.map((service) => (
-                                    <option key={service.id} value={service.title}>{service.title}</option>
-                                ))}
-                                {editForm.service && !serviceOptions.some((item) => item.title === editForm.service) && (
-                                    <option value={editForm.service}>{editForm.service}</option>
-                                )}
-                            </select>
-                            <input
-                                type="date"
-                                value={editForm.preferredDate}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <input
-                                type="time"
-                                value={editForm.preferredTime}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            {editForm.preferredDate && editForm.preferredTime && (
-                                <div className="md:col-span-2 rounded-xl border border-border bg-muted/20 px-3 py-2 text-xs space-y-1">
-                                    <p className="font-semibold text-foreground">Cupo del horario seleccionado</p>
-                                    <p className={cn(editSlotLoad.totalReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-                                        Total: {editSlotLoad.total}/{MAX_APPOINTMENTS_PER_HOUR_TOTAL}
-                                    </p>
-                                    <p className={cn(editSlotLoad.serviceReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-                                        Servicio: {editSlotLoad.service}/{MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE}
-                                    </p>
+                                <div className="flex items-center justify-between gap-3">
+                                    <h4 className="text-base md:text-lg font-semibold text-foreground">Agendar cita manual (admin)</h4>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsManualModalOpen(false)}
+                                        className="h-9 w-9 rounded-full border border-border text-muted-foreground hover:bg-muted flex items-center justify-center"
+                                        aria-label="Cerrar modal"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
-                            )}
-                            <select
-                                value={editForm.status}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value as AppointmentStatus }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            >
-                                <option value="pending">Pendiente</option>
-                                <option value="confirmed">Confirmada</option>
-                                <option value="cancelled">Cancelada</option>
-                            </select>
-                            <input
-                                type="text"
-                                value={editForm.notes}
-                                onChange={(e) => setEditForm((prev) => ({ ...prev, notes: e.target.value }))}
-                                placeholder="Notas"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                        </div>
 
-                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-4 pt-1">
-                            <button
-                                type="button"
-                                onClick={closeEditModal}
-                                className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground font-semibold hover:bg-secondary/80 transition-colors border border-secondary-foreground/10"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                onClick={saveAppointmentEdit}
-                                disabled={actionLoadingId === editingAppointmentId || (editForm.status !== 'cancelled' && (editSlotLoad.totalReached || editSlotLoad.serviceReached))}
-                                className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60"
-                            >
-                                Guardar cambios
-                            </button>
-                        </div>
-                    </Modal>
-
-                    <Modal
-                        isOpen={isManualModalOpen}
-                        onClose={() => setIsManualModalOpen(false)}
-                        title="Agendar cita manual (admin)"
-                        maxWidthClassName="max-w-3xl"
-                    >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                            <input
-                                type="text"
-                                value={manualForm.customerName}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, customerName: e.target.value }))}
-                                placeholder="Nombre cliente"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <input
-                                type="email"
-                                value={manualForm.email}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, email: e.target.value }))}
-                                placeholder="Email"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <input
-                                type="text"
-                                value={manualForm.phone}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, phone: e.target.value }))}
-                                placeholder="Teléfono"
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <select
-                                value={manualForm.service}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, service: e.target.value }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            >
-                                <option value="">Selecciona servicio</option>
-                                {serviceOptions.map((service) => (
-                                    <option key={service.id} value={service.title}>{service.title}</option>
-                                ))}
-                            </select>
-                            <input
-                                type="date"
-                                value={manualForm.preferredDate}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            <input
-                                type="time"
-                                value={manualForm.preferredTime}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
-                                className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                            {manualForm.preferredDate && manualForm.preferredTime && (
-                                <div className="md:col-span-2 rounded-xl border border-border bg-muted/20 px-3 py-2 text-xs space-y-1">
-                                    <p className="font-semibold text-foreground">Cupo del horario seleccionado</p>
-                                    <p className={cn(manualSlotLoad.totalReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-                                        Total: {manualSlotLoad.total}/{MAX_APPOINTMENTS_PER_HOUR_TOTAL}
-                                    </p>
-                                    <p className={cn(manualSlotLoad.serviceReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-                                        Servicio: {manualSlotLoad.service}/{MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE}
-                                    </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        value={manualForm.customerName}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, customerName: e.target.value }))}
+                                        placeholder="Nombre cliente"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <input
+                                        type="email"
+                                        value={manualForm.email}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, email: e.target.value }))}
+                                        placeholder="Email"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={manualForm.phone}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, phone: e.target.value }))}
+                                        placeholder="Teléfono"
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <select
+                                        value={manualForm.service}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, service: e.target.value }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    >
+                                        <option value="">Selecciona servicio</option>
+                                        {serviceOptions.map((service) => (
+                                            <option key={service.id} value={service.title}>{service.title}</option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="date"
+                                        value={manualForm.preferredDate}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, preferredDate: e.target.value }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    <input
+                                        type="time"
+                                        value={manualForm.preferredTime}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, preferredTime: e.target.value }))}
+                                        className="px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
+                                    {manualForm.preferredDate && manualForm.preferredTime && (
+                                        <div className="md:col-span-2 rounded-xl border border-border bg-muted/20 px-3 py-2 text-xs space-y-1">
+                                            <p className="font-semibold text-foreground">Cupo del horario seleccionado</p>
+                                            <p className={cn(manualSlotLoad.totalReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                                Total: {manualSlotLoad.total}/{MAX_APPOINTMENTS_PER_HOUR_TOTAL}
+                                            </p>
+                                            <p className={cn(manualSlotLoad.serviceReached ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                                Servicio: {manualSlotLoad.service}/{MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="text"
+                                        value={manualForm.notes}
+                                        onChange={(e) => setManualForm((prev) => ({ ...prev, notes: e.target.value }))}
+                                        placeholder="Notas"
+                                        className="md:col-span-2 px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    />
                                 </div>
-                            )}
-                            <input
-                                type="text"
-                                value={manualForm.notes}
-                                onChange={(e) => setManualForm((prev) => ({ ...prev, notes: e.target.value }))}
-                                placeholder="Notas"
-                                className="md:col-span-2 px-4 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                            />
-                        </div>
 
-                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-4 pt-1">
-                            <button
-                                type="button"
-                                onClick={() => setIsManualModalOpen(false)}
-                                className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground font-semibold hover:bg-secondary/80 transition-colors border border-secondary-foreground/10"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                onClick={createManualAppointment}
-                                disabled={actionLoadingId === 'create-manual' || manualSlotLoad.totalReached || manualSlotLoad.serviceReached}
-                                className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60"
-                            >
-                                Crear cita manual
-                            </button>
+                                <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsManualModalOpen(false)}
+                                        className="px-5 py-2.5 rounded-full bg-muted text-muted-foreground font-semibold hover:bg-slate-200 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={createManualAppointment}
+                                        disabled={actionLoadingId === 'create-manual' || manualSlotLoad.totalReached || manualSlotLoad.serviceReached}
+                                        className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60"
+                                    >
+                                        Crear cita manual
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </Modal>
+                    )}
                 </div>
             )}
             </div>

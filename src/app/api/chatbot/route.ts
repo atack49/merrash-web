@@ -21,11 +21,9 @@ export async function POST(req: NextRequest) {
         }
         
         if (result.error) {
-            // Se puede registrar de manera más profunda si se requiere
             return NextResponse.json({ error: result.error }, { status: 500 });
         }
 
-        // Eliminar el objeto error del resultado enviado al frontend si existe vacio
         const { error, ...validResult } = result;
         return NextResponse.json(validResult);
     } catch (e) {

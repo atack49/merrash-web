@@ -1,4 +1,4 @@
-# 🗄️ Configuración de Base de Datos
+#  Configuración de Base de Datos
 
 ## Requisitos Previos
 
@@ -80,12 +80,12 @@ npm run prisma:seed
 
 La consola mostrará:
 ```
-✅ Admin user created: admin@merrash.com
-✅ Satisfaction survey created: [id]
-✅ "How did you hear about us?" survey created: [id]
-✅ Satisfaction survey questions created
-✅ "How did you hear about us?" questions created
-🎉 Seed completed successfully!
+ Admin user created: admin@merrash.com
+ Satisfaction survey created: [id]
+ "How did you hear about us?" survey created: [id]
+ Satisfaction survey questions created
+ "How did you hear about us?" questions created
+ Seed completed successfully!
 ```
 
 ## Paso 6: Iniciar Desarrollo
@@ -101,7 +101,7 @@ Abre http://localhost:3000 en tu navegador.
 - **Email**: `admin@merrash.com`
 - **Contraseña**: `merrash2024`
 
-⚠️ **IMPORTANTE**: Cambiar la contraseña después del primer login en producción.
+ **IMPORTANTE**: Cambiar la contraseña después del primer login en producción.
 
 ## Troubleshooting
 
@@ -142,4 +142,4 @@ npm run prisma:seed
 
 ---
 
-✅ Una vez completado, tu BD estará lista para desarrollo y testing.
+ Una vez completado, tu BD estará lista para desarrollo y testing.

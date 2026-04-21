@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth-utils';
 import { updateAppointmentSchema } from '@/lib/validators';
-import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
+import { getCalendarIdFromEmbedUrl, getGoogleCalendarSettings } from '@/lib/calendarSettings';
 import { sendAppointmentToGoogleCalendar } from '@/lib/calendarWebhook';
 import { getSlotCapacity } from '@/lib/appointments/capacity';
 import { NextResponse, NextRequest } from 'next/server';
@@ -185,6 +185,7 @@ export async function PATCH(
 
         try {
             const googleSettings = await getGoogleCalendarSettings();
+            const calendarId = getCalendarIdFromEmbedUrl(googleSettings.embedUrl);
             const hasWebhook = Boolean(googleSettings.webhookUrl);
             const hasSlot = Boolean(updatedAppointment.preferredDate && updatedAppointment.preferredTime);
             const shouldDeleteOnly = updatedAppointment.status === 'cancelled';
@@ -206,6 +207,7 @@ export async function PATCH(
                 if (shouldDeleteOnly) {
                     const deleteResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                         action: 'delete',
+                        calendarId: calendarId || undefined,
                         eventId: appointment.googleEventId,
                         name: finalName,
                         email: updatedAppointment.email || appointment.email,
@@ -226,6 +228,7 @@ export async function PATCH(
                 } else if (hasSlot) {
                     const updateResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                         action: 'update',
+                        calendarId: calendarId || undefined,
                         eventId: appointment.googleEventId,
                         name: finalName,
                         email: updatedAppointment.email || appointment.email,
@@ -252,6 +255,7 @@ export async function PATCH(
 
                         const deleteResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                             action: 'delete',
+                            calendarId: calendarId || undefined,
                             eventId: appointment.googleEventId,
                             name: finalName,
                             email: updatedAppointment.email || appointment.email,
@@ -274,6 +278,7 @@ export async function PATCH(
                         } else {
                             const createResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                                 action: 'create',
+                                calendarId: calendarId || undefined,
                                 name: finalName,
                                 email: updatedAppointment.email || appointment.email,
                                 phone: updatedAppointment.phone || appointment.phone || undefined,
@@ -348,6 +353,7 @@ export async function PATCH(
 
                 const createResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                     action: 'create',
+                    calendarId: calendarId || undefined,
                     name: finalName,
                     email: updatedAppointment.email || appointment.email,
                     phone: updatedAppointment.phone || appointment.phone || undefined,
@@ -482,9 +488,11 @@ export async function DELETE(
         try {
             if (appointment.googleEventId) {
                 const googleSettings = await getGoogleCalendarSettings();
+                const calendarId = getCalendarIdFromEmbedUrl(googleSettings.embedUrl);
                 if (googleSettings.webhookUrl) {
                     const deleteResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                         action: 'delete',
+                        calendarId: calendarId || undefined,
                         eventId: appointment.googleEventId,
                         name: appointment.customerName || 'Cliente',
                         email: appointment.email,

@@ -1,3 +1,4 @@
+// Merrash Google Calendar webhook (version activa abril 2026)
 const DEFAULT_TIMEZONE = 'America/Mexico_City';
 const DEFAULT_DURATION_MINUTES = 60;
 
