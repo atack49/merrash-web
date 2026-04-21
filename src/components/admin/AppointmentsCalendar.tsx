@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Pencil, Phone, RefreshCw, Trash2, User, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Mail, Pencil, Phone, RefreshCw, Settings, Trash2, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MAX_APPOINTMENTS_PER_HOUR_PER_SERVICE, MAX_APPOINTMENTS_PER_HOUR_TOTAL } from '@/lib/appointments/capacityRules';
 
@@ -306,6 +306,8 @@ export function AppointmentsCalendar() {
         notes: '',
         status: 'pending',
     });
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [editSettingsForm, setEditSettingsForm] = useState<GoogleCalendarSettings>({ embedUrl: '', webhookUrl: '' });
 
     const loadAppointments = async () => {
         setIsLoading(true);
@@ -729,6 +731,39 @@ export function AppointmentsCalendar() {
         }
     };
 
+    const openSettingsModal = () => {
+        setEditSettingsForm({
+            embedUrl: settings.embedUrl,
+            webhookUrl: settings.webhookUrl,
+        });
+        setIsSettingsModalOpen(true);
+    };
+
+    const saveSettings = async () => {
+        setActionLoadingId('save-settings');
+        setSettingsMessage(null);
+        try {
+            const response = await fetch('/api/admin/google-calendar-settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editSettingsForm),
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data?.error || 'No se pudieron guardar los ajustes');
+            }
+
+            setSettings(data as GoogleCalendarSettings);
+            setIsSettingsModalOpen(false);
+            setSettingsMessage('Configuración guardada correctamente ');
+        } catch (err) {
+            setSettingsMessage(err instanceof Error ? err.message : 'Error guardando ajustes');
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
     const deleteAppointment = async (appointment: Appointment) => {
         const shouldDelete = window.confirm('¿Eliminar esta cita? Esta acción no se puede deshacer.');
         if (!shouldDelete) return;
@@ -776,7 +811,7 @@ export function AppointmentsCalendar() {
                         className={cn(
                             'relative z-10 px-5 py-2.5 rounded-t-xl border-t border-l border-r text-sm font-semibold transition-all select-none',
                             sectionView === 'calendarios'
-                                ? '-mb-[1px] border-border bg-card text-foreground [border-bottom-color:hsl(var(--card))]'
+                                ? '-mb-px border-border bg-card text-foreground [border-bottom-color:hsl(var(--card))]'
                                 : 'border-border/60 bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
                         )}
                     >
@@ -788,7 +823,7 @@ export function AppointmentsCalendar() {
                         className={cn(
                             'relative z-10 px-5 py-2.5 rounded-t-xl border-t border-l border-r text-sm font-semibold transition-all select-none',
                             sectionView === 'gestion'
-                                ? '-mb-[1px] border-border bg-card text-foreground [border-bottom-color:hsl(var(--card))]'
+                                ? '-mb-px border-border bg-card text-foreground [border-bottom-color:hsl(var(--card))]'
                                 : 'border-border/60 bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
                         )}
                     >
@@ -1040,6 +1075,14 @@ export function AppointmentsCalendar() {
                             <div className="flex items-center justify-between gap-3">
                                 <h4 className="text-base md:text-lg font-semibold text-foreground">Sincronización de Google Calendar</h4>
                                 <div className="flex flex-wrap justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={openSettingsModal}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-accent/40 text-accent-foreground border border-border hover:bg-accent/60 transition-colors"
+                                    >
+                                        <Settings className="w-3.5 h-3.5" />
+                                        Configurar
+                                    </button>
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">
                                         <RefreshCw className={cn('w-3.5 h-3.5', syncingGoogle && 'animate-spin')} />
                                         Sincronización activa
@@ -1196,7 +1239,7 @@ export function AppointmentsCalendar() {
 
                     {editingAppointmentId && (
                         <div
-                            className="fixed inset-0 z-[70] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                            className="fixed inset-0 z-70 bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
                             onClick={closeEditModal}
                         >
                             <div
@@ -1321,7 +1364,7 @@ export function AppointmentsCalendar() {
 
                     {isManualModalOpen && (
                         <div
-                            className="fixed inset-0 z-[70] bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                            className="fixed inset-0 z-70 bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
                             onClick={() => setIsManualModalOpen(false)}
                         >
                             <div
@@ -1424,8 +1467,84 @@ export function AppointmentsCalendar() {
                             </div>
                         </div>
                     )}
+
                 </div>
             )}
+
+            {isSettingsModalOpen && (
+                <div
+                    className="fixed inset-0 z-70 bg-slate-900/45 backdrop-blur-[1px] flex items-center justify-center p-4"
+                    onClick={() => setIsSettingsModalOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl p-4 md:p-6 space-y-4"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 text-primary">
+                                <Settings className="w-5 h-5" />
+                                <h4 className="text-base md:text-lg font-semibold text-foreground">Ajustes de Google Calendar</h4>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsSettingsModalOpen(false)}
+                                className="h-9 w-9 rounded-full border border-border text-muted-foreground hover:bg-muted flex items-center justify-center"
+                                aria-label="Cerrar modal"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 py-2">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-foreground">URL embebida de tu calendario</label>
+                                <input
+                                    type="text"
+                                    value={editSettingsForm.embedUrl}
+                                    onChange={(e) => setEditSettingsForm((prev) => ({ ...prev, embedUrl: e.target.value }))}
+                                    placeholder="https://calendar.google.com/calendar/embed?..."
+                                    className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-muted/30"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-foreground">URL webhook para sincronizar (Google Apps Script)</label>
+                                <input
+                                    type="text"
+                                    value={editSettingsForm.webhookUrl}
+                                    onChange={(e) => setEditSettingsForm((prev) => ({ ...prev, webhookUrl: e.target.value }))}
+                                    placeholder="https://script.google.com/macros/s/.../exec"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-muted/30"
+                                />
+                                <p className="text-[10px] text-muted-foreground px-1">
+                                    Usa la URL que generaste al implementar tu script como aplicación web.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsSettingsModalOpen(false)}
+                                className="px-5 py-2.5 rounded-full bg-muted text-muted-foreground font-semibold hover:bg-slate-200 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={saveSettings}
+                                disabled={actionLoadingId === 'save-settings'}
+                                className="px-5 py-2.5 rounded-full bg-primary text-white font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
+                            >
+                                {actionLoadingId === 'save-settings' && <RefreshCw className="w-4 h-4 animate-spin" />}
+                                Guardar ajustes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             </div>
         </div>
     );
