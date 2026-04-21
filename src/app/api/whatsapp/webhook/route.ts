@@ -1,19 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WhatsAppWebhookBody, sendWhatsAppMessage } from '@/lib/whatsapp/api';
-import { getChatMemory, saveChatMemory } from '@/lib/chatbot/chatMemory';
-import { buildChatbotReply, ChatHistoryItem } from '@/lib/chatbot/merrashChatbot';
-import {
-    generateGroqChatbotReply,
-    generatePublicHostedChatbotReply,
-    generateTeamReviewedChatbotReply
-} from '@/lib/chatbot/openaiChatbot';
-import { getChatbotSettings } from '@/lib/chatbotSettings';
-import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
-import { prisma } from '@/lib/db';
-import { SERVICES } from '@/lib/data';
-
-// Usar el mismo límite de historial
-const CHATBOT_HISTORY_LIMIT = Number(process.env.CHATBOT_HISTORY_LIMIT || '120');
+import { processChatbotMessage } from '@/lib/chatbot/core';
 
 /**
  * Handle GET requests (Webhook Verification from Meta)
@@ -71,7 +58,7 @@ export async function POST(req: NextRequest) {
 
         console.log(`Mensaje recibido de ${senderPhone}: ${textBody}`);
 
-        // Responder en el entorno asíncrono puro (como el route del chatbot)
+        // Responder en el entorno asíncrono puro
         await processIncomingWhatsAppMessage(senderPhone, textBody);
 
         // Devolver un 200 ok rápidamente a Meta
@@ -85,61 +72,29 @@ export async function POST(req: NextRequest) {
 async function processIncomingWhatsAppMessage(senderPhone: string, messageText: string) {
     try {
         const conversationId = `wa-${senderPhone}`;
-        const memory = await getChatMemory(conversationId);
-        
-        let history: ChatHistoryItem[] = memory?.history || [];
-        
-        // Evitar el mismo mensaje repetido en caso de reintentos rápidos de Meta
-        if (history.length > 0 && history[history.length - 1].text === messageText && history[history.length - 1].role === 'user') {
-            return;
-        }
+        const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-        history.push({ role: 'user', text: messageText });
-
-        // Obtener la configuración actual del bot
-        const fileSettings = await getChatbotSettings();
-        const configuredMode = (fileSettings?.mode || process.env.CHATBOT_MODE || 'auto').toLowerCase();
-        
-        // Formatear servicios para la IA
-        const staticServices = SERVICES.filter(s => s.active).map(s => ({
-            title: s.title,
-            category: s.category || null,
-            description: s.description || null,
-        }));
-        const serviceTitles = staticServices.map(s => s.title);
-
-        const aiInput = {
+        // Delegamos todo el flujo (manejo de contexto, validación de fechas, IA, base de datos de citas y webhook de google)
+        // a la función core unificada.
+        const result = await processChatbotMessage({
             message: messageText,
-            history: history,
-            services: serviceTitles,
-            serviceCatalog: staticServices,
-        };
-
-        let botReply = '';
-
-        // Simplificación del selector de modelo (En producción usa el de /api/chatbot)
-        if (configuredMode === 'local') {
-            const local = buildChatbotReply(messageText, history, { services: serviceTitles, serviceCatalog: staticServices });
-            botReply = local.reply;
-        } else {
-            botReply = await generateTeamReviewedChatbotReply(aiInput) 
-                    || await generatePublicHostedChatbotReply(aiInput)
-                    || await generateGroqChatbotReply(aiInput)
-                    || buildChatbotReply(messageText, history, { services: serviceTitles, serviceCatalog: staticServices }).reply;
-        }
-
-        if (!botReply) {
-            botReply = "Lo siento, tuve un problema procesando tu petición. ¿Puedes intentarlo de nuevo?";
-        }
-
-        // Guardar la memoria antes de enviar el mensaje
-        const nextHistory: ChatHistoryItem[] = [...history, { role: 'bot', text: botReply }];
-        await saveChatMemory(conversationId, {
-            history: nextHistory.slice(-CHATBOT_HISTORY_LIMIT)
+            conversationId,
+            origin
         });
 
-        // Enviar respuesta por WhatsApp
-        await sendWhatsAppMessage(senderPhone, botReply);
+        let finalReply = result.reply || "Lo siento, tuve un problema procesando tu petición. ¿Puedes intentarlo de nuevo?";
+
+        if (result.actions && result.actions.length > 0) {
+            // Formatear acciones sugeridas para que el usuario pueda leerlas y elegirlas enviando otro texto.
+            // Para "confirmar cita" el chatbot usualmente filtra los iconos ✅
+            const actionsText = result.actions.map(action => `- ${action.userText || action.label}`).join('\n');
+            if (actionsText) {
+                finalReply += '\n\nOpciones sugeridas:\n' + actionsText;
+            }
+        }
+
+        // Enviar respuesta compilada por WhatsApp
+        await sendWhatsAppMessage(senderPhone, finalReply);
 
     } catch (e) {
         console.error('Error al generar respuesta asíncrona de WhatsApp', e);
