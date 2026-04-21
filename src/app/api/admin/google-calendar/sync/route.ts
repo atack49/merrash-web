@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth-utils';
-import { getGoogleCalendarSettings } from '@/lib/calendarSettings';
+import { getCalendarIdFromEmbedUrl, getGoogleCalendarSettings } from '@/lib/calendarSettings';
 import { sendAppointmentToGoogleCalendar } from '@/lib/calendarWebhook';
 
 const LOOKBACK_DAYS = 30;
@@ -28,6 +28,11 @@ const getDescriptionValue = (description: string, label: string) => {
 const buildCompositeKey = (email: string, preferredDate: string, preferredTime: string, service: string) =>
     [email.trim().toLowerCase(), preferredDate.trim(), preferredTime.trim(), service.trim().toLowerCase()].join('|');
 
+const getFallbackEmailFromEventId = (eventId: string) => {
+    const cleaned = String(eventId || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
+    return cleaned ? `google.event.${cleaned}@merrash.local` : '';
+};
+
 const normalizeGoogleEvent = (event: GoogleListEvent) => {
     const description = String(event.description || '');
     const customerName = getDescriptionValue(description, 'Cliente');
@@ -38,7 +43,8 @@ const normalizeGoogleEvent = (event: GoogleListEvent) => {
     const attendeeEmails = Array.isArray(event.attendeeEmails)
         ? event.attendeeEmails.map((item) => String(item || '').trim().toLowerCase()).filter(Boolean)
         : [];
-    const email = emailFromDescription || attendeeEmails[0] || '';
+    const fallbackEmail = getFallbackEmailFromEventId(String(event.eventId || ''));
+    const email = emailFromDescription || attendeeEmails[0] || fallbackEmail;
     const service = serviceFromDescription || String(event.title || '').replace(/^Cita Merrash\s*-\s*/i, '').trim() || 'Servicio';
     const preferredDate = String(event.preferredDate || '').trim();
     const preferredTime = String(event.preferredTime || '').trim();
@@ -64,6 +70,7 @@ export async function POST() {
         }
 
         const googleSettings = await getGoogleCalendarSettings();
+        const calendarId = getCalendarIdFromEmbedUrl(googleSettings.embedUrl);
         if (!googleSettings.webhookUrl) {
             return NextResponse.json(
                 { error: 'Primero configura la URL webhook de Google Calendar.' },
@@ -121,6 +128,7 @@ export async function POST() {
 
             const createResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
                 action: 'create',
+                calendarId: calendarId || undefined,
                 name: appointment.customerName || 'Cliente',
                 email: appointment.email,
                 phone: appointment.phone || undefined,
@@ -159,6 +167,7 @@ export async function POST() {
 
         const listResult = await sendAppointmentToGoogleCalendar(googleSettings.webhookUrl, {
             action: 'list',
+            calendarId: calendarId || undefined,
             timeMin: rangeStart.toISOString(),
             timeMax: rangeEnd.toISOString(),
             includeDeleted: false,
@@ -182,8 +191,8 @@ export async function POST() {
             const normalized = normalizeGoogleEvent(event);
             if (!normalized.googleEventId) continue;
             if (normalized.status === 'cancelled') continue;
-            if (!normalized.email || !normalized.preferredDate || !normalized.preferredTime) {
-                warnings.push(`Evento ${normalized.googleEventId} omitido por falta de email, fecha u hora.`);
+            if (!normalized.preferredDate || !normalized.preferredTime) {
+                warnings.push(`Evento ${normalized.googleEventId} omitido por falta de fecha u hora.`);
                 continue;
             }
 

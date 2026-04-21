@@ -14,6 +14,34 @@ const DEFAULT_SETTINGS: GoogleCalendarSettings = {
     webhookUrl: '',
 };
 
+const extractIframeSrc = (value: string) => {
+    const match = value.match(/src\s*=\s*["']([^"']+)["']/i);
+    return match?.[1] || '';
+};
+
+export const getCalendarIdFromEmbedUrl = (embedUrl: string) => {
+    const raw = String(embedUrl || '').trim();
+    if (!raw) return '';
+
+    const urlCandidate = raw.includes('<iframe') ? extractIframeSrc(raw) : raw;
+    if (!urlCandidate) return '';
+
+    try {
+        const parsed = new URL(urlCandidate);
+        const calendarId = parsed.searchParams.get('src');
+        return calendarId ? calendarId.trim() : '';
+    } catch {
+        const match = urlCandidate.match(/[?&]src=([^&]+)/i);
+        if (!match?.[1]) return '';
+
+        try {
+            return decodeURIComponent(match[1]).trim();
+        } catch {
+            return match[1].trim();
+        }
+    }
+};
+
 async function ensureDataDir() {
     try {
         await fs.access(DATA_DIR);

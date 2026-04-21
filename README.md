@@ -2,35 +2,35 @@
 
 Una aplicación web completa para gestión de citas médicas, cursos y administración, construida con Next.js 16, TypeScript, Prisma y PostgreSQL.
 
-## 🚀 Características
+##  Características
 
-### 📅 Sistema de Citas
+###  Sistema de Citas
 - **Capacidad por hora**: Máximo 5 citas totales por hora, 2 por servicio
 - **Horarios de negocio**: Lunes-Viernes 8AM-6PM, Sábados 9AM-4PM, Domingos cerrado
 - **Chatbot inteligente**: Reserva automática con validación de reglas
 - **Calendario administrativo**: Vista completa con gestión de citas
 - **Sincronización opcional**: Integración con Google Calendar
 
-### 🎓 Sistema de Cursos
+###  Sistema de Cursos
 - **Gestión de cursos**: Crear, activar/desactivar y eliminar cursos
 - **Asignación de estudiantes**: Matricular estudiantes con validación de email
 - **Panel administrativo**: Interfaz intuitiva para gestión completa
 - **Validaciones robustas**: Email, campos obligatorios, confirmaciones
 
-### 🤖 Chatbot IA
+###  Chatbot IA
 - **Modo híbrido**: IA local + OpenAI opcional
 - **Reserva automática**: Procesa solicitudes naturales de citas
 - **Validación inteligente**: Respeta reglas de capacidad y horarios
 - **WhatsApp opcional**: Integración con mensajería
 
-### 👨‍💼 Panel Administrativo
+###  Panel Administrativo
 - **Dashboard completo**: Citas, cursos, servicios, encuestas, testimonios
 - **Gestión de servicios**: CRUD completo de servicios médicos
 - **Análisis de encuestas**: Métricas y resultados detallados
 - **Testimonios**: Moderación y publicación
 - **Configuración**: Google Calendar, chatbot settings
 
-## 🛠️ Tecnologías
+##  Tecnologías
 
 - **Frontend**: Next.js 16, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Prisma ORM
@@ -39,13 +39,13 @@ Una aplicación web completa para gestión de citas médicas, cursos y administr
 - **UI**: Radix UI, Lucide Icons
 - **IA**: OpenAI API (opcional) + reglas locales
 
-## 📋 Requisitos
+##  Requisitos
 
 - Node.js 18+
 - PostgreSQL
 - npm/yarn/pnpm
 
-## 🚀 Instalación
+##  Instalación
 
 1. **Clona el repositorio**
    ```bash
@@ -66,7 +66,9 @@ Una aplicación web completa para gestión de citas médicas, cursos y administr
 
 4. **Configura variables de entorno**
    ```bash
-   cp .env.example .env.local
+   # Crea el archivo de entorno local
+   # Windows PowerShell: New-Item -Path .env.local -ItemType File -Force
+   # macOS/Linux: touch .env.local
    ```
 
    Edita `.env.local`:
@@ -96,7 +98,7 @@ Una aplicación web completa para gestión de citas médicas, cursos y administr
 
    Abre [http://localhost:3000](http://localhost:3000)
 
-## 📊 Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```
 src/
@@ -122,7 +124,7 @@ src/
 └── ...
 ```
 
-## 🎯 Uso
+##  Uso
 
 ### Para Administradores
 1. Ve a `/admin` e inicia sesión
@@ -135,7 +137,7 @@ src/
 2. Completa encuestas de satisfacción
 3. Deja testimonios
 
-## 🔧 Configuración Avanzada
+##  Configuración Avanzada
 
 ### Reglas de Capacidad de Citas
 ```typescript
@@ -156,12 +158,35 @@ const BUSINESS_SCHEDULE = {
 ```
 
 ### Google Calendar (Opcional)
-1. Crea credenciales en Google Cloud Console
-2. Configura OAuth 2.0
-3. Agrega URLs en el panel admin
-4. Las citas se sincronizan automáticamente
 
-## 🧪 Testing
+Esta integración usa **Apps Script como webhook** (no usa OAuth directo en Next.js).
+
+1. Abre el script base en [scripts/google-calendar-webhook.gs](scripts/google-calendar-webhook.gs)
+2. Crea un proyecto en Apps Script y pega ese contenido en Codigo.gs
+3. Publica como Aplicacion web:
+   - Ejecutar como: tu cuenta
+   - Acceso: quien corresponda a tu flujo (normalmente cualquiera con el enlace)
+4. Copia la URL de deployment que termina en /exec
+5. En la configuración local, guarda:
+   - embedUrl: URL publica embebida de tu calendario Google (de Integrar calendario)
+   - webhookUrl: URL /exec de Apps Script
+
+Archivo local de configuracion:
+- [data/google-calendar-settings.json](data/google-calendar-settings.json)
+
+Acciones que soporta el webhook:
+- create
+- update
+- delete
+- list
+
+Flujo de sincronizacion implementado:
+- La app envia calendarId al webhook (derivado de embedUrl -> query src) para usar el calendario correcto.
+- Sync automatico cada minuto en la vista admin cuando la pestaña esta visible.
+- Sync adicional inmediato despues de crear, editar o eliminar citas.
+- Si un evento de Google no trae email, la app genera un email tecnico estable para poder importarlo sin perderlo.
+
+##  Testing
 
 ```bash
 # Ejecutar tests
@@ -174,7 +199,7 @@ npm run build
 npm run lint
 ```
 
-## 📚 API Reference
+##  API Reference
 
 ### Cursos
 - `GET /api/admin/courses` - Listar cursos
@@ -193,7 +218,7 @@ npm run lint
 - `PATCH /api/admin/appointments/[id]` - Actualizar cita
 - `DELETE /api/admin/appointments/[id]` - Eliminar cita
 
-## 🤝 Contribución
+##  Contribución
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -201,11 +226,11 @@ npm run lint
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📝 Licencia
+##  Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
-## 📞 Soporte
+##  Soporte
 
 Para soporte técnico o preguntas:
 - Email: soporte@merrash.com
@@ -213,7 +238,7 @@ Para soporte técnico o preguntas:
 
 ---
 
-Desarrollado con ❤️ para la comunidad médica
+Desarrollado con  para la comunidad médica
 
 Sin `OPENAI_API_KEY`, el chatbot sigue funcionando con la IA local actual.
 
