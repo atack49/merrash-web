@@ -46,6 +46,8 @@ export default async function AdminPage() {
                 id: true,
                 title: true,
                 description: true,
+                priceSession: true,
+                pricePackage: true,
                 icon: true,
                 category: true,
                 active: true,

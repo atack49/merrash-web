@@ -6,21 +6,12 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const sections = await prisma.section.findMany({
+    const courses = await prisma.course.findMany({
       where: { active: true },
-      include: {
-        courses: {
-          where: { active: true },
-          include: {
-            contents: true,
-          },
-          orderBy: [{ order: 'asc' }, { title: 'asc' }],
-        },
-      },
       orderBy: [{ order: 'asc' }, { title: 'asc' }],
     });
 
-    return NextResponse.json(sections);
+    return NextResponse.json(courses);
   } catch (error) {
     console.error('Error fetching public courses:', error);
     return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });

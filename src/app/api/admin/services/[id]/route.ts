@@ -15,6 +15,8 @@ export async function GET(
                 id: true,
                 title: true,
                 description: true,
+                priceSession: true,
+                pricePackage: true,
                 icon: true,
                 category: true,
                 order: true,
@@ -52,7 +54,7 @@ export async function PATCH(
 
         const { id } = await params;
         const body = await request.json();
-        const { title, description, icon, category, order, active } = body;
+        const { title, description, priceSession, pricePackage, icon, category, order, active } = body;
 
         const previousService = await prisma.service.findUnique({
             where: { id },
@@ -86,6 +88,8 @@ export async function PATCH(
         const updateData: any = {};
         if (title !== undefined) updateData.title = title;
         if (description !== undefined) updateData.description = description;
+        if (priceSession !== undefined) updateData.priceSession = priceSession;
+        if (pricePackage !== undefined) updateData.pricePackage = pricePackage;
         if (normalizedIcon !== undefined) updateData.icon = normalizedIcon;
         if (category !== undefined) updateData.category = category;
         if (order !== undefined) updateData.order = order;
@@ -98,6 +102,8 @@ export async function PATCH(
                 id: true,
                 title: true,
                 description: true,
+                priceSession: true,
+                pricePackage: true,
                 icon: true,
                 category: true,
                 order: true,

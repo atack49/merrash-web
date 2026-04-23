@@ -36,8 +36,8 @@ export async function GET(
         }
 
         // Constants to map Question ordering to frontend state IDs
-        const satisfactionKeys = ["service_quality", "staff_attitude", "facility_cleanliness", "value_for_money", "recommendation", "comments"];
-        const informedKeys = ["how_did_you_hear", "first_visit", "expectations", "comments"];
+        const satisfactionKeys = ["attended_by", "staff_attitude", "staff_improvement", "treatment_taken", "what_to_include", "info_therapies", "medical_history", "aftercare_instructions", "info_courses", "interested_therapies", "interested_courses", "additional_courses"];
+        const informedKeys = ["how_did_you_hear", "social_network", "recommended_by", "first_visit", "expectations", "comments"];
 
         // Process results
         const results = survey.questions.map(q => {
@@ -84,7 +84,7 @@ export async function GET(
                     average: answers.length > 0 ? (sum / answers.length).toFixed(1) : 0,
                     distribution
                 };
-            } else if (q.type === 'select') {
+            } else if (q.type === 'select' || q.type === 'radio' || q.type === 'checkbox') {
                 const counts: Record<string, number> = {};
                 if (questionResults.options) {
                     questionResults.options.forEach((opt: string) => {
@@ -92,12 +92,19 @@ export async function GET(
                     });
                 }
                 answers.forEach(a => {
-                    const val = a as string;
-                    counts[val] = (counts[val] || 0) + 1;
+                    if (Array.isArray(a)) {
+                        a.forEach(val => {
+                            const strVal = String(val);
+                            counts[strVal] = (counts[strVal] || 0) + 1;
+                        });
+                    } else {
+                        const strVal = String(a);
+                        counts[strVal] = (counts[strVal] || 0) + 1;
+                    }
                 });
                 questionResults.stats = { counts };
-            } else if (q.type === 'text') {
-                questionResults.answers = answers; // Just array of text
+            } else if (q.type === 'text' || q.type === 'textarea') {
+                questionResults.answers = answers; // array of text
             }
 
             return questionResults;

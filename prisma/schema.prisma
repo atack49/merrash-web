@@ -94,6 +94,8 @@ model Service {
   id          String   @id @default(cuid())
   title       String
   description String
+  priceSession String?
+  pricePackage String?
   icon        String?  // icon name from lucide-react
   category    String   // 'Cuerpo' | 'Mente' | 'Belleza'
   order       Int      @default(0)
@@ -138,71 +140,20 @@ model ContactInfo {
   updatedAt DateTime @updatedAt
 }
 
-model Section {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  active      Boolean  @default(true)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  courses     Course[]
-
-  @@index([active])
-  @@index([order])
-}
-
-enum CourseContentType {
-  TASK
-  MATERIAL
-  PDF
-  TOOL
-}
-
 model Course {
   id          String   @id @default(cuid())
-  sectionId   String
-  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   title       String
-  description String?
+  description String
+  price       String?
+  icon        String?  // image URL from cloudinary
+  category    String   // 'Cuerpo' | 'Mente' | 'Espíritu'
   active      Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  contents    CourseContent[]
-  assignments CourseAssignment[]
-
-  @@index([sectionId])
+  @@index([category])
   @@index([active])
   @@index([order])
-}
-
-model CourseContent {
-  id          String            @id @default(cuid())
-  courseId    String
-  course      Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  resourceUrl String?
-  type        CourseContentType @default(TASK)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
-  @@index([courseId])
-  @@index([type])
-}
-
-model CourseAssignment {
-  id           String   @id @default(cuid())
-  courseId     String
-  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  studentName  String
-  studentEmail String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([courseId])
-  @@index([studentEmail])
+  @@index([category, active])
 }

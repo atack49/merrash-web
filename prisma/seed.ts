@@ -40,48 +40,28 @@ async function main() {
 
     // Create questions for satisfaction survey
     const satisfactionQuestions = [
-        {
-            surveyId: satisfactionSurvey.id,
-            text: '¿Cómo calificarías la calidad del servicio?',
-            type: 'rating',
-            order: 1,
-            required: true,
-        },
-        {
-            surveyId: satisfactionSurvey.id,
-            text: '¿Cómo fue la actitud del personal?',
-            type: 'rating',
-            order: 2,
-            required: true,
-        },
-        {
-            surveyId: satisfactionSurvey.id,
-            text: '¿Cómo fue la limpieza de las instalaciones?',
-            type: 'rating',
-            order: 3,
-            required: true,
-        },
-        {
-            surveyId: satisfactionSurvey.id,
-            text: '¿Consideras que el precio es justo?',
-            type: 'rating',
-            order: 4,
-            required: true,
-        },
-        {
-            surveyId: satisfactionSurvey.id,
-            text: '¿Nos recomendarías con amigos o familiares?',
-            type: 'rating',
-            order: 5,
-            required: true,
-        },
-        {
-            surveyId: satisfactionSurvey.id,
-            text: '¿Tienes algún comentario adicional?',
-            type: 'text',
-            order: 6,
-            required: false,
-        },
+        { surveyId: satisfactionSurvey.id, text: 'Nombre de la persona que te atendió:', type: 'text', order: 1, required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Cómo fue el trato de esa persona?', type: 'rating', order: 2, required: true },
+        { surveyId: satisfactionSurvey.id, text: '¿Qué recomendarías para mejorar tu experiencia con esta persona?', type: 'text', order: 3, required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Qué tratamiento tomaste?', type: 'select', order: 4, options: JSON.stringify([
+            "Acupuntura", "Homeopatía", "Rehabilitación", "Auriculoterapia", "Par Biomagnético",
+            "Terapia Neural", "Sueroterapia Intravenosa", "Tratamientos Faciales", "Tratamientos Corporales", "Masajes",
+            "Tarot Terapéutico", "Reiki", "Healy", "Toque Cuántico", "Arborología", "Método Integral", "Otro"
+        ]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Qué te gustaría que incluyéramos para mejorar tu experiencia?', type: 'text', order: 5, required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Te dieron información de todas las terapias que manejamos?', type: 'radio', order: 6, options: JSON.stringify(["Sí", "No"]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Te hicieron historia clínica y firmaste tu consentimiento informado?', type: 'radio', order: 7, options: JSON.stringify(["Sí", "No"]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Te dieron a conocer las indicaciones para después de tu terapia?', type: 'radio', order: 8, options: JSON.stringify(["Sí", "No"]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Te informaron sobre todos los cursos que tenemos?', type: 'radio', order: 9, options: JSON.stringify(["Sí", "No"]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Qué terapias te interesaría tomar más adelante?', type: 'checkbox', order: 10, options: JSON.stringify([
+            "Acupuntura", "Homeopatía", "Rehabilitación", "Auriculoterapia", "Par Biomagnético",
+            "Terapia Neural", "Sueroterapia Intravenosa", "Tratamientos Faciales", "Tratamientos Corporales", "Masajes",
+            "Tarot Terapéutico", "Reiki", "Healy", "Toque Cuántico", "Arborología", "Método Integral"
+        ]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Qué curso te interesaría tomar?', type: 'checkbox', order: 11, options: JSON.stringify([
+            "Curso de Acupuntura", "Curso de Biomagnetismo", "Curso de Reiki", "Curso de Tarot", "Otro"
+        ]), required: false },
+        { surveyId: satisfactionSurvey.id, text: '¿Algún curso adicional que estés interesado en tomar? (Especifica)', type: 'text', order: 12, required: false },
     ];
 
     for (const question of satisfactionQuestions) {
@@ -108,35 +88,49 @@ async function main() {
             type: 'select',
             order: 1,
             options: JSON.stringify([
+                'Redes sociales',
                 'Recomendación de amigo/familiar',
-                'Google/Búsqueda en internet',
-                'Instagram',
-                'Facebook',
-                'Anuncio/Volante',
+                'Búsqueda en internet',
+                'Publicidad',
                 'Otro',
             ]),
             required: true,
         },
         {
             surveyId: enteradoSurvey.id,
-            text: '¿Es tu primera visita?',
+            text: '¿Cuál red social?',
             type: 'select',
             order: 2,
+            options: JSON.stringify(['Facebook', 'Instagram', 'TikTok', 'Otra']),
+            required: false,
+        },
+        {
+            surveyId: enteradoSurvey.id,
+            text: 'Nombre del grupo de difusión o persona que recomienda',
+            type: 'text',
+            order: 3,
+            required: false,
+        },
+        {
+            surveyId: enteradoSurvey.id,
+            text: '¿Es tu primera visita?',
+            type: 'radio',
+            order: 4,
             options: JSON.stringify(['Sí', 'No']),
             required: true,
         },
         {
             surveyId: enteradoSurvey.id,
-            text: '¿Se cumplieron tus expectativas?',
+            text: '¿Cumplieron tus expectativas?',
             type: 'rating',
-            order: 3,
+            order: 5,
             required: true,
         },
         {
             surveyId: enteradoSurvey.id,
-            text: '¿Tienes algún comentario adicional?',
+            text: 'Comentarios adicionales',
             type: 'text',
-            order: 4,
+            order: 6,
             required: false,
         },
     ];

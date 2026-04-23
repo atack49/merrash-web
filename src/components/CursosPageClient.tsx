@@ -1,359 +1,199 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Modal } from '@/components/ui/Modal';
-
-type ContentType = 'TASK' | 'MATERIAL' | 'PDF' | 'TOOL';
-
-interface CourseContent {
-  id: string;
-  title: string;
-  description?: string | null;
-  resourceUrl?: string | null;
-  type: ContentType;
-}
+import { BookOpen } from 'lucide-react';
 
 interface Course {
   id: string;
   title: string;
-  description?: string | null;
+  description: string;
   active: boolean;
   order: number;
-  contents: CourseContent[];
-}
-
-interface Section {
-  id: string;
-  title: string;
-  description?: string | null;
-  courses: Course[];
+  icon?: string | null;
+  category: string;
+  price?: string | null;
 }
 
 interface CursosPageClientProps {
-  sections: Section[];
+  courses: Course[];
 }
 
-function getCourseKey(courseId: string) {
-  return courseId.slice(0, 8).toUpperCase();
-}
+const isImageSource = (value?: string | null) => {
+  if (!value) return false;
+  return value.trim().length > 5;
+};
 
-function isYouTubeUrl(url?: string | null) {
-  if (!url) return false;
-  return /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)/i.test(url);
-}
+function useIsDesktop() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === 'undefined') {
+        return () => {};
+      }
 
-function getYouTubeEmbedUrl(url?: string | null) {
-  if (!url) return '';
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]+)/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
-}
-
-export function CursosPageClient({ sections }: CursosPageClientProps) {
-  const [joinedCourses, setJoinedCourses] = useState<string[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
-  const [courseKeyEntry, setCourseKeyEntry] = useState<string>('');
-  const [courseKeyError, setCourseKeyError] = useState<string>('');
-  const [showCourseKeyModal, setShowCourseKeyModal] = useState(false);
-  const [showMaterialModal, setShowMaterialModal] = useState(false);
-  const [activeMaterialId, setActiveMaterialId] = useState<string>('');
-
-  useEffect(() => {
-    const stored = localStorage.getItem('joinedCourses');
-    if (stored) {
-      setJoinedCourses(JSON.parse(stored));
-    }
-  }, []);
-
-  const saveJoinedCourses = (courses: string[]) => {
-    localStorage.setItem('joinedCourses', JSON.stringify(courses));
-    setJoinedCourses(courses);
-  };
-
-  const allCourses = useMemo(() => sections.flatMap(section => section.courses), [sections]);
-
-  const selectedCourse = useMemo(
-    () => allCourses.find((course) => course.id === selectedCourseId) || null,
-    [allCourses, selectedCourseId]
+      const mq = window.matchMedia('(min-width: 768px)');
+      mq.addEventListener('change', onStoreChange);
+      return () => mq.removeEventListener('change', onStoreChange);
+    },
+    () => {
+      if (typeof window === 'undefined') {
+        return false;
+      }
+      return window.matchMedia('(min-width: 768px)').matches;
+    },
+    () => false
   );
+}
 
-  const joinedCourseObjects = useMemo(
-    () => allCourses.filter(course => joinedCourses.includes(course.id)),
-    [allCourses, joinedCourses]
-  );
+export function CursosPageClient({ courses }: CursosPageClientProps) {
+  const isDesktop = useIsDesktop();
+  const categories = useMemo(() => {
+    const values = courses.map((course) => course.category).filter(Boolean);
+    return Array.from(new Set(values));
+  }, [courses]);
+  const [visibleCategory, setVisibleCategory] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
-  const findCourseByKey = (key: string) => {
-    const normalized = key.trim().toUpperCase();
-    return allCourses.find((course) => getCourseKey(course.id) === normalized) || null;
-  };
+  const activeCategory = visibleCategory ?? (isDesktop ? categories[0] ?? null : null);
 
-  const handleOpenCourseKeyModal = () => {
-    setCourseKeyEntry('');
-    setCourseKeyError('');
-    setShowCourseKeyModal(true);
-  };
+  const coursesToShow = useMemo(() => {
+    if (!activeCategory) return [];
+    return courses.filter((item) => item.category === activeCategory);
+  }, [courses, activeCategory]);
 
-  const handleCourseKeySubmit = () => {
-    const course = findCourseByKey(courseKeyEntry);
-    if (!course) {
-      setCourseKeyError('Clave incorrecta. Revisa el código y vuelve a intentarlo.');
-      return;
-    }
-
-    if (!joinedCourses.includes(course.id)) {
-      const newJoined = [...joinedCourses, course.id];
-      saveJoinedCourses(newJoined);
-    }
-
-    setSelectedCourseId(course.id);
-    setShowCourseKeyModal(false);
-    setCourseKeyError('');
-  };
-
-  const handleSelectJoinedCourse = (courseId: string) => {
-    setSelectedCourseId(courseId);
-  };
-
-  const openMaterialModal = (contentId: string) => {
-    setActiveMaterialId(contentId);
-    setShowMaterialModal(true);
-  };
-
-  const activeMaterial = useMemo(
-    () => selectedCourse?.contents.find((content) => content.id === activeMaterialId) || selectedCourse?.contents[0] || null,
-    [selectedCourse, activeMaterialId]
+  const totalCourses = useMemo(
+    () => courses.length,
+    [courses]
   );
 
   return (
-    <div className="container mx-auto px-4 py-16 lg:px-8">
-      <div className="max-w-4xl space-y-4 text-center mx-auto mb-12">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-primary">Cursos</p>
-        <h1 className="text-4xl font-semibold sm:text-5xl">Formación para alumnos y acompañamiento de clase</h1>
-        <p className="text-base leading-8 text-muted-foreground">
-          Accede a tus cursos con la clave proporcionada. Una vez dentro, podrás ver todos tus materiales y recursos.
-        </p>
-      </div>
-
-      {joinedCourses.length === 0 ? (
-        <div className="max-w-md mx-auto text-center space-y-6">
-          <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Bienvenido</p>
-              <h2 className="mt-2 text-2xl font-semibold">Accede a tu primer curso</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Ingresa la clave del curso que te compartieron para comenzar.
-              </p>
-            </div>
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={handleOpenCourseKeyModal}
-                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90"
-              >
-                Meterme a curso
-              </button>
-            </div>
-          </div>
+    <section id="cursos" className="bg-background pt-32 pb-24 md:pt-40 md:pb-32 transition-all duration-300">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20 space-y-4">
+          <h1 className="text-3xl md:text-5xl font-bold text-primary tracking-tight">Nuestros Cursos</h1>
+          <p className="text-lg text-muted-foreground font-light">
+            Elige una categoría y descubre los cursos con su material disponible.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Actualmente tenemos <span className="font-semibold text-foreground">{totalCourses}</span> curso{totalCourses !== 1 ? 's' : ''} publicados.
+          </p>
         </div>
-      ) : (
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Mis cursos</h2>
-              <p className="text-sm text-muted-foreground">Cursos a los que tienes acceso.</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleOpenCourseKeyModal}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
-            >
-              Unirme a otro curso
-            </button>
-          </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {joinedCourseObjects.map((course) => (
-              <button
+        <div className="flex justify-center flex-wrap gap-3 md:gap-4 mb-12 md:mb-16">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => setVisibleCategory(category)}
+              className={[
+                'px-4 md:px-6 py-2.5 rounded-full text-xs md:text-sm font-medium transition-all duration-300 border',
+                activeCategory === category
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
+                  : 'bg-transparent text-muted-foreground border-border hover:border-primary/50 hover:text-primary hover:scale-105',
+              ].join(' ')}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {coursesToShow.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {coursesToShow.map((course, index) => (
+              <article
                 key={course.id}
-                type="button"
-                onClick={() => handleSelectJoinedCourse(course.id)}
-                className={`rounded-3xl border p-6 text-left transition ${
-                  course.id === selectedCourseId
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border/70 bg-card hover:border-primary/80'
-                }`}
+                style={{ animationDelay: `${index * 70}ms` }}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedCourse(course)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setSelectedCourse(course);
+                  }
+                }}
+                className="group relative min-h-[220px] md:min-h-[260px] overflow-hidden rounded-3xl border border-border/50 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 animate-[fadeUp_0.45s_ease-out_forwards]"
               >
-                <div>
-                  <h3 className="text-lg font-semibold">{course.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                    {course.description || 'Sin descripción'}
-                  </p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {course.contents.length} materiales
-                    </span>
+                <div className="absolute inset-0 bg-service-card" />
+
+                <div
+                  className="absolute inset-0 service-card-shapes"
+                  style={{
+                    backgroundImage:
+                      'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 800 600\' preserveAspectRatio=\'xMidYMid slice\'%3E%3Cpath fill=\'%2343C6B5\' fill-opacity=\'0.15\' d=\'M0 0 L0 250 Q 200 350 450 150 T 800 50 L 800 0 Z\' /%3E%3Cpath fill=\'%238FD9D0\' fill-opacity=\'0.25\' d=\'M0 0 L0 100 Q 250 200 500 50 T 800 200 L 800 0 Z\' /%3E%3Cpath fill=\'%231DB4A1\' fill-opacity=\'0.1\' d=\'M800 600 L800 350 Q 550 200 300 450 T 0 500 L 0 600 Z\' /%3E%3C/svg%3E")',
+                    backgroundSize: 'cover',
+                  }}
+                />
+
+                <div className="absolute inset-0 service-card-highlight" />
+
+                {isImageSource(course.icon) && (
+                  <>
+                    <div
+                      className="absolute inset-0 bg-cover bg-no-repeat bg-center"
+                      style={{ backgroundImage: `url('${course.icon}')` }}
+                    />
+                    <div className="absolute inset-0 bg-card/75 dark:bg-card/65 transition-colors" />
+                  </>
+                )}
+
+                <div className="relative z-10 flex h-full flex-col justify-between p-4 md:p-5">
+                  <div className="h-10 w-10 text-primary rounded-full bg-card/70 shadow-sm backdrop-blur-md flex items-center justify-center border border-border/50">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                  </div>
+
+                  <div className="mt-auto">
+                    <h3 className="text-base md:text-xl font-bold text-foreground leading-tight mb-2 line-clamp-2">{course.title}</h3>
+                    <p className="text-[11px] md:text-sm font-medium text-muted-foreground line-clamp-3 max-w-[90%] [word-break:break-word] mb-3">
+                      {course.description || 'Sin descripción por el momento.'}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-border shadow-sm font-medium">
+                        {activeCategory}
+                      </span>
+                      {course.price && (
+                        <span className="text-[11px] bg-card text-muted-foreground px-2 py-0.5 rounded-full border border-border shadow-sm font-medium">
+                          {course.price}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </button>
+              </article>
             ))}
           </div>
-
-          {selectedCourse && (
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Curso seleccionado</p>
-                      <h3 className="mt-2 text-2xl font-semibold">{selectedCourse.title}</h3>
-                    </div>
-                    <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {selectedCourse.contents.length} items
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm text-muted-foreground">{selectedCourse.description || 'Este curso no tiene descripción aún.'}</p>
-                </div>
-
-                <div className="space-y-4">
-                  {selectedCourse.contents.length === 0 ? (
-                    <div className="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-center text-sm text-muted-foreground">
-                      No hay materiales añadidos todavía.
-                    </div>
-                  ) : (
-                    selectedCourse.contents.map((content) => (
-                      <div key={content.id} className="rounded-3xl border border-border p-4 bg-background">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{content.type}</p>
-                            <h4 className="mt-2 text-base font-semibold">{content.title}</h4>
-                            {content.description ? <p className="mt-2 text-sm text-muted-foreground">{content.description}</p> : null}
-                          </div>
-                          {content.resourceUrl ? (
-                            <button
-                              type="button"
-                              onClick={() => openMaterialModal(content.id)}
-                              className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
-                            >
-                              Ver material
-                            </button>
-                          ) : (
-                            <span className="rounded-full bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                              Sin archivo
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
+        ) : (
+          <div className="mx-auto max-w-lg text-center rounded-3xl border border-dashed border-border/70 bg-card p-8 text-sm text-muted-foreground">
+            No hay cursos disponibles en esta categoría todavía.
+          </div>
+        )}
+      </div>
       <Modal
-        isOpen={showCourseKeyModal}
-        onClose={() => setShowCourseKeyModal(false)}
-        title="Acceso al curso"
-        description="Ingresa la clave del curso para unirte."
+        isOpen={!!selectedCourse}
+        onClose={() => setSelectedCourse(null)}
+        title={selectedCourse?.title}
+        description="Detalle del curso y materiales disponibles"
         maxWidthClassName="max-w-xl"
       >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Cada curso tiene una clave única. Ingresa la clave para unirte al curso.
-          </p>
-          <input
-            type="text"
-            value={courseKeyEntry}
-            onChange={(e) => setCourseKeyEntry(e.target.value)}
-            className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Ingresa la clave del curso"
-          />
-          {courseKeyError ? <p className="text-sm text-rose-600">{courseKeyError}</p> : null}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleCourseKeySubmit}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
-            >
-              Unirme al curso
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCourseKeyModal(false)}
-              className="inline-flex items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
+        {selectedCourse && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 font-medium">
+                {activeCategory}
+              </span>
+              {selectedCourse.price && (
+                <span className="text-xs bg-muted text-muted-foreground px-3 py-1 rounded-full border border-border font-medium">
+                  {selectedCourse.price}
+                </span>
+              )}
+            </div>
 
-      <Modal
-        isOpen={showMaterialModal}
-        onClose={() => setShowMaterialModal(false)}
-        title="Recursos"
-        description="Selecciona el material que quieres ver o abrir."
-        maxWidthClassName="max-w-4xl"
-      >
-        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="space-y-3">
-            {selectedCourse?.contents.map((content) => (
-              <button
-                key={content.id}
-                type="button"
-                onClick={() => setActiveMaterialId(content.id)}
-                className={`w-full rounded-3xl border p-4 text-left transition ${
-                  content.id === activeMaterial?.id ? 'border-primary bg-primary/5' : 'border-border/70 bg-background hover:border-primary/80'
-                }`}
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{content.type}</p>
-                <h4 className="mt-2 text-sm font-semibold">{content.title}</h4>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{content.description || 'Sin descripción'}</p>
-              </button>
-            ))}
+            <p className="text-sm md:text-base leading-relaxed text-muted-foreground whitespace-pre-line">
+              {selectedCourse.description || 'Este curso no tiene descripción por el momento.'}
+            </p>
           </div>
-          <div className="space-y-4 rounded-3xl border border-border bg-background p-4">
-            {activeMaterial ? (
-              <>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{activeMaterial.type}</p>
-                  <h3 className="mt-2 text-xl font-semibold">{activeMaterial.title}</h3>
-                  <p className="mt-3 text-sm text-muted-foreground">{activeMaterial.description || 'No hay descripción adicional.'}</p>
-                </div>
-                {isYouTubeUrl(activeMaterial.resourceUrl) ? (
-                  <div className="mt-4 aspect-video overflow-hidden rounded-3xl bg-black">
-                    <iframe
-                      src={getYouTubeEmbedUrl(activeMaterial.resourceUrl || '')}
-                      title={activeMaterial.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="h-full w-full"
-                    />
-                  </div>
-                ) : activeMaterial.resourceUrl ? (
-                  <div className="mt-4 space-y-3">
-                    <p className="text-sm text-muted-foreground">Recurso externo:</p>
-                    <a
-                      href={activeMaterial.resourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
-                    >
-                      Abrir en otra pestaña
-                    </a>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No hay recurso disponible para este material.</p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Selecciona un recurso para ver más detalles.</p>
-            )}
-          </div>
-        </div>
+        )}
       </Modal>
-    </div>
+    </section>
   );
 }

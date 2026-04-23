@@ -4,6 +4,7 @@ import { useState, useEffect, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 import { Brain, HeartPulse, Sparkles } from "lucide-react";
 import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
+import { Modal } from "@/components/ui/Modal";
 
 interface Service {
     id: string;
@@ -12,6 +13,8 @@ interface Service {
     icon: string | null;
     category: string;
     active: boolean;
+    priceSession?: string | null;
+    pricePackage?: string | null;
 }
 
 const categoryVisuals: Record<string, { iconBg: string; icon: typeof Brain }> = {
@@ -26,7 +29,7 @@ const HIDDEN_REFRESH_MS = 20000;
 
 const isImageSource = (value?: string | null) => {
     if (!value) return false;
-    return value.startsWith('data:image/') || value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/');
+    return value.trim().length > 5;
 };
 
 const normalizeServices = (payload: unknown): Service[] => {
@@ -43,6 +46,8 @@ const normalizeServices = (payload: unknown): Service[] => {
                 icon: (row.icon as string | null) ?? null,
                 category: String(row.category || ''),
                 active: Boolean(row.active ?? true),
+                priceSession: (row.priceSession as string | null) ?? null,
+                pricePackage: (row.pricePackage as string | null) ?? null,
             };
         })
         .filter((item) => item.title.trim().length > 0 && item.category.trim().length > 0);
@@ -79,6 +84,7 @@ export function Services() {
         isDesktop ? "Cuerpo" : null
     );
     const [isClosing, setIsClosing] = useState(false);
+    const [selectedService, setSelectedService] = useState<Service | null>(null);
 
     // Refresco adaptativo: rapido en pestaña activa y liviano en segundo plano.
     useEffect(() => {
@@ -226,11 +232,11 @@ export function Services() {
                                 style={{ animationDelay: `${index * 70}ms` }}
                                 role="button"
                                 tabIndex={0}
-                                onClick={openChatbotWidget}
+                                onClick={() => setSelectedService(service)}
                                 onKeyDown={(event) => {
                                     if (event.key === 'Enter' || event.key === ' ') {
                                         event.preventDefault();
-                                        openChatbotWidget();
+                                        setSelectedService(service);
                                     }
                                 }}
                                 className={cn(
@@ -257,10 +263,10 @@ export function Services() {
                                 {isImageSource(service.icon) && (
                                     <>
                                         <div
-                                            className="absolute inset-0 bg-cover bg-no-repeat bg-bottom-right scale-[1.04]"
-                                            style={{ backgroundImage: `url(${service.icon})` }}
+                                            className="absolute inset-0 bg-cover bg-no-repeat bg-center"
+                                            style={{ backgroundImage: `url('${service.icon}')` }}
                                         />
-                                        <div className="absolute inset-0 bg-linear-to-t from-card/95 via-card/80 to-transparent" />
+                                        <div className="absolute inset-0 bg-card/75 dark:bg-card/65 transition-colors" />
                                     </>
                                 )}
 
@@ -300,6 +306,65 @@ export function Services() {
                 )}
             </div>
 
+            {/* Modal for Service Details */}
+            <Modal
+                isOpen={!!selectedService}
+                onClose={() => setSelectedService(null)}
+                title={selectedService?.title}
+                maxWidthClassName="max-w-xl"
+            >
+                {selectedService && (
+                    <div className="space-y-6">
+                        {isImageSource(selectedService.icon) && (
+                            <div className="relative h-48 w-full rounded-2xl overflow-hidden border border-border/50">
+                                <div
+                                    className="absolute inset-0 bg-cover bg-no-repeat bg-center"
+                                    style={{ backgroundImage: `url('${selectedService.icon}')` }}
+                                />
+                            </div>
+                        )}
+                        <div className="space-y-4 text-foreground pt-2">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 font-medium">
+                                    {selectedService.category}
+                                </span>
+                            </div>
+                            
+                            {(selectedService.priceSession || selectedService.pricePackage) && (
+                                <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-xl border border-border/50">
+                                    {selectedService.priceSession && (
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Precio por sesión</span>
+                                            <span className="text-lg font-bold text-foreground">{selectedService.priceSession}</span>
+                                        </div>
+                                    )}
+                                    {selectedService.pricePackage && (
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Paquete</span>
+                                            <span className="text-lg font-bold text-primary">{selectedService.pricePackage}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <p className="text-sm md:text-base leading-relaxed text-muted-foreground whitespace-pre-line">
+                                {selectedService.description}
+                            </p>
+                            <div className="pt-4 flex justify-end">
+                                <button
+                                    onClick={() => {
+                                        setSelectedService(null);
+                                        openChatbotWidget();
+                                    }}
+                                    className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition shadow-sm font-medium"
+                                >
+                                    Agendar Cita
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </section>
     );
 }

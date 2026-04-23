@@ -13,6 +13,8 @@ export async function GET() {
                 title: true,
                 description: true,
                 icon: true,
+                priceSession: true,
+                pricePackage: true,
                 category: true,
                 active: true,
                 order: true,

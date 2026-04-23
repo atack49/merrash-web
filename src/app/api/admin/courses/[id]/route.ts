@@ -11,23 +11,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const { id } = await params;
     const body = await request.json();
-    const { title, description, sectionId, active, order } = body;
+    const { title, description, category, icon, price, active, order } = body;
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description || null;
-    if (sectionId !== undefined) updateData.sectionId = sectionId;
+    if (description !== undefined) updateData.description = description;
+    if (category !== undefined) updateData.category = category;
+    if (icon !== undefined) updateData.icon = icon === '' ? null : icon;
+    if (price !== undefined) updateData.price = price === '' ? null : price;
     if (active !== undefined) updateData.active = Boolean(active);
     if (order !== undefined) updateData.order = Number(order);
 
     const course = await prisma.course.update({
       where: { id },
       data: updateData,
-      include: {
-        section: true,
-        contents: true,
-        assignments: true,
-      },
     });
 
     return NextResponse.json(course);

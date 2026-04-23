@@ -13,6 +13,8 @@ interface Service {
     category: string;
     active: boolean;
     order?: number;
+    priceSession?: string | null;
+    pricePackage?: string | null;
 }
 
 const categoryVisuals: Record<string, { iconBg: string; icon: typeof Brain }> = {
@@ -25,7 +27,7 @@ const sharedGradient = 'linear-gradient(135deg, #43C6B5 0%, #8FD9D0 52%, #C2F0E9
 
 const isImageSource = (value?: string | null) => {
     if (!value) return false;
-    return value.startsWith('data:image/') || value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/');
+    return value.trim().length > 5;
 };
 
 interface ServicesManagerProps {
@@ -48,6 +50,8 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
         description: '',
         icon: '',
         category: 'Cuerpo',
+        priceSession: '',
+        pricePackage: '',
     });
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<Message | null>(null);
@@ -126,6 +130,8 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
         if (editData.description !== undefined && editData.description !== '') updateData.description = editData.description;
         if (editData.icon !== undefined) updateData.icon = editData.icon;
         if (editData.category !== undefined) updateData.category = editData.category;
+        if (editData.priceSession !== undefined) updateData.priceSession = editData.priceSession;
+        if (editData.pricePackage !== undefined) updateData.pricePackage = editData.pricePackage;
 
         // Si no hay cambios, no hacer nada
         if (Object.keys(updateData).length === 0) {
@@ -182,10 +188,9 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                 throw new Error(error.error || 'Error al agregar');
             }
 
-            const created = await res.json();
             setServices([...services, created]);
             setShowAddForm(false);
-            setNewService({ title: '', description: '', icon: '', category: 'Cuerpo' });
+            setNewService({ title: '', description: '', icon: '', category: 'Cuerpo', priceSession: '', pricePackage: '' });
             showMessage('success', 'Servicio agregado');
         } catch (error) {
             console.error('Error adding service:', error);
@@ -273,6 +278,28 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                     onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                                     className="w-full px-4 py-2.5 border border-border rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-muted-foreground">Precio Individual</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ej. $500"
+                                        value={newService.priceSession}
+                                        onChange={(e) => setNewService({ ...newService, priceSession: e.target.value })}
+                                        className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-muted-foreground">Precio Paquete</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ej. $3,999 (10 Sesiones)"
+                                        value={newService.pricePackage}
+                                        onChange={(e) => setNewService({ ...newService, pricePackage: e.target.value })}
+                                        className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium text-muted-foreground">Imagen del servicio</label>
@@ -396,6 +423,22 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                                         className="w-full px-3 py-2 border border-border rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                                     />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Precio Individual"
+                                            value={editData.priceSession !== undefined ? editData.priceSession ?? '' : service.priceSession ?? ''}
+                                            onChange={(e) => setEditData({ ...editData, priceSession: e.target.value })}
+                                            className="w-full px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Precio Paquete"
+                                            value={editData.pricePackage !== undefined ? editData.pricePackage ?? '' : service.pricePackage ?? ''}
+                                            onChange={(e) => setEditData({ ...editData, pricePackage: e.target.value })}
+                                            className="w-full px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                        />
+                                    </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-medium text-muted-foreground">Imagen</label>
                                         <input
@@ -519,10 +562,10 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                         {isImageSource(service.icon) && (
                                             <>
                                                 <div
-                                                    className="absolute inset-0 bg-cover bg-no-repeat bg-right-bottom scale-[1.04]"
-                                                    style={{ backgroundImage: `url(${service.icon})` }}
+                                                    className="absolute inset-0 bg-cover bg-no-repeat bg-center"
+                                                    style={{ backgroundImage: `url('${service.icon}')` }}
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/80 to-transparent" />
+                                                <div className="absolute inset-0 bg-card/75 dark:bg-card/65 transition-colors" />
                                             </>
                                         )}
 
@@ -546,6 +589,16 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                                                 >
                                                     {service.description}
                                                 </p>
+                                                {(service.priceSession || service.pricePackage) && (
+                                                    <div className="flex flex-col gap-0.5 mb-2">
+                                                        {service.priceSession && (
+                                                            <span className="text-[11px] font-semibold text-primary">{service.priceSession}</span>
+                                                        )}
+                                                        {service.pricePackage && (
+                                                            <span className="text-[10px] text-muted-foreground">{service.pricePackage}</span>
+                                                        )}
+                                                    </div>
+                                                )}
                                                 <div className="flex flex-wrap gap-1">
                                                     <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-primary/20 shadow-sm font-medium">
                                                         {service.category}

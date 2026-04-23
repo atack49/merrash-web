@@ -108,7 +108,7 @@ export function SurveysManager({ initialSurveys }: { initialSurveys: any[] }) {
                                         </div>
                                     )}
 
-                                    {q.type === 'select' && q.stats && (
+                                    {(q.type === 'select' || q.type === 'radio' || q.type === 'checkbox') && q.stats && (
                                         <div className="space-y-4">
                                             {(q.options || []).map((opt: string) => {
                                                 const count = q.stats.counts[opt] || 0;

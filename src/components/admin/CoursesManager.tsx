@@ -1,45 +1,25 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, CheckCircle, AlertCircle, BookOpen, Layers, FileText, UploadCloud, Link2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, BookOpen, CheckCircle, Edit2, Eye, EyeOff, Pencil, Plus, Settings2, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { uploadFileToCloudinary } from '@/lib/images/cloudinaryUpload';
-import { Modal } from '@/components/ui/Modal';
-
-type ContentType = 'TASK' | 'MATERIAL' | 'PDF' | 'TOOL';
-
-interface CourseContent {
-  id: string;
-  title: string;
-  description?: string | null;
-  resourceUrl?: string | null;
-  type: ContentType;
-}
-
-interface CourseAssignment {
-  id: string;
-  studentName: string;
-  studentEmail: string;
-}
+import { uploadServiceImageToCloudinary } from '@/lib/images/cloudinaryUpload';
 
 interface Course {
   id: string;
   title: string;
-  description?: string | null;
-  sectionId: string;
+  description: string;
+  icon?: string | null;
+  category: string;
+  price?: string | null;
   active: boolean;
-  order: number;
-  contents: CourseContent[];
-  assignments: CourseAssignment[];
+  order?: number;
 }
 
-interface Section {
+interface CourseSection {
   id: string;
-  title: string;
-  description?: string | null;
-  active: boolean;
+  name: string;
   order: number;
-  courses: Course[];
 }
 
 interface Message {
@@ -47,37 +27,39 @@ interface Message {
   text: string;
 }
 
+const isImageSource = (value?: string | null) => {
+  if (!value) return false;
+  return value.trim().length > 5;
+};
+
 export function CoursesManager() {
-  const [sections, setSections] = useState<Section[]>([]);
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const [showSectionForm, setShowSectionForm] = useState(false);
-  const [showCourseForm, setShowCourseForm] = useState(false);
-  const [showContentForm, setShowContentForm] = useState(false);
-  const [editSectionId, setEditSectionId] = useState<string | null>(null);
-  const [editCourseId, setEditCourseId] = useState<string | null>(null);
-  const [editContentId, setEditContentId] = useState<string | null>(null);
-  const [message, setMessage] = useState<Message | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [sections, setSections] = useState<CourseSection[]>([]);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Partial<Course>>({});
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<string>('');
+  const [newCourse, setNewCourse] = useState({ title: '', description: '', icon: '', category: '', price: '' });
+
+  const [showSectionsModal, setShowSectionsModal] = useState(false);
+  const [newSectionName, setNewSectionName] = useState('');
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [editingSectionName, setEditingSectionName] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<Message | null>(null);
 
-  const [sectionForm, setSectionForm] = useState({ title: '', description: '' });
-  const [courseForm, setCourseForm] = useState({ title: '', description: '', sectionId: '', order: 0 });
-  const [contentForm, setContentForm] = useState({ title: '', description: '', resourceUrl: '', type: 'TASK' as ContentType });
-  const [editSectionForm, setEditSectionForm] = useState({ title: '', description: '', active: true, order: 0 });
-  const [editCourseForm, setEditCourseForm] = useState({ title: '', description: '', active: true, order: 0, sectionId: '' });
-  const [editContentForm, setEditContentForm] = useState({ title: '', description: '', resourceUrl: '', type: 'TASK' as ContentType });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const categories = useMemo(() => {
+    const manual = sections.map((section) => section.name).filter(Boolean);
+    const fromCourses = courses.map((course) => course.category).filter(Boolean);
+    return Array.from(new Set([...manual, ...fromCourses]));
+  }, [courses, sections]);
 
-  const selectedSection = useMemo(
-    () => sections.find((section) => section.id === activeSectionId) || sections[0] || null,
-    [sections, activeSectionId]
-  );
-
-  const selectedCourse = useMemo(
-    () => (selectedSection?.courses || []).find((course) => course.id === selectedCourseId) || null,
-    [selectedSection, selectedCourseId]
+  const filteredCourses = useMemo(
+    () => courses.filter((course) => (selectedSection ? course.category === selectedSection : true)),
+    [courses, selectedSection]
   );
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -85,138 +67,128 @@ export function CoursesManager() {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const fetchSections = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/admin/course-sections', { cache: 'no-store' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo cargar secciones');
-      setSections(Array.isArray(data) ? data : []);
-      if (!activeSectionId && Array.isArray(data) && data.length > 0) {
-        setActiveSectionId(data[0].id);
-      }
-    } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al cargar secciones');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void fetchSections();
+  const fetchCourses = useCallback(async () => {
+    const res = await fetch('/api/admin/courses', { cache: 'no-store' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'No se pudieron cargar los cursos');
+    return Array.isArray(data) ? data : [];
   }, []);
 
-  useEffect(() => {
-    if (!selectedSection) {
-      setSelectedCourseId(null);
-    }
-  }, [selectedSection]);
+  const fetchSections = useCallback(async () => {
+    const res = await fetch('/api/admin/course-sections', { cache: 'no-store' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'No se pudieron cargar las secciones');
+    return Array.isArray(data) ? data : [];
+  }, []);
 
-  const selectSection = (sectionId: string) => {
-    setActiveSectionId(sectionId);
-    setSelectedCourseId(null);
-  };
-
-  const resetSectionForm = () => setSectionForm({ title: '', description: '' });
-  const resetCourseForm = () => setCourseForm({ title: '', description: '', sectionId: selectedSection?.id || '', order: 0 });
-  const resetContentForm = () => {
-    setContentForm({ title: '', description: '', resourceUrl: '', type: 'TASK' });
-    setSelectedFile(null);
-    setFileError(null);
-  };
-
-  const createSection = async () => {
-    if (!sectionForm.title.trim()) {
-      return showMessage('error', 'El título de la sección es obligatorio');
-    }
-
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/admin/course-sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sectionForm),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo crear la sección');
+      const [nextCourses, nextSections] = await Promise.all([fetchCourses(), fetchSections()]);
+      setCourses(nextCourses);
+      setSections(nextSections);
 
-      setSections((prev) => [...prev, { ...data, courses: [] }]);
-      selectSection(data.id);
-      resetSectionForm();
-      setShowSectionForm(false);
-      showMessage('success', 'Sección creada correctamente');
+      const allAvailable = Array.from(
+        new Set([...nextSections.map((item: CourseSection) => item.name), ...nextCourses.map((item: Course) => item.category)])
+      );
+      if (!selectedSection && allAvailable.length > 0) {
+        setSelectedSection(allAvailable[0]);
+      }
+      if (selectedSection && !allAvailable.includes(selectedSection)) {
+        setSelectedSection(allAvailable[0] || '');
+      }
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al crear sección');
+      showMessage('error', error instanceof Error ? error.message : 'Error al cargar cursos');
+      setCourses([]);
+      setSections([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchCourses, fetchSections, selectedSection]);
 
-  const updateSection = async () => {
-    if (!editSectionId) return;
-    if (!editSectionForm.title.trim()) {
-      return showMessage('error', 'El título de la sección es obligatorio');
-    }
+  useEffect(() => {
+    void refreshData();
+  }, [refreshData]);
 
+  const toggleActive = async (id: string, currentActive: boolean) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/admin/course-sections/${editSectionId}`, {
+      const res = await fetch(`/api/admin/courses/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editSectionForm),
+        body: JSON.stringify({ active: !currentActive }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo actualizar la sección');
 
-      setSections((prev) => prev.map((section) =>
-        section.id === editSectionId
-          ? { ...section, ...data, courses: section.courses || [] }
-          : section
-      ));
-      setEditSectionId(null);
-      setShowSectionForm(false);
-      resetSectionForm();
-      showMessage('success', 'Sección actualizada');
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'Error al actualizar');
+
+      setCourses((prev) => prev.map((course) => (course.id === id ? payload : course)));
+      showMessage('success', `Curso ${!currentActive ? 'mostrado' : 'ocultado'}`);
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al actualizar sección');
+      showMessage('error', error instanceof Error ? error.message : 'Error al actualizar');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const deleteSection = async (sectionId: string) => {
-    const section = sections.find(s => s.id === sectionId);
-    const courseCount = section?.courses.length || 0;
-    const totalContents = section?.courses.reduce((acc, course) => acc + course.contents.length, 0) || 0;
+  const deleteCourse = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este curso?')) return;
 
-    const message = `¿Estás seguro de eliminar la sección "${section?.title}"?\n\nEsto eliminará permanentemente:\n• ${courseCount} curso${courseCount !== 1 ? 's' : ''}\n• ${totalContents} material${totalContents !== 1 ? 'es' : ''}\n\nEsta acción no se puede deshacer.`;
-
-    if (!confirm(message)) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/admin/course-sections/${sectionId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo eliminar la sección');
+      const res = await fetch(`/api/admin/courses/${id}`, { method: 'DELETE' });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'Error al eliminar');
 
-      setSections((prev) => prev.filter((section) => section.id !== sectionId));
-      if (activeSectionId === sectionId) {
-        const nextSection = sections.find((section) => section.id !== sectionId);
-        setActiveSectionId(nextSection?.id || null);
-      }
-      showMessage('success', 'Sección eliminada');
+      setCourses((prev) => prev.filter((course) => course.id !== id));
+      showMessage('success', 'Curso eliminado');
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al eliminar sección');
+      showMessage('error', error instanceof Error ? error.message : 'Error al eliminar');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createCourse = async () => {
-    if (!courseForm.title.trim()) {
-      return showMessage('error', 'El título del curso es obligatorio');
+  const saveEdit = async (id: string) => {
+    const updateData: Record<string, unknown> = {};
+
+    if (editData.title !== undefined && editData.title !== '') updateData.title = editData.title;
+    if (editData.description !== undefined && editData.description !== '') updateData.description = editData.description;
+    if (editData.icon !== undefined) updateData.icon = editData.icon;
+    if (editData.category !== undefined && editData.category !== '') updateData.category = editData.category;
+    if (editData.price !== undefined) updateData.price = editData.price;
+
+    if (Object.keys(updateData).length === 0) {
+      showMessage('error', 'No hay cambios para guardar');
+      return;
     }
-    if (!courseForm.sectionId) {
-      return showMessage('error', 'Selecciona una sección');
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/courses/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'Error al guardar');
+
+      setCourses((prev) => prev.map((course) => (course.id === id ? payload : course)));
+      setEditingId(null);
+      setEditData({});
+      showMessage('success', 'Cambios guardados correctamente');
+    } catch (error) {
+      showMessage('error', error instanceof Error ? error.message : 'Error al guardar');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addCourse = async () => {
+    if (!newCourse.title.trim() || !newCourse.description.trim() || !newCourse.category.trim()) {
+      showMessage('error', 'Completa título, descripción y sección');
+      return;
     }
 
     setIsLoading(true);
@@ -224,862 +196,591 @@ export function CoursesManager() {
       const res = await fetch('/api/admin/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(courseForm),
+        body: JSON.stringify({
+          ...newCourse,
+          order: courses.length + 1,
+        }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo crear el curso');
 
-      setSections((prev) => prev.map((section) =>
-        section.id === data.sectionId
-          ? { ...section, courses: [...(section.courses || []), data] }
-          : section
-      ));
-      setSelectedCourseId(data.id);
-      resetCourseForm();
-      setShowCourseForm(false);
-      showMessage('success', 'Curso creado correctamente');
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'Error al agregar');
+
+      setCourses((prev) => [...prev, payload]);
+      setSelectedSection(payload.category);
+      setShowAddForm(false);
+      setNewCourse({ title: '', description: '', icon: '', category: payload.category, price: '' });
+      showMessage('success', 'Curso agregado');
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al crear curso');
+      showMessage('error', error instanceof Error ? error.message : 'Error al agregar');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateCourse = async () => {
-    if (!editCourseId) return;
-    if (!editCourseForm.title.trim()) {
-      return showMessage('error', 'El título del curso es obligatorio');
-    }
-
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/admin/courses/${editCourseId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editCourseForm),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo actualizar el curso');
-
-      setSections((prev) => {
-        const updated = prev.map((section) => ({
-          ...section,
-          courses: (section.courses || []).filter((course) => course.id !== editCourseId),
-        }));
-        return updated.map((section) => {
-          if (section.id === data.sectionId) {
-            return { ...section, courses: [...(section.courses || []), data] };
-          }
-          return section;
-        });
-      });
-
-      setSelectedCourseId(data.id);
-      setEditCourseId(null);
-      setShowCourseForm(false);
-      resetCourseForm();
-      showMessage('success', 'Curso actualizado');
-    } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al actualizar curso');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const deleteCourse = async (courseId: string) => {
-    const course = sections.flatMap(s => s.courses).find(c => c.id === courseId);
-    const contentCount = course?.contents.length || 0;
-
-    const message = `¿Estás seguro de eliminar el curso "${course?.title}"?\n\nEsto eliminará permanentemente:\n• ${contentCount} material${contentCount !== 1 ? 'es' : ''}\n\nEsta acción no se puede deshacer.`;
-
-    if (!confirm(message)) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/admin/courses/${courseId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo eliminar el curso');
-
-      setSections((prev) => prev.map((section) => ({
-        ...section,
-        courses: section.courses.filter((course) => course.id !== courseId),
-      })));
-      if (selectedCourseId === courseId) setSelectedCourseId(null);
-      showMessage('success', 'Curso eliminado');
-    } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al eliminar curso');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFileSelect = (file: File | null) => {
-    setFileError(null);
-
-    if (!file) {
-      setSelectedFile(null);
+  const addSection = async () => {
+    if (!newSectionName.trim()) {
+      showMessage('error', 'Escribe el nombre de la sección');
       return;
     }
 
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
-    if (!allowedTypes.includes(file.type)) {
-      setFileError('Formato no soportado. Usa imagen, PDF, Word o PowerPoint.');
-      setSelectedFile(null);
-      return;
-    }
-
-    setSelectedFile(file);
-    if (file.name.toLowerCase().endsWith('.pdf')) {
-      if (editContentId) {
-        setEditContentForm((prev) => ({ ...prev, type: 'PDF' }));
-      } else {
-        setContentForm((prev) => ({ ...prev, type: 'PDF' }));
-      }
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
-  };
-
-  const createContent = async () => {
-    if (!selectedCourse) return showMessage('error', 'Selecciona un curso primero');
-    if (!contentForm.title.trim()) {
-      return showMessage('error', 'El título del material es obligatorio');
-    }
-
     setIsLoading(true);
     try {
-      let resourceUrl = contentForm.resourceUrl;
-      let contentType = contentForm.type;
-
-      if (selectedFile) {
-        resourceUrl = await uploadFileToCloudinary(selectedFile, 'merrash/course-materials');
-        if (selectedFile.name.toLowerCase().endsWith('.pdf')) {
-          contentType = 'PDF';
-        } else if (selectedFile.type.startsWith('image/')) {
-          contentType = contentType === 'TASK' ? 'MATERIAL' : contentType;
-        }
-      }
-
-      const res = await fetch('/api/admin/course-contents', {
+      const res = await fetch('/api/admin/course-sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          courseId: selectedCourse.id,
-          title: contentForm.title,
-          description: contentForm.description,
-          resourceUrl: resourceUrl || null,
-          type: contentType,
-        }),
+        body: JSON.stringify({ name: newSectionName }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo agregar el contenido');
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'No se pudo crear la sección');
 
-      setSections((prev) => prev.map((section) => ({
-        ...section,
-        courses: section.courses.map((course) => course.id === selectedCourse.id ? { ...course, contents: [...course.contents, data] } : course),
-      })));
-      resetContentForm();
-      setShowContentForm(false);
-      showMessage('success', 'Contenido agregado');
+      setSections((prev) => [...prev, payload]);
+      setNewSectionName('');
+      setSelectedSection(payload.name);
+      setNewCourse((prev) => ({ ...prev, category: payload.name }));
+      showMessage('success', 'Sección creada');
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al agregar contenido');
+      showMessage('error', error instanceof Error ? error.message : 'No se pudo crear la sección');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const deleteContent = async (contentId: string) => {
-    if (!selectedCourse) return;
-    const content = selectedCourse.contents.find(c => c.id === contentId);
-
-    const message = `¿Estás seguro de eliminar el material "${content?.title}"?\n\nEsta acción no se puede deshacer.`;
-
-    if (!confirm(message)) return;
-
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/admin/course-contents/${contentId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo eliminar el contenido');
-
-      setSections((prev) => prev.map((section) => ({
-        ...section,
-        courses: section.courses.map((course) => course.id === selectedCourse.id ? {
-          ...course,
-          contents: course.contents.filter((content) => content.id !== contentId),
-        } : course),
-      })));
-      showMessage('success', 'Contenido eliminado');
-    } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al eliminar contenido');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const enterEditSection = (section: Section) => {
-    setEditSectionId(section.id);
-    setEditSectionForm({
-      title: section.title,
-      description: section.description || '',
-      active: section.active,
-      order: section.order,
-    });
-    setShowSectionForm(true);
-  };
-
-  const enterEditCourse = (course: Course) => {
-    setEditCourseId(course.id);
-    setEditCourseForm({
-      title: course.title,
-      description: course.description || '',
-      active: course.active,
-      order: course.order,
-      sectionId: course.sectionId,
-    });
-    setShowCourseForm(true);
-  };
-
-  const enterEditContent = (content: CourseContent) => {
-    setEditContentId(content.id);
-    setEditContentForm({
-      title: content.title,
-      description: content.description || '',
-      resourceUrl: content.resourceUrl || '',
-      type: content.type,
-    });
-    setSelectedFile(null);
-    setFileError(null);
-    setShowContentForm(true);
-  };
-
-  const updateContent = async () => {
-    if (!selectedCourse || !editContentId) return;
-    if (!editContentForm.title.trim()) {
-      return showMessage('error', 'El título del material es obligatorio');
+  const saveSectionEdit = async (id: string) => {
+    if (!editingSectionName.trim()) {
+      showMessage('error', 'El nombre no puede quedar vacío');
+      return;
     }
 
     setIsLoading(true);
     try {
-      let resourceUrl = editContentForm.resourceUrl;
-      let contentType = editContentForm.type;
-
-      if (selectedFile) {
-        resourceUrl = await uploadFileToCloudinary(selectedFile, 'merrash/course-materials');
-        if (selectedFile.name.toLowerCase().endsWith('.pdf')) {
-          contentType = 'PDF';
-        } else if (selectedFile.type.startsWith('image/')) {
-          contentType = contentType === 'TASK' ? 'MATERIAL' : contentType;
-        }
-      }
-
-      const res = await fetch(`/api/admin/course-contents/${editContentId}`, {
+      const res = await fetch(`/api/admin/course-sections/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: editContentForm.title,
-          description: editContentForm.description,
-          resourceUrl: resourceUrl || null,
-          type: contentType,
-        }),
+        body: JSON.stringify({ name: editingSectionName }),
       });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'No se pudo actualizar la sección');
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'No se pudo actualizar el contenido');
-
-      setSections((prev) => prev.map((section) => ({
-        ...section,
-        courses: section.courses.map((course) => course.id === selectedCourse.id ? {
-          ...course,
-          contents: course.contents.map((c) => c.id === editContentId ? data : c),
-        } : course),
-      })));
-
-      resetContentForm();
-      setEditContentId(null);
-      setShowContentForm(false);
-      showMessage('success', 'Contenido actualizado');
+      await refreshData();
+      setEditingSectionId(null);
+      setEditingSectionName('');
+      showMessage('success', 'Sección actualizada');
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Error al actualizar el contenido');
+      showMessage('error', error instanceof Error ? error.message : 'No se pudo actualizar la sección');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteSection = async (section: CourseSection) => {
+    const ok = window.confirm(`¿Eliminar la sección \"${section.name}\"?`);
+    if (!ok) return;
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/course-sections/${section.id}`, { method: 'DELETE' });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || 'No se pudo eliminar la sección');
+
+      await refreshData();
+      showMessage('success', 'Sección eliminada');
+    } catch (error) {
+      showMessage('error', error instanceof Error ? error.message : 'No se pudo eliminar la sección');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImageSelection = async (file: File, mode: 'new' | 'edit') => {
+    setIsLoading(true);
+    try {
+      const imageUrl = await uploadServiceImageToCloudinary(file);
+      if (mode === 'new') {
+        setNewCourse((prev) => ({ ...prev, icon: imageUrl }));
+      } else {
+        setEditData((prev) => ({ ...prev, icon: imageUrl }));
+      }
+      showMessage('success', 'Imagen cargada correctamente');
+    } catch (error) {
+      showMessage('error', error instanceof Error ? error.message : 'No se pudo subir la imagen');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {message && (
-        <div className={cn(
-          'rounded-2xl border p-4 flex items-center gap-3 shadow-sm font-medium',
-          message.type === 'success'
-            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-            : 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400'
-        )}>
+        <div
+          className={cn(
+            'fixed top-4 right-4 z-50 p-4 rounded-lg flex items-center gap-3 shadow-lg animate-in slide-in-from-top-4',
+            message.type === 'success'
+              ? 'bg-green-100 border border-green-300 text-green-800'
+              : 'bg-red-100 border border-red-300 text-red-800'
+          )}
+        >
           {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          <p className="text-sm">{message.text}</p>
+          <span className="font-medium">{message.text}</span>
         </div>
       )}
 
-      <Modal
-        isOpen={showSectionForm}
-        onClose={() => {
-          setShowSectionForm(false);
-          setEditSectionId(null);
-          resetSectionForm();
-        }}
-        title={editSectionId ? 'Editar sección' : 'Nueva sección'}
-        description="Crea o actualiza una sección para organizar cursos."
-      >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Título de la sección</label>
-            <input
-              value={editSectionId ? editSectionForm.title : sectionForm.title}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (editSectionId) {
-                  setEditSectionForm((prev) => ({ ...prev, title: value }));
-                } else {
-                  setSectionForm((prev) => ({ ...prev, title: value }));
-                }
-              }}
-              className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Ej. Formación Básica"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Descripción</label>
-            <textarea
-              value={editSectionId ? editSectionForm.description : sectionForm.description}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (editSectionId) {
-                  setEditSectionForm((prev) => ({ ...prev, description: value }));
-                } else {
-                  setSectionForm((prev) => ({ ...prev, description: value }));
-                }
-              }}
-              className="w-full min-h-[120px] rounded-2xl border border-border px-4 py-3 bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Descripción breve de la sección"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={editSectionId ? updateSection : createSection}
-              disabled={isLoading}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
-            >
-              {editSectionId ? 'Actualizar sección' : 'Guardar sección'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowSectionForm(false);
-                setEditSectionId(null);
-                resetSectionForm();
-              }}
-              className="inline-flex items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 transition font-medium shadow-sm"
+        >
+          <Plus className="w-5 h-5" />
+          Nuevo Curso
+        </button>
+        <button
+          onClick={() => setShowSectionsModal(true)}
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition font-medium shadow-sm"
+        >
+          <Settings2 className="w-5 h-5" />
+          Administrar secciones
+        </button>
+      </div>
 
-      <Modal
-        isOpen={showCourseForm}
-        onClose={() => {
-          setShowCourseForm(false);
-          setEditCourseId(null);
-          resetCourseForm();
-        }}
-        title={editCourseId ? 'Editar curso' : 'Nuevo curso'}
-        description="Crea o actualiza un curso dentro de una sección."
-        maxWidthClassName="max-w-3xl"
-      >
-        <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Título del curso</label>
-              <input
-                value={editCourseId ? editCourseForm.title : courseForm.title}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (editCourseId) {
-                    setEditCourseForm((prev) => ({ ...prev, title: value }));
-                  } else {
-                    setCourseForm((prev) => ({ ...prev, title: value }));
-                  }
-                }}
-                className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Ej. Rituales de bienestar"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Sección</label>
-              <select
-                value={editCourseId ? editCourseForm.sectionId : courseForm.sectionId}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (editCourseId) {
-                    setEditCourseForm((prev) => ({ ...prev, sectionId: value }));
-                  } else {
-                    setCourseForm((prev) => ({ ...prev, sectionId: value }));
-                  }
-                }}
-                className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Selecciona una sección</option>
-                {sections.map((section) => (
-                  <option key={section.id} value={section.id}>{section.title}</option>
-                ))}
-              </select>
-            </div>
-            <div className="lg:col-span-2 space-y-2">
-              <label className="text-sm font-medium">Descripción</label>
-              <textarea
-                value={editCourseId ? editCourseForm.description : courseForm.description}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (editCourseId) {
-                    setEditCourseForm((prev) => ({ ...prev, description: value }));
-                  } else {
-                    setCourseForm((prev) => ({ ...prev, description: value }));
-                  }
-                }}
-                className="w-full min-h-[120px] rounded-2xl border border-border px-4 py-3 bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Describe el curso y sus objetivos"
-              />
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={editCourseId ? updateCourse : createCourse}
-              disabled={isLoading}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
-            >
-              {editCourseId ? 'Actualizar curso' : 'Guardar curso'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowCourseForm(false);
-                setEditCourseId(null);
-                resetCourseForm();
-              }}
-              className="inline-flex items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={showContentForm}
-        onClose={() => {
-          setShowContentForm(false);
-          setEditContentId(null);
-          resetContentForm();
-        }}
-        title={editContentId ? 'Editar material' : 'Nuevo material'}
-        description="Sube, edita o elimina un recurso para este curso."
-        maxWidthClassName="max-w-3xl"
-      >
-        <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Título</label>
-              <input
-                value={editContentId ? editContentForm.title : contentForm.title}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (editContentId) {
-                    setEditContentForm((prev) => ({ ...prev, title: value }));
-                  } else {
-                    setContentForm((prev) => ({ ...prev, title: value }));
-                  }
-                }}
-                className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Ej. Guía descargable"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Tipo</label>
-              <select
-                value={editContentId ? editContentForm.type : contentForm.type}
-                onChange={(e) => {
-                  const value = e.target.value as ContentType;
-                  if (editContentId) {
-                    setEditContentForm((prev) => ({ ...prev, type: value }));
-                  } else {
-                    setContentForm((prev) => ({ ...prev, type: value }));
-                  }
-                }}
-                className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="TASK">Tarea</option>
-                <option value="MATERIAL">Material</option>
-                <option value="PDF">PDF</option>
-                <option value="TOOL">Herramienta</option>
-              </select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Descripción</label>
-            <textarea
-              value={editContentId ? editContentForm.description : contentForm.description}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (editContentId) {
-                  setEditContentForm((prev) => ({ ...prev, description: value }));
-                } else {
-                  setContentForm((prev) => ({ ...prev, description: value }));
-                }
-              }}
-              className="w-full min-h-[120px] rounded-2xl border border-border px-4 py-3 bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Incluye instrucciones o notas adicionales"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Archivo o URL</label>
-            <input
-              value={editContentId ? editContentForm.resourceUrl : contentForm.resourceUrl}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (editContentId) {
-                  setEditContentForm((prev) => ({ ...prev, resourceUrl: value }));
-                } else {
-                  setContentForm((prev) => ({ ...prev, resourceUrl: value }));
-                }
-              }}
-              className="w-full rounded-2xl border border-border px-4 py-3 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Pega el enlace de un video (YouTube, Vimeo, etc.) o deja vacío para subir un archivo"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Subir archivo</label>
-            <div
-              className={cn(
-                'rounded-3xl border-2 border-dashed p-6 bg-muted transition-colors',
-                isDragOver ? 'border-primary bg-primary/5' : 'border-border'
-              )}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div className="text-center space-y-4">
-                <UploadCloud className="w-8 h-8 mx-auto text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Arrastre archivo o imagen aquí</p>
-                  <p className="text-xs text-muted-foreground">o</p>
-                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer">
-                    <UploadCloud className="w-4 h-4" />
-                    Agregar archivo o imagen
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
-                      className="hidden"
-                      accept="image/*,.pdf,.doc,.docx,.ppt,.pptx"
-                    />
-                  </label>
-                </div>
-                {selectedFile && (
-                  <p className="text-sm text-primary">Archivo seleccionado: {selectedFile.name}</p>
-                )}
-                {fileError && <p className="text-sm text-rose-600">{fileError}</p>}
-                {(editContentId ? editContentForm.resourceUrl : contentForm.resourceUrl) && !selectedFile && (
-                  <a
-                    href={editContentId ? editContentForm.resourceUrl : contentForm.resourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                  >
-                    <Link2 className="w-4 h-4" /> Ver archivo actual
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={editContentId ? updateContent : createContent}
-              disabled={isLoading}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
-            >
-              {editContentId ? 'Guardar cambios' : 'Agregar material'}
-            </button>
-            {editContentId && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedCourse && editContentId) deleteContent(editContentId);
-                }}
-                className="inline-flex items-center justify-center rounded-full bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition shadow-sm border-none"
-              >
-                Eliminar material
+      {showSectionsModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl border border-border max-w-xl w-full p-6 md:p-7 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-foreground">Administrar secciones</h3>
+              <button onClick={() => setShowSectionsModal(false)} className="p-2 hover:bg-muted rounded-full transition">
+                <X className="w-5 h-5" />
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                setShowContentForm(false);
-                setEditContentId(null);
-                resetContentForm();
-              }}
-              className="inline-flex items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div>
-              <h2 className="text-lg font-semibold">Secciones</h2>
-              <p className="text-sm text-muted-foreground">Organiza tus cursos por grupos.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => { setShowSectionForm(true); setEditSectionId(null); resetSectionForm(); }}
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition"
-            >
-              <Plus className="w-4 h-4" />
-              Nueva sección
-            </button>
-          </div>
 
-          <div className="space-y-3">
-            {sections.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-center text-sm text-muted-foreground">
-                No hay secciones todavía. Crea una sección para comenzar a agregar cursos.
-              </div>
-            ) : (
-              sections.map((section) => (
-                <div
-                  key={section.id}
-                  className={cn(
-                    'rounded-3xl border p-4 transition cursor-pointer',
-                    activeSectionId === section.id ? 'border-primary bg-primary/5' : 'border-border/60 bg-background hover:border-primary/80'
-                  )}
-                  onClick={() => selectSection(section.id)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-sm font-semibold">{section.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{section.description || 'Sin descripción'}</p>
-                    </div>
-                    <span className={cn(
-                      'rounded-full px-2.5 py-1 text-[11px] font-semibold',
-                      section.active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                    )}>
-                      {section.active ? 'Activa' : 'Inactiva'}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{section.courses.length} curso{section.courses.length !== 1 ? 's' : ''}</span>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={(event) => { event.stopPropagation(); enterEditSection(section); setShowSectionForm(true); }}
-                        className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition shadow-sm border-none"
-                      >
-                        <Pencil className="w-3 h-3" /> Editar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(event) => { event.stopPropagation(); deleteSection(section.id); }}
-                        className="inline-flex items-center gap-1 rounded-full bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 transition shadow-sm border-none"
-                      >
-                        <Trash2 className="w-3 h-3" /> Eliminar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="grid gap-6">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Sección activa</p>
-                <h2 className="text-2xl font-semibold">{selectedSection?.title || 'Selecciona una sección'}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{selectedSection?.description || 'Aquí verás los cursos y materiales de la sección seleccionada.'}</p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="rounded-3xl bg-muted px-4 py-3 text-sm font-medium text-foreground">
-                  <span className="block text-xs text-muted-foreground">Cursos</span>
-                  <span className="text-lg font-semibold">{selectedSection?.courses.length ?? 0}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCourseForm(true);
-                    resetCourseForm();
-                    setCourseForm((prev) => ({ ...prev, sectionId: selectedSection?.id || '' }));
-                    setEditCourseId(null);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground hover:bg-secondary/90 transition"
-                >
-                  <Plus className="w-4 h-4" />
-                  Nuevo curso
+            <div className="rounded-xl border border-border p-3 bg-background space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Agregar sección</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Ej. Belleza Integral"
+                />
+                <button onClick={addSection} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90">
+                  Agregar
                 </button>
               </div>
             </div>
 
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-3 mb-5">
-                <div>
-                  <h3 className="text-lg font-semibold">Cursos</h3>
-                  <p className="text-sm text-muted-foreground">Selecciona uno para ver y administrar su contenido.</p>
+            <div className="space-y-2 max-h-[320px] overflow-auto pr-1">
+              {sections.map((section) => (
+                <div key={section.id} className="rounded-xl border border-border p-3 bg-background">
+                  {editingSectionId === section.id ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={editingSectionName}
+                        onChange={(e) => setEditingSectionName(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <button
+                        onClick={() => saveSectionEdit(section.id)}
+                        className="px-3 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingSectionId(null);
+                          setEditingSectionName('');
+                        }}
+                        className="px-3 py-2 bg-slate-200 text-foreground rounded-xl text-sm font-medium hover:bg-slate-300"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">{section.name}</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingSectionId(section.id);
+                            setEditingSectionName(section.name);
+                          }}
+                          className="h-8 w-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 flex items-center justify-center"
+                          title="Editar sección"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteSection(section)}
+                          className="h-8 w-8 rounded-full bg-red-100 text-red-700 hover:bg-red-200 border border-red-200 flex items-center justify-center"
+                          title="Eliminar sección"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                  {selectedSection?.courses.length ?? 0} total
-                </span>
-              </div>
-              <div className="space-y-4">
-                {selectedSection?.courses.length ? selectedSection.courses.map((course) => (
-                  <button
-                    key={course.id}
-                    type="button"
-                    onClick={() => setSelectedCourseId(course.id)}
-                    className={cn(
-                      'w-full rounded-3xl border p-4 text-left transition',
-                      selectedCourseId === course.id ? 'border-primary bg-primary/5' : 'border-border/70 bg-background hover:border-primary/80'
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h4 className="text-base font-semibold">{course.title}</h4>
-                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{course.description || 'Sin descripción'}</p>
-                      </div>
-                      <span className={cn(
-                        'rounded-full px-3 py-1 text-[11px] font-semibold',
-                        course.active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                      )}>
-                        {course.active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>{course.contents.length} material{course.contents.length !== 1 ? 'es' : ''}</span>
-                      <span>{course.assignments.length} estudiante{course.assignments.length !== 1 ? 's' : ''}</span>
-                    </div>
-                  </button>
-                )) : (
-                  <div className="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-center text-sm text-muted-foreground">
-                    No hay cursos en esta sección. Crea uno para comenzar.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              {selectedCourse ? (
-                <>
-                  <div className="flex items-center justify-between gap-3 mb-5">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Curso seleccionado</p>
-                      <h3 className="text-xl font-semibold">{selectedCourse.title}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">Clave de acceso: <span className="font-semibold text-foreground">{selectedCourse.id.slice(0, 8).toUpperCase()}</span></p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => { setShowContentForm(true); setEditContentId(null); resetContentForm(); }}
-                      className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground hover:bg-secondary/90"
-                    >
-                      <Plus className="w-4 h-4" /> Nuevo material
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="rounded-3xl border border-border bg-background p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold">Materiales</p>
-                          <p className="text-sm text-muted-foreground">Lo que verá el alumno.</p>
-                        </div>
-                        <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">{selectedCourse.contents.length}</span>
-                      </div>
-                      {selectedCourse.contents.length === 0 ? (
-                        <p className="mt-3 text-sm text-muted-foreground">No hay materiales todavía. Agrega un recurso para empezar.</p>
-                      ) : (
-                        <div className="mt-4 space-y-3">
-                          {selectedCourse.contents.map((content) => (
-                            <button
-                              key={content.id}
-                              type="button"
-                              onClick={() => enterEditContent(content)}
-                              className="w-full rounded-3xl border border-border p-4 bg-card text-left transition hover:border-primary/80"
-                            >
-                              <div className="flex items-start justify-between gap-4">
-                                <div>
-                                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{content.type}</p>
-                                  <h4 className="mt-2 text-sm font-semibold">{content.title}</h4>
-                                  <p className="mt-1 text-sm text-muted-foreground">{content.description || 'Sin descripción'}</p>
-                                  {content.resourceUrl && (
-                                    <p className="mt-3 inline-flex items-center gap-2 text-sm text-primary">
-                                      <Link2 className="w-3.5 h-3.5" /> Archivo disponible
-                                    </p>
-                                  )}
-                                </div>
-                                <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-2 text-xs font-semibold text-foreground">
-                                  Ver material
-                                </span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="rounded-3xl border border-border bg-background p-4">
-                      <div className="flex items-center gap-3">
-                        <Layers className="w-5 h-5 text-primary" />
-                        <div>
-                          <p className="text-sm font-semibold">Estudiantes asignados</p>
-                          <p className="text-sm text-muted-foreground">No hay estudiantes inscritos aún.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-center text-sm text-muted-foreground">
-                  Selecciona un curso para ver su material aquí.
-                </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
+      )}
+
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl border border-border max-w-md w-full p-6 md:p-7 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-foreground">Nuevo Curso</h3>
+              <button onClick={() => setShowAddForm(false)} className="p-2 hover:bg-muted rounded-full transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Título</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Curso de Acupuntura Integral"
+                  value={newCourse.title}
+                  onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Descripción</label>
+                <textarea
+                  placeholder="Describe brevemente el curso"
+                  value={newCourse.description}
+                  onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Precio (opcional)</label>
+                <input
+                  type="text"
+                  placeholder="Ej. $3,999"
+                  value={newCourse.price}
+                  onChange={(e) => setNewCourse({ ...newCourse, price: e.target.value })}
+                  className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Imagen del curso</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    await handleImageSelection(file, 'new');
+                  }}
+                  className="w-full px-3 py-2 border border-border rounded-xl text-sm file:mr-3 file:px-3 file:py-1.5 file:border-0 file:rounded-lg file:bg-primary/10 file:text-primary"
+                />
+                {isImageSource(newCourse.icon) && (
+                  <div className="h-24 rounded-xl border border-border bg-cover bg-center" style={{ backgroundImage: `url(${newCourse.icon})` }} />
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Sección</label>
+                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => setNewCourse({ ...newCourse, category })}
+                      className={cn(
+                        'px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap',
+                        newCourse.category === category ? 'bg-primary text-white' : 'text-foreground hover:bg-muted'
+                      )}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={addCourse}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-50 font-medium transition"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="flex-1 px-4 py-2.5 bg-slate-200 text-foreground rounded-full hover:bg-slate-300 font-medium transition"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-center flex-wrap gap-2 md:gap-3 mb-6 md:mb-8">
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => {
+              setSelectedSection(category);
+              setNewCourse((prev) => ({ ...prev, category }));
+            }}
+            className={cn(
+              'px-5 py-2.5 text-sm font-medium rounded-full transition-colors whitespace-nowrap',
+              selectedSection === category ? 'bg-primary text-white' : 'text-foreground hover:bg-muted'
+            )}
+          >
+            {category}
+          </button>
+        ))}
       </div>
+
+      {filteredCourses.length > 0 && (
+        <p className="text-xs md:text-sm lg:text-base text-muted-foreground text-center mb-4 md:mb-6">
+          Mostrando <span className="font-semibold">{filteredCourses.length}</span> curso
+          {filteredCourses.length !== 1 ? 's' : ''} en {selectedSection}
+        </p>
+      )}
+
+      {filteredCourses.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+          {filteredCourses.map((course) => (
+            <div
+              key={course.id}
+              className={cn(
+                'p-4 rounded-2xl border border-border/50 transition-all bg-gradient-to-br',
+                editingId === course.id
+                  ? 'border-primary/50 from-primary/5 to-white ring-2 ring-primary/30 shadow-lg'
+                  : course.active
+                    ? 'from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 hover:shadow-md'
+                    : 'from-gray-50 to-gray-100 opacity-70'
+              )}
+            >
+              {editingId === course.id ? (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Título"
+                    value={editData.title !== undefined ? editData.title : course.title}
+                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <textarea
+                    placeholder="Descripción"
+                    value={editData.description !== undefined ? editData.description : course.description}
+                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Precio"
+                    value={editData.price !== undefined ? editData.price ?? '' : course.price ?? ''}
+                    onChange={(e) => setEditData({ ...editData, price: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Imagen</label>
+                    <input
+                      id={`edit-image-${course.id}`}
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        await handleImageSelection(file, 'edit');
+                      }}
+                      className="hidden"
+                    />
+
+                    <div className="flex gap-2 items-center">
+                      <div className="flex-1">
+                        {(() => {
+                          const hasEditedIcon = Object.prototype.hasOwnProperty.call(editData, 'icon');
+                          const currentImage = hasEditedIcon ? (editData.icon as string | null | undefined) : course.icon;
+                          return isImageSource(currentImage) ? (
+                            <div className="h-16 rounded-xl border border-border bg-cover bg-center" style={{ backgroundImage: `url(${currentImage})` }} />
+                          ) : (
+                            <div className="h-16 rounded-xl border border-dashed border-border bg-card flex items-center justify-center text-[11px] text-muted-foreground">
+                              Sin imagen
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label
+                          htmlFor={`edit-image-${course.id}`}
+                          className="h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 flex items-center justify-center cursor-pointer transition"
+                          title="Cambiar imagen"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setEditData({ ...editData, icon: null })}
+                          className="h-9 w-9 rounded-full bg-red-100 text-red-700 hover:bg-red-200 border border-red-200 flex items-center justify-center transition"
+                          title="Borrar imagen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Sección</label>
+                    <div className="flex flex-wrap justify-center gap-2 pt-1">
+                      {categories.map((category) => {
+                        const selected = (editData.category !== undefined ? editData.category : course.category) === category;
+                        return (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => setEditData({ ...editData, category })}
+                            className={cn(
+                              'px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap',
+                              selected ? 'bg-primary text-white' : 'text-foreground hover:bg-muted'
+                            )}
+                          >
+                            {category}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-3 mt-2 border-t border-primary/20">
+                    <button
+                      onClick={() => saveEdit(course.id)}
+                      disabled={isLoading}
+                      className="flex-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition shadow-sm"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditData({});
+                      }}
+                      className="flex-1 px-3 py-1.5 bg-slate-200 text-foreground rounded-full text-xs font-medium hover:bg-slate-300 transition shadow-sm"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="relative -m-4 mb-3 min-h-[190px] rounded-2xl overflow-hidden border border-border/70">
+                    <div className="absolute inset-0 bg-service-card" />
+
+                    {!isImageSource(course.icon) && (
+                      <div
+                        className="absolute inset-0 service-card-shapes"
+                        style={{
+                          backgroundImage:
+                            'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 800 600\' preserveAspectRatio=\'xMidYMid slice\'%3E%3Cpath fill=\'%2343C6B5\' fill-opacity=\'0.15\' d=\'M0 0 L0 250 Q 200 350 450 150 T 800 50 L 800 0 Z\' /%3E%3Cpath fill=\'%238FD9D0\' fill-opacity=\'0.25\' d=\'M0 0 L0 100 Q 250 200 500 50 T 800 200 L 800 0 Z\' /%3E%3Cpath fill=\'%231DB4A1\' fill-opacity=\'0.1\' d=\'M800 600 L800 350 Q 550 200 300 450 T 0 500 L 0 600 Z\' /%3E%3C/svg%3E")',
+                          backgroundSize: 'cover',
+                        }}
+                      />
+                    )}
+
+                    {isImageSource(course.icon) && (
+                      <>
+                        <div
+                          className="absolute inset-0 bg-cover bg-no-repeat bg-center"
+                          style={{ backgroundImage: `url('${course.icon}')` }}
+                        />
+                        <div className="absolute inset-0 bg-card/75 dark:bg-card/65 transition-colors" />
+                      </>
+                    )}
+
+                    <div className="absolute inset-0 service-card-highlight" />
+
+                    <div className="relative z-10 h-full p-4 flex flex-col justify-between">
+                      <div className="h-9 w-9 text-primary rounded-full bg-card/70 shadow-sm backdrop-blur-md flex items-center justify-center border border-white">
+                        <BookOpen className="w-4.5 h-4.5 text-primary" />
+                      </div>
+
+                      <div>
+                        <h3 className="font-bold text-foreground text-base mb-1 line-clamp-2">{course.title}</h3>
+                        <p className="text-xs font-medium text-muted-foreground mb-2 line-clamp-2 max-w-[85%]">{course.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-[11px] bg-card text-primary px-2 py-0.5 rounded-full border border-primary/20 shadow-sm font-medium">
+                            {course.category}
+                          </span>
+                          {course.price && (
+                            <span className="text-[11px] bg-card text-muted-foreground px-2 py-0.5 rounded-full border border-border shadow-sm font-medium">
+                              {course.price}
+                            </span>
+                          )}
+                          <span
+                            className={`text-[11px] px-2 py-0.5 rounded-full font-medium border shadow-sm ${
+                              course.active
+                                ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                : 'bg-rose-100 text-rose-700 border-rose-200'
+                            }`}
+                          >
+                            {course.active ? 'Visible' : 'Oculto'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <button
+                      onClick={() => {
+                        setEditingId(course.id);
+                        setEditData({});
+                      }}
+                      className="flex-1 min-w-[30%] flex items-center justify-center gap-1.5 px-2 py-2 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 transition shadow-sm"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => toggleActive(course.id, course.active)}
+                      className="flex-1 min-w-[30%] flex items-center justify-center gap-1.5 px-2 py-2 bg-secondary text-secondary-foreground rounded-full text-xs font-medium hover:bg-secondary/80 transition shadow-sm border border-secondary-foreground/10"
+                    >
+                      {course.active ? (
+                        <>
+                          <Eye className="w-3.5 h-3.5" />
+                          Ocultar
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3.5 h-3.5" />
+                          Mostrar
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => deleteCourse(course.id)}
+                      className="flex-1 min-w-[30%] flex items-center justify-center gap-1.5 px-2 py-2 bg-destructive text-destructive-foreground rounded-full text-xs font-medium hover:bg-destructive/90 transition shadow-sm"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Eliminar
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-sm">
+            {isLoading ? 'Cargando cursos...' : `No hay cursos en la sección ${selectedSection || 'seleccionada'}`}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,20 +1,21 @@
 import { prisma } from '@/lib/db';
 import { CursosPageClient } from '@/components/CursosPageClient';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 
 export default async function CursosPage() {
-  const sections = await prisma.section.findMany({
+  const courses = await prisma.course.findMany({
     where: { active: true },
-    include: {
-      courses: {
-        where: { active: true },
-        include: {
-          contents: true,
-        },
-        orderBy: [{ order: 'asc' }, { title: 'asc' }],
-      },
-    },
     orderBy: [{ order: 'asc' }, { title: 'asc' }],
   });
 
-  return <CursosPageClient sections={sections} />;
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <main className="grow mt-16 md:mt-20">
+        <CursosPageClient courses={courses} />
+      </main>
+      <Footer />
+    </div>
+  );
 }

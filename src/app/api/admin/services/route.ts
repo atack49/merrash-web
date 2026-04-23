@@ -13,6 +13,8 @@ export async function GET() {
                 id: true,
                 title: true,
                 description: true,
+                priceSession: true,
+                pricePackage: true,
                 category: true,
                 icon: true,
                 order: true,
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { title, description, icon, category, order } = body;
+        const { title, description, priceSession, pricePackage, icon, category, order } = body;
 
                 const normalizedIcon =
                         icon === null || icon === undefined || icon === ''
@@ -70,6 +72,8 @@ export async function POST(request: NextRequest) {
             data: {
                 title,
                 description,
+                priceSession,
+                pricePackage,
                 icon: normalizedIcon,
                 category,
                 order: order || 0,
