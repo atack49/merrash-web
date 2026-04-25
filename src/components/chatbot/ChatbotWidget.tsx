@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CHATBOT_OPEN_EVENT } from '@/lib/chatbot/widgetEvents';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, X, MessageCircle, ChevronDown, Phone } from 'lucide-react';
 
 type ChatAction = {
     id: string;
@@ -334,9 +334,19 @@ export function ChatbotWidget() {
                 ref={toggleButtonRef}
                 type="button"
                 onClick={() => setIsOpen((prev) => !prev)}
-                className="fixed bottom-5 right-5 z-50 rounded-full bg-primary text-white px-5 py-3 shadow-lg hover:bg-primary/90 transition-colors font-medium"
+                className="fixed bottom-5 right-5 z-50 rounded-full bg-primary text-white px-5 py-3 shadow-lg hover:bg-primary/90 transition-all active:scale-95 font-medium flex items-center gap-2 group"
             >
-                {isOpen ? 'Cerrar' : 'Chat'}
+                {isOpen ? (
+                    <>
+                        <ChevronDown className="w-5 h-5 transition-transform group-hover:translate-y-0.5" />
+                        Minimizar
+                    </>
+                ) : (
+                    <>
+                        <MessageCircle className="w-5 h-5" />
+                        Chat
+                    </>
+                )}
             </button>
 
             {isOpen && (
@@ -350,15 +360,35 @@ export function ChatbotWidget() {
                                 <p className="font-semibold text-foreground">Asistente Merrash</p>
                                 <p className="text-xs text-muted-foreground">Aquí puedo ayudarte </p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={resetConversation}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-border bg-background text-foreground text-[11px] font-semibold hover:bg-muted transition-colors"
-                                aria-label="Reiniciar conversacion"
-                            >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                                Nuevo
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                                <a
+                                    href="https://wa.me/527224958550?text=Hola,%20vengo%20de%20la%20web%20de%20Merrash"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#25D366] text-white text-[11px] font-semibold hover:bg-[#20ba5a] transition-colors shadow-sm"
+                                    aria-label="Contactar por WhatsApp"
+                                >
+                                    <Phone className="w-3.5 h-3.5 fill-current" />
+                                    WhatsApp
+                                </a>
+                                <button
+                                    type="button"
+                                    onClick={resetConversation}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-border bg-background text-foreground text-[11px] font-semibold hover:bg-muted transition-colors"
+                                    aria-label="Reiniciar conversacion"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    Nuevo
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsOpen(false)}
+                                    className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors"
+                                    aria-label="Cerrar asistente"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
 

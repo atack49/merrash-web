@@ -13,12 +13,17 @@ export async function GET(req: NextRequest) {
 
     const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
 
+    console.log('--- INTENTO DE VERIFICACIÓN WEBHOOK ---');
+    console.log('Mode:', mode);
+    console.log('Token recibido:', token);
+    console.log('Verify Token esperado:', verifyToken);
+
     if (mode === 'subscribe' && token === verifyToken) {
-        console.log('WhatsApp Webhook Verified!');
+        console.log('¡Webhook de WhatsApp Verificado con éxito!');
         return new NextResponse(challenge, { status: 200 });
     }
 
-    console.error('WhatsApp Webhook Verification Failed');
+    console.error('La Verificación del Webhook de WhatsApp Falló');
     return new NextResponse('Forbidden', { status: 403 });
 }
 
@@ -28,6 +33,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const body: WhatsAppWebhookBody = await req.json();
+        console.log('--- NUEVA PETICIÓN WEBHOOK ---');
+        console.log('Body:', JSON.stringify(body, null, 2));
 
         // Verificar que sea un evento de estado de WhatsApp
         if (body.object !== 'whatsapp_business_account') {
@@ -62,6 +69,7 @@ export async function POST(req: NextRequest) {
         await processIncomingWhatsAppMessage(senderPhone, textBody);
 
         // Devolver un 200 ok rápidamente a Meta
+        console.log('Webhook procesado con éxito, enviando 200 OK');
         return new NextResponse('OK', { status: 200 });
     } catch (error) {
         console.error('Error procesando webhook de WhatsApp:', error);
@@ -73,6 +81,7 @@ async function processIncomingWhatsAppMessage(senderPhone: string, messageText: 
     try {
         const conversationId = `wa-${senderPhone}`;
         const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        console.log(`Procesando mensaje para ${senderPhone} con origen ${origin}`);
 
         // Delegamos todo el flujo (manejo de contexto, validación de fechas, IA, base de datos de citas y webhook de google)
         // a la función core unificada.
@@ -94,7 +103,9 @@ async function processIncomingWhatsAppMessage(senderPhone: string, messageText: 
         }
 
         // Enviar respuesta compilada por WhatsApp
-        await sendWhatsAppMessage(senderPhone, finalReply);
+        console.log(`Enviando respuesta a ${senderPhone}: ${finalReply}`);
+        const sent = await sendWhatsAppMessage(senderPhone, finalReply);
+        console.log(`Estado del envío: ${sent ? 'ÉXITO' : 'ERROR'}`);
 
     } catch (e) {
         console.error('Error al generar respuesta asíncrona de WhatsApp', e);

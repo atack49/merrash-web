@@ -65,7 +65,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/#inicio" className="flex items-center gap-2 lg:gap-3 shrink-0">
+        <Link href="/#inicio" className="flex items-center gap-2 lg:gap-3 shrink-0 mr-4 lg:mr-8">
           <Image
             src={useWhiteStyle ? "/Logob.svg" : "/Logo.svg"}
             alt="Merrash"
@@ -85,7 +85,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
           </span>
 
           {isAdmin && (
-            <span className="hidden md:inline-flex shrink-0 items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[10px] lg:text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap">
+            <span className="hidden md:inline-flex shrink-0 items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-[10px] lg:text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap ml-2">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden 2xl:inline">Panel de Administración</span>
               <span className="hidden xl:inline 2xl:hidden">Panel Admin</span>
@@ -96,13 +96,13 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
 
         {/* Desktop Navigation */}
         {!isAdmin ? (
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8">
             {NAVIGATION.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors",
+                  "text-sm font-medium transition-colors whitespace-nowrap",
                   useWhiteStyle
                     ? "text-white/90 hover:text-white"
                     : "text-foreground hover:text-accent"
@@ -112,32 +112,35 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
               </Link>
             ))}
 
-            <AnimatedThemeToggler />
+            <div className="flex items-center">
+              <AnimatedThemeToggler />
+            </div>
 
             <button
               type="button"
               onClick={openChatbotWidget}
               className={cn(
-                "px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2",
+                "px-4 lg:px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap",
                 useWhiteStyle
                   ? "bg-card/90 text-primary hover:bg-card"
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
               )}
             >
-              <Phone className="w-4 h-4" />
-              Agendar Cita
+              <Phone className="w-4 h-4 shrink-0" />
+              <span className="hidden lg:inline">Agendar Cita</span>
+              <span className="inline lg:hidden">Cita</span>
             </button>
           </nav>
         ) : (
           <>
-            {/* Desktop Admin Tabs */}
-            <nav className="hidden lg:flex items-center gap-1">
+            {/* Desktop Admin Tabs (Large screens) */}
+            <nav className="hidden xl:flex items-center gap-1">
               {ADMIN_TABS.map((tab) => (
                 <button
                   key={tab.name}
                   onClick={() => onAdminTabChange?.(tab.href)}
                   className={cn(
-                    "px-4 py-2 text-sm md:text-base lg:text-lg font-medium rounded-full transition-colors whitespace-nowrap",
+                    "px-4 py-2 text-base font-medium rounded-full transition-colors whitespace-nowrap",
                     activeAdminTab === tab.href
                       ? "bg-primary text-white"
                       : "text-foreground hover:bg-secondary/50"
@@ -151,18 +154,39 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
               ))}
             </nav>
 
-            <div className="hidden lg:flex items-center ml-2 border-l border-border/50 pl-4">
+            {/* Desktop Admin Tabs (Medium-Large screens) */}
+            <nav className="hidden lg:flex xl:hidden items-center gap-0.5">
+              {ADMIN_TABS.map((tab) => (
+                <button
+                  key={tab.name}
+                  onClick={() => onAdminTabChange?.(tab.href)}
+                  className={cn(
+                    "px-3 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                    activeAdminTab === tab.href
+                      ? "bg-primary text-white"
+                      : "text-foreground hover:bg-secondary/50"
+                  )}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <tab.icon className="w-4 h-4" />
+                    {tab.shortName}
+                  </span>
+                </button>
+              ))}
+            </nav>
+
+            <div className="hidden lg:flex items-center ml-1 border-l border-border/50 pl-2">
               <AnimatedThemeToggler />
             </div>
 
-            {/* Tablet Admin Tabs */}
+            {/* Tablet Admin Tabs (Medium screens) */}
             <nav className="hidden md:flex lg:hidden items-center gap-0.5 flex-wrap justify-center">
               {ADMIN_TABS.map((tab) => (
                 <button
                   key={tab.name}
                   onClick={() => onAdminTabChange?.(tab.href)}
                   className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
+                    "px-2.5 py-1.5 text-xs font-medium rounded-full transition-colors",
                     activeAdminTab === tab.href
                       ? "bg-primary text-white"
                       : "text-foreground hover:bg-secondary/50"
