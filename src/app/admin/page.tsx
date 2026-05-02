@@ -18,7 +18,17 @@ export default async function AdminPage() {
 
     // Fetch surveys, services, testimonials, and contact info
     let surveys: { id: string; title: string; type: string; active: boolean; createdAt: Date; _count: { questions: number; responses: number; appointments: number; }; }[] = [];
-    let services: { id: string; title: string; description: string; icon: string | null; category: string; active: boolean; order: number; }[] = [];
+    let services: {
+        id: string;
+        title: string;
+        description: string;
+        priceSession: string | null;
+        pricePackage: string | null;
+        icon: string | null;
+        category: string;
+        active: boolean;
+        order: number;
+    }[] = [];
     let testimonials: any[] = [];
     let contactInfo: { id: string; address: string; phones: string[]; email: string; hours: { weekdays: string; saturday: string; }; } | null = null;
 
