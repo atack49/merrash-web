@@ -69,10 +69,23 @@ const NAME_STOPWORDS = new Set([
     'editar',
     'datos',
     'agendame',
-    'agéndame',
     'agenda',
     'cita',
     'servicio',
+    'hola',
+    'buenas',
+    'buenos',
+    'tardes',
+    'noches',
+    'días',
+    'dias',
+    'que',
+    'qué',
+    'quiero',
+    'necesito',
+    'buen',
+    'dia',
+    'día'
 ]);
 
 const cleanNameCandidate = (candidate: string, services: string[]) => {
