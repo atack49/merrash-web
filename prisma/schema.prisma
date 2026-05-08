@@ -151,9 +151,26 @@ model Course {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  contents    CourseContent[]
 
   @@index([category])
   @@index([active])
   @@index([order])
   @@index([category, active])
+}
+
+model CourseContent {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  type        String   @default("TASK") // 'TASK' | 'MATERIAL' | 'PDF' | 'TOOL'
+  resourceUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([courseId])
+  @@index([type])
 }
