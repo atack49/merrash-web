@@ -28,6 +28,7 @@ export function About() {
                                         alt="Dra. María de Lourdes Molina Olivares"
                                         fill
                                         className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                        unoptimized
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -59,6 +60,7 @@ export function About() {
                                     alt="Merrash Center"
                                     fill
                                     className="object-cover hover:scale-105 transition-transform duration-700"
+                                    unoptimized
                                 />
                             </div>
                         </div>

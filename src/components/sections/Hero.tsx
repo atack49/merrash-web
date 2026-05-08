@@ -18,6 +18,7 @@ export function Hero() {
                     fill
                     className="object-cover"
                     priority
+                    unoptimized
                 />
                 <div className="absolute inset-0 bg-black/30 md:bg-black/20" /> {/* Overlay */}
             </div>
