@@ -54,7 +54,7 @@ export function About() {
                      Ideally I'd generate another specific one for 'About', but reusing fits the 'placeholder' requirement if needed. 
                      Alternatively, I can just use a color block or the same image. I'll use the same hero bg for visual consistency for now. */}
                                 <img
-                                    src="/merrash_center_hp.png"
+                                    src="/center_fixed.png"
                                     alt="Merrash Center"
                                     className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                                 />
