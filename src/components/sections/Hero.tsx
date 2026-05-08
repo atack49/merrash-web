@@ -12,13 +12,11 @@ export function Hero() {
         <section id="inicio" className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
-                <Image
-                    src="/hero_background_hq.png"
+                <img
+                    src="/hero_background.png"
                     alt="Merrash Spa Atmosphere"
-                    fill
-                    className="object-cover"
-                    priority
-                    unoptimized
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="eager"
                 />
                 <div className="absolute inset-0 bg-black/30 md:bg-black/20" /> {/* Overlay */}
             </div>

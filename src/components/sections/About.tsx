@@ -23,12 +23,10 @@ export function About() {
                             <p className="italic text-foreground/80 mb-4">"{ABOUT_TEXT.mission}"</p>
                             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                                 <div className="relative w-28 h-32 shrink-0 overflow-hidden rounded-tl-2xl rounded-br-2xl rounded-tr-[3rem] rounded-bl-[3rem] border-2 border-primary/20 shadow-md group bg-muted/30">
-                                    <Image
+                                    <img
                                         src="/drl.png"
                                         alt="Dra. María de Lourdes Molina Olivares"
-                                        fill
-                                        className="object-cover group-hover:scale-110 transition-transform duration-700"
-                                        unoptimized
+                                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -55,12 +53,10 @@ export function About() {
                                 {/* Reusing hero background or another placeholder for now, since I only generated one. 
                      Ideally I'd generate another specific one for 'About', but reusing fits the 'placeholder' requirement if needed. 
                      Alternatively, I can just use a color block or the same image. I'll use the same hero bg for visual consistency for now. */}
-                                <Image
+                                <img
                                     src="/merrash_center_hp.png"
                                     alt="Merrash Center"
-                                    fill
-                                    className="object-cover hover:scale-105 transition-transform duration-700"
-                                    unoptimized
+                                    className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                                 />
                             </div>
                         </div>
