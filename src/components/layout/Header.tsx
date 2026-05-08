@@ -67,7 +67,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
         {/* Logo */}
         <Link href="/#inicio" className="flex items-center gap-2 lg:gap-3 shrink-0 mr-4 lg:mr-8">
           <Image
-            src={useWhiteStyle ? "/Logob.svg" : "/Logo.svg"}
+            src={useWhiteStyle ? "/logob.svg" : "/Logo.svg"}
             alt="Merrash"
             width={70}
             height={34}
