@@ -12,7 +12,8 @@
     "prisma:seed": "dotenv -e .env.local -- node prisma/seed.ts",
     "setup": "npm run prisma:migrate && npm run prisma:seed",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

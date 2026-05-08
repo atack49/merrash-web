@@ -187,7 +187,7 @@ export function ServicesManager({ initialServices }: ServicesManagerProps) {
                 const error = await res.json();
                 throw new Error(error.error || 'Error al agregar');
             }
-
+            const created = await res.json();
             setServices([...services, created]);
             setShowAddForm(false);
             setNewService({ title: '', description: '', icon: '', category: 'Cuerpo', priceSession: '', pricePackage: '' });
