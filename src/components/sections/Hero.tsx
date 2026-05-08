@@ -13,7 +13,7 @@ export function Hero() {
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="/hero_background.png"
+                    src="/test_bg.png"
                     alt="Merrash Spa Atmosphere"
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="eager"
