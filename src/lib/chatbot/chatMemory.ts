@@ -14,7 +14,9 @@ export interface ChatMemoryState {
 
 type ChatMemoryStore = Record<string, ChatMemoryState>;
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.VERCEL || process.env.NODE_ENV === 'production' 
+    ? path.join('/tmp', 'merrash-chatbot-data') 
+    : path.join(process.cwd(), 'data');
 const MEMORY_FILE = path.join(DATA_DIR, 'chatbot-memory.json');
 const MAX_HISTORY_ITEMS = Number(process.env.CHATBOT_HISTORY_LIMIT || '120');
 const MAX_DAYS_TO_KEEP = 7;
