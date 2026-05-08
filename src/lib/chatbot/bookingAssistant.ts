@@ -336,7 +336,8 @@ export const decideBookingFlow = (message: string, history: ChatHistoryItem[], s
         !data.preferredTime ? 'hora' : null,
     ].filter(Boolean) as string[];
 
-    const bookingIntentInContext = userTexts.some((text) => shouldStartBookingFlow(text));
+    // Solo buscar intención en el mensaje actual para evitar arrastrar intenciones de citas ya terminadas
+    const bookingIntentInContext = shouldStartBookingFlow(normalizedMessage);
     const extractedSignalCount = [data.name, data.email, data.phone, data.service, data.preferredDate, data.preferredTime].filter(Boolean)
         .length;
     const hasStructuredBookingSignals =

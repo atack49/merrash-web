@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { WhatsAppWebhookBody, sendWhatsAppMessage } from '@/lib/whatsapp/api';
 import { processChatbotMessage } from '@/lib/chatbot/core';
 
@@ -65,8 +65,10 @@ export async function POST(req: NextRequest) {
 
         console.log(`Mensaje recibido de ${senderPhone}: ${textBody}`);
 
-        // Responder en el entorno asíncrono puro
-        await processIncomingWhatsAppMessage(senderPhone, textBody);
+        // Responder en background sin bloquear la respuesta a Meta
+        after(async () => {
+            await processIncomingWhatsAppMessage(senderPhone, textBody);
+        });
 
         // Devolver un 200 ok rápidamente a Meta
         console.log('Webhook procesado con éxito, enviando 200 OK');
