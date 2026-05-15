@@ -8,6 +8,7 @@ import { ContactManager } from './ContactManager';
 import { AppointmentsCalendar } from './AppointmentsCalendar';
 import { CoursesManager } from './CoursesManager';
 import { SurveysManager } from './SurveysManager';
+import { LiveChatManager } from './LiveChatManager';
 
 export function AdminTabs({ activeTab, surveys, services, testimonials, contactInfo }: any) {
     return (
@@ -45,6 +46,16 @@ export function AdminTabs({ activeTab, surveys, services, testimonials, contactI
                         <div className="space-y-4 md:space-y-6">
                             <h2 className="text-lg md:text-xl font-bold">Gestionar Cursos</h2>
                             <CoursesManager />
+                        </div>
+                    )}
+
+                    {activeTab === 'chat' && (
+                        <div className="space-y-4 md:space-y-6">
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5 text-primary" />
+                                <h2 className="text-lg md:text-xl font-bold">Chat en Vivo</h2>
+                            </div>
+                            <LiveChatManager />
                         </div>
                     )}
                 </div>

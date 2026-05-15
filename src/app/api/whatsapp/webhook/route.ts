@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 import { WhatsAppWebhookBody, sendWhatsAppMessage } from '@/lib/whatsapp/api';
 import { processChatbotMessage } from '@/lib/chatbot/core';
+import { prisma } from '@/lib/db';
 
 /**
  * Handle GET requests (Webhook Verification from Meta)
@@ -85,6 +86,15 @@ async function processIncomingWhatsAppMessage(senderPhone: string, messageText: 
         const origin = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         console.log(`Procesando mensaje para ${senderPhone} con origen ${origin}`);
 
+        // Guardar el mensaje entrante del paciente en la base de datos
+        await prisma.chatMessage.create({
+            data: {
+                phone: senderPhone,
+                body: messageText,
+                sender: 'paciente',
+            }
+        });
+
         // Delegamos todo el flujo (manejo de contexto, validación de fechas, IA, base de datos de citas y webhook de google)
         // a la función core unificada.
         const result = await processChatbotMessage({
@@ -108,6 +118,17 @@ async function processIncomingWhatsAppMessage(senderPhone: string, messageText: 
         console.log(`Enviando respuesta a ${senderPhone}: ${finalReply}`);
         const sent = await sendWhatsAppMessage(senderPhone, finalReply);
         console.log(`Estado del envío: ${sent ? 'ÉXITO' : 'ERROR'}`);
+
+        if (sent) {
+            // Guardar la respuesta del bot en la base de datos
+            await prisma.chatMessage.create({
+                data: {
+                    phone: senderPhone,
+                    body: finalReply,
+                    sender: 'bot',
+                }
+            });
+        }
 
     } catch (e) {
         console.error('Error al generar respuesta asíncrona de WhatsApp', e);

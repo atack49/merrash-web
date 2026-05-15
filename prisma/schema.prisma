@@ -82,6 +82,8 @@ model Appointment {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  chatMessages   ChatMessage[]
+
   @@index([surveyId])
   @@index([email])
   @@index([status])
@@ -173,4 +175,19 @@ model CourseContent {
 
   @@index([courseId])
   @@index([type])
+}
+
+model ChatMessage {
+  id            String       @id @default(cuid())
+  phone         String       // Número de teléfono del contacto (WhatsApp)
+  contactName   String?      // Nombre del contacto si está disponible
+  body          String       // Contenido del mensaje
+  sender        String       // 'bot' | 'admin' | 'paciente'
+  appointmentId String?      // Relación opcional con una cita
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+
+  @@index([phone])
+  @@index([createdAt])
+  @@index([appointmentId])
 }
