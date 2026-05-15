@@ -7,7 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { LogOut } from 'lucide-react';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 
-const VALID_ADMIN_TABS = ['citas', 'servicios', 'contacto', 'testimonios', 'encuestas', 'cursos'] as const;
+const VALID_ADMIN_TABS = ['citas', 'servicios', 'contacto', 'testimonios', 'encuestas', 'cursos', 'chat'] as const;
 type AdminTab = (typeof VALID_ADMIN_TABS)[number];
 
 const normalizeAdminTab = (value: string | null): AdminTab => {

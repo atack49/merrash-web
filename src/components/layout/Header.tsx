@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Phone, CalendarDays, HeartPulse, PhoneCall, Star, ClipboardList, ShieldCheck, BookOpen } from 'lucide-react';
+import { Menu, X, Phone, CalendarDays, HeartPulse, PhoneCall, Star, ClipboardList, ShieldCheck, BookOpen, MessageSquare } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { openChatbotWidget } from "@/lib/chatbot/widgetEvents";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -22,6 +22,7 @@ const NAVIGATION = [
 
 const ADMIN_TABS = [
   { name: "Citas Agendadas", shortName: "Citas", href: "citas", icon: CalendarDays },
+  { name: "Chat en Vivo", shortName: "Chat", href: "chat", icon: MessageSquare },
   { name: "Servicios", shortName: "Servicios", href: "servicios", icon: HeartPulse },
   { name: "Contactanos", shortName: "Contacto", href: "contacto", icon: PhoneCall },
   { name: "Testimonios", shortName: "Testimonios", href: "testimonios", icon: Star },
