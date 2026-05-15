@@ -141,7 +141,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                   key={tab.name}
                   onClick={() => onAdminTabChange?.(tab.href)}
                   className={cn(
-                    "px-4 py-2 text-base font-medium rounded-full transition-colors whitespace-nowrap",
+                    "px-3 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap",
                     activeAdminTab === tab.href
                       ? "bg-primary text-white"
                       : "text-foreground hover:bg-secondary/50"
@@ -149,7 +149,7 @@ export function Header({ activeAdminTab, onAdminTabChange }: HeaderProps) {
                 >
                   <span className="inline-flex items-center gap-2">
                     <tab.icon className="w-4 h-4" />
-                    {tab.name}
+                    {tab.shortName}
                   </span>
                 </button>
               ))}
