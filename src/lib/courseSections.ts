@@ -1,7 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.VERCEL || process.env.NODE_ENV === 'production' 
+  ? '/tmp' 
+  : path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'course-sections.json');
 
 const DEFAULT_SECTION_NAMES = ['Cuerpo', 'Mente', 'Espíritu'];
@@ -18,7 +20,11 @@ async function ensureDataDir() {
   try {
     await fs.access(DATA_DIR);
   } catch {
-    await fs.mkdir(DATA_DIR, { recursive: true });
+    try {
+      await fs.mkdir(DATA_DIR, { recursive: true });
+    } catch (e) {
+      console.warn('Could not create data dir:', e);
+    }
   }
 }
 
@@ -32,8 +38,12 @@ function compareByOrderAndName(a: CourseSection, b: CourseSection) {
 }
 
 async function writeSections(sections: CourseSection[]) {
-  await ensureDataDir();
-  await fs.writeFile(DATA_FILE, JSON.stringify(sections.sort(compareByOrderAndName), null, 2), 'utf-8');
+  try {
+    await ensureDataDir();
+    await fs.writeFile(DATA_FILE, JSON.stringify(sections.sort(compareByOrderAndName), null, 2), 'utf-8');
+  } catch (error) {
+    console.warn('Failed to write course-sections.json (expected in Vercel)', error);
+  }
 }
 
 export async function getCourseSections(): Promise<CourseSection[]> {
