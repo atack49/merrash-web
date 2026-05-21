@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { sendWhatsAppMessage } from '@/lib/whatsapp/api';
 
 export async function POST(req: Request) {
     try {
@@ -10,34 +11,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
         }
 
-        const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
-        const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+        // 1. Enviar mensaje a través del helper centralizado de WhatsApp
+        const isSent = await sendWhatsAppMessage(phone, message);
 
-        if (!WHATSAPP_API_TOKEN || !PHONE_NUMBER_ID) {
-            console.error("Faltan variables de entorno para WhatsApp API");
-            return NextResponse.json({ error: 'Configuración de servidor incompleta' }, { status: 500 });
-        }
-
-        // 1. Enviar mensaje a través de WhatsApp Cloud API
-        const response = await fetch(`https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                messaging_product: "whatsapp",
-                recipient_type: "individual",
-                to: phone,
-                type: "text",
-                text: { preview_url: false, body: message }
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error WhatsApp API:", errorData);
-            throw new Error(errorData.error?.message || 'Error en WhatsApp API');
+        if (!isSent) {
+            console.error("Error enviando el mensaje a través de WhatsApp Cloud API");
+            throw new Error('No se pudo enviar el mensaje a través de WhatsApp. Verifica los tokens del servidor.');
         }
 
         // 2. Guardar en la base de datos
