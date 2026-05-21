@@ -68,7 +68,7 @@ export function AdminPageClientWrapper({
             </main>
             <Footer />
 
-            <div className="fixed bottom-5 right-5 z-[60]">
+            <div className={`fixed bottom-5 right-5 z-[60] ${activeTab === 'chat' ? 'hidden md:block' : 'block'}`}>
                 <button
                     type="button"
                     onClick={() => setIsLogoutModalOpen(true)}
