@@ -90,7 +90,7 @@ export function LiveChatManager() {
     };
 
     return (
-        <div className="flex flex-col md:flex-row h-[400px] md:h-[600px] border border-border rounded-xl overflow-hidden bg-card">
+        <div className="flex flex-col md:flex-row h-[70vh] md:h-[600px] border border-border rounded-xl overflow-hidden bg-card">
             {/* Left Column: Contacts */}
             <div className={`w-full md:w-1/3 border-r border-border bg-muted/20 flex flex-col ${activeContact ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-border bg-card">
@@ -119,7 +119,11 @@ export function LiveChatManager() {
             </div>
 
             {/* Right Column: Chat Window */}
-            <div className={`w-full md:w-2/3 flex flex-col bg-card ${!activeContact ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`w-full md:w-2/3 flex flex-col bg-card ${
+                !activeContact 
+                    ? 'hidden md:flex' 
+                    : 'fixed md:relative top-[64px] md:top-0 inset-x-0 bottom-0 md:bottom-auto z-[45] md:z-auto h-[calc(100dvh-64px)] md:h-full flex'
+            }`}>
                 {activeContact ? (
                     <>
                         <div className="p-4 border-b border-border bg-card flex justify-between items-center shadow-sm z-10">
@@ -141,7 +145,7 @@ export function LiveChatManager() {
                             <span className="hidden md:inline text-sm text-muted-foreground">{activeContact.phone}</span>
                         </div>
                         
-                        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/10">
+                        <div ref={chatContainerRef} className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 bg-muted/10">
                             {messages.map((msg) => {
                                 const isPatient = msg.sender === 'paciente';
                                 return (

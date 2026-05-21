@@ -11,6 +11,13 @@ export const metadata: Metadata = {
     description: "Equilibrio y bienestar integral. Acupuntura, Spa, Homeopatía y más en Metepec.",
 };
 
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    interactiveWidget: "resizes-content",
+};
+
 export default function RootLayout({
     children,
 }: Readonly<{
