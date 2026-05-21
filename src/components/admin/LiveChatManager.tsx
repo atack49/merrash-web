@@ -219,10 +219,10 @@ export function LiveChatManager() {
                                     <div key={msg.id} className={`flex flex-col ${isPatient ? 'items-start' : 'items-end'}`}>
                                         <div className={`px-4 py-2.5 max-w-[80%] md:max-w-[70%] shadow-sm ${
                                             isPatient 
-                                                ? 'bg-muted/50 border border-border/30 text-foreground rounded-2xl rounded-tl-sm' 
+                                                ? 'bg-muted/50 border border-border/30 text-foreground rounded-[24px] rounded-tl-[8px]' 
                                                 : msg.sender === 'bot'
-                                                    ? 'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl rounded-tr-sm shadow-indigo-600/10'
-                                                    : 'bg-gradient-to-br from-[#068E89] to-[#046a67] text-white rounded-2xl rounded-tr-sm shadow-[#068E89]/10'
+                                                    ? 'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-[24px] rounded-tr-[8px] shadow-indigo-600/10'
+                                                    : 'bg-gradient-to-br from-[#068E89] to-[#046a67] text-white rounded-[24px] rounded-tr-[8px] shadow-[#068E89]/10'
                                         }`}>
                                             <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.body}</p>
                                         </div>
