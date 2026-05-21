@@ -25,6 +25,7 @@ export function LiveChatManager() {
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -42,7 +43,9 @@ export function LiveChatManager() {
 
     // Auto-scroll al final
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
     };
 
     useEffect(() => {
@@ -138,7 +141,7 @@ export function LiveChatManager() {
                             <span className="hidden md:inline text-sm text-muted-foreground">{activeContact.phone}</span>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/10">
+                        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/10">
                             {messages.map((msg) => {
                                 const isPatient = msg.sender === 'paciente';
                                 return (
