@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, UserCog } from 'lucide-react';
+import { Send, User, Bot, UserCog, ArrowLeft } from 'lucide-react';
 import useSWR from 'swr';
 
 interface ChatMessage {
@@ -87,9 +87,9 @@ export function LiveChatManager() {
     };
 
     return (
-        <div className="flex h-[600px] border border-border rounded-xl overflow-hidden bg-card">
+        <div className="flex flex-col md:flex-row h-[600px] border border-border rounded-xl overflow-hidden bg-card">
             {/* Left Column: Contacts */}
-            <div className="w-1/3 border-r border-border bg-muted/20 flex flex-col">
+            <div className={`w-full md:w-1/3 border-r border-border bg-muted/20 flex flex-col ${activeContact ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-border bg-card">
                     <h3 className="font-semibold text-lg">Conversaciones</h3>
                 </div>
@@ -116,12 +116,26 @@ export function LiveChatManager() {
             </div>
 
             {/* Right Column: Chat Window */}
-            <div className="w-2/3 flex flex-col bg-card">
+            <div className={`w-full md:w-2/3 flex flex-col bg-card ${!activeContact ? 'hidden md:flex' : 'flex'}`}>
                 {activeContact ? (
                     <>
                         <div className="p-4 border-b border-border bg-card flex justify-between items-center shadow-sm z-10">
-                            <h3 className="font-semibold">{activeContact.contactName || activeContact.phone}</h3>
-                            <span className="text-sm text-muted-foreground">{activeContact.phone}</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setActiveContact(null)}
+                                    className="md:hidden p-1 -ml-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                                    aria-label="Volver a conversaciones"
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </button>
+                                <div>
+                                    <h3 className="font-semibold leading-none">{activeContact.contactName || activeContact.phone}</h3>
+                                    {activeContact.contactName && (
+                                        <span className="text-[10px] text-muted-foreground md:hidden mt-0.5 block">{activeContact.phone}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <span className="hidden md:inline text-sm text-muted-foreground">{activeContact.phone}</span>
                         </div>
                         
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/10">
