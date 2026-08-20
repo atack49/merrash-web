@@ -12,11 +12,13 @@ export function Hero() {
         <section id="inicio" className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
-                <img
+                <Image
                     src="/hero_bg_fixed.png"
-                    alt="Merrash Spa Atmosphere"
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="eager"
+                    alt="Merrash - Centro de Medicina Alternativa y Spa Integral en Metepec"
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/30 md:bg-black/20" /> {/* Overlay */}
             </div>

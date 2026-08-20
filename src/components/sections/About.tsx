@@ -23,10 +23,12 @@ export function About() {
                             <p className="italic text-foreground/80 mb-4">"{ABOUT_TEXT.mission}"</p>
                             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                                 <div className="relative w-28 h-32 shrink-0 overflow-hidden rounded-tl-2xl rounded-br-2xl rounded-tr-[3rem] rounded-bl-[3rem] border-2 border-primary/20 shadow-md group bg-muted/30">
-                                    <img
+                                    <Image
                                         src="/drl.png"
-                                        alt="Dra. María de Lourdes Molina Olivares"
-                                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        alt="Dra. María de Lourdes Molina Olivares - Especialista en Medicina Alternativa y Salud Holística en Metepec"
+                                        fill
+                                        sizes="112px"
+                                        className="object-cover group-hover:scale-110 transition-transform duration-700"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -50,13 +52,12 @@ export function About() {
                             {/* Decorative background blob or shape could go here */}
                             <div className="absolute inset-0 bg-primary/10 rounded-full transform translate-x-4 translate-y-4 blur-3xl z-0" />
                             <div className="relative z-10 w-full h-full rounded-2xl overflow-hidden shadow-2xl">
-                                {/* Reusing hero background or another placeholder for now, since I only generated one. 
-                     Ideally I'd generate another specific one for 'About', but reusing fits the 'placeholder' requirement if needed. 
-                     Alternatively, I can just use a color block or the same image. I'll use the same hero bg for visual consistency for now. */}
-                                <img
+                                <Image
                                     src="/center_fixed.png"
-                                    alt="Merrash Center"
-                                    className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                                    alt="Instalaciones de Merrash Centro de Medicina Alternativa y Spa Integral en Metepec"
+                                    fill
+                                    sizes="(max-width: 1024px) 100vw, 50vw"
+                                    className="object-cover hover:scale-105 transition-transform duration-700"
                                 />
                             </div>
                         </div>
