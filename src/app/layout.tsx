@@ -42,6 +42,9 @@ export const metadata: Metadata = {
             'max-snippet': -1,
         },
     },
+    verification: {
+        google: 'google1e2cdf2bd1a84454',
+    },
     openGraph: {
         title: "Merrash - Medicina Alternativa y Spa Integral",
         description: "Equilibrio y bienestar integral. Acupuntura, Spa, Homeopatía, Sueroterapia y más en Metepec.",
